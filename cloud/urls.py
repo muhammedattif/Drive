@@ -17,16 +17,20 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
-from accounts.views import login, register
+from accounts.views import login_view, register_view, logout_view
 from uploader.views import home
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home, name='home'),
 
-    path('login', login, name='login'),
-    path('register', register, name='register'),
-    # path('account/', include('accounts.urls', namespace='account')),
+    path('login', login_view, name='login'),
+    path('register', register_view, name='register'),
+    path('logout', logout_view, name='logout'),
+    path('api/account/', include('accounts.api.urls', 'account_api')),
+
+    path('api/uploader/', include('uploader.api.urls', 'uploader_api')),
+    path('uploader/', include('uploader.urls', namespace='uploader')),
     path('api-auth/', include('rest_framework.urls'))
 
 ]

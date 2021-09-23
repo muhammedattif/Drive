@@ -57,7 +57,55 @@ class Account(AbstractBaseUser):
     def has_module_perms(self, app_label):
         return True
 
+    def used_storege(self):
+        storage = 0
+        files = self.files.all()
+        for file in files:
+            storage += file.file_size
+
+        return storage
+
+    def get_classified_files(self):
+        return classify_files(self.files.all())
+
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
         Token.objects.create(user=instance)
+
+def classify_files(files):
+
+    docs_ext =  ['pdf','doc','docx','xls','ppt','txt']
+
+    classified_files = {
+        'images':{'count': 0, 'size':0},
+        'videos':{'count': 0, 'size':0},
+        'audio':{'count': 0, 'size':0},
+        'docs':{'count': 0, 'size':0},
+        'others':{'count': 0, 'size':0}
+    }
+
+    for file in files:
+        if file.file_type.split('/')[0] == 'image':
+            classified_files['images']['count'] += 1
+            classified_files['images']['size'] += file.file_size
+            continue
+
+        elif file.file_type.split('/')[0] == 'audio':
+            classified_files['audio']['count'] += 1
+            classified_files['audio']['size'] += file.file_size
+            continue
+
+        elif file.file_type.split('/')[0] == 'video':
+            classified_files['videos']['count'] += 1
+            classified_files['videos']['size'] += file.file_size
+            continue
+
+        elif file.file_name.split('.')[-1] in docs_ext or file.file_type.split('/')[0] == 'text':
+            classified_files['docs']['count'] += 1
+            classified_files['docs']['size'] += file.file_size
+            continue
+        else:
+            classified_files['others']['count'] += 1
+            classified_files['others']['size'] += file.file_size
+    return classified_files
