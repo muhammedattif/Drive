@@ -11,28 +11,30 @@ from uploader.models import File
 @permission_classes([IsAuthenticated])
 def upload(request, format=None):
     content = {}
+    links = []
     if bool(request.FILES.get('file', False)) == True:
         user = request.user
-
-        uploaded_file = request.FILES['file']
-        file_name = uploaded_file.name
-        file_size = uploaded_file.size
-        file_category = get_file_cat(uploaded_file)
-        file_type = uploaded_file.content_type
-        file = File.objects.create(uploader=user, file_name=file_name, file_size=file_size, file_type=file_type, file_category=file_category, file=uploaded_file)
-        content = {
-            'uploader': file.uploader.email,
-            'file_name': file.file_name,
-            'file_id': file.pk,
-            'file_link': file.get_url(),
-            'file_size': file.file_size,
-            'file_type': file.file_type,
-            'file_category': file.file_category,
-            'uploaded_at': file.uploaded_at
-        }
+        for file in request.FILES.getlist('file'):
+            uploaded_file = file
+            file_name = uploaded_file.name
+            file_size = uploaded_file.size
+            file_category = get_file_cat(uploaded_file)
+            file_type = uploaded_file.content_type
+            file = File.objects.create(uploader=user, file_name=file_name, file_size=file_size, file_type=file_type, file_category=file_category, file=uploaded_file)
+            content = {
+                'uploader': file.uploader.email,
+                'file_name': file.file_name,
+                'file_id': file.pk,
+                'file_link': file.get_url(),
+                'file_size': file.file_size,
+                'file_type': file.file_type,
+                'file_category': file.file_category,
+                'uploaded_at': file.uploaded_at
+            }
+            links.append(content)
     else:
         content['error'] = 'No file found'
-    return Response(content)
+    return Response(links)
 
 # Delete File
 @api_view(['DELETE'])

@@ -60,7 +60,7 @@ html, body {
   -webkit-transition: all 0.3s ease;
 }
 .form-structor .signup .form-title {
-  color: #fff;
+  color: rgb(238, 133, 29);
   font-size: 1.7em;
   text-align: center;
 }
@@ -240,4 +240,14 @@ html, body {
   margin-top: 10px;
   text-align:center;
 
+}
+.footer{
+  position: fixed;
+  bottom: 5%;
+  align-items: center;
+  justify-content: center;
+}
+
+.primary{
+  color:rgb(238, 133, 29);
 }

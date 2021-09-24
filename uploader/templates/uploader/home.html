@@ -18,10 +18,12 @@
 </head>
 <body>
   <link rel="stylesheet" href="{% static 'uploader/style.css' %}">
-
-<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+<!-- for icons like font awesome -->
 <link href="https://cdn.lineicons.com/3.0/lineicons.css" rel="stylesheet">
+
+<!-- font awesome lib -->
 <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+<!-- for media bar on the left -->
 <link href="https://cdn.jsdelivr.net/npm/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
 <div class="container-fluid">
     <div class="view-account">
@@ -35,7 +37,8 @@
                                 <label class="label label-info">{{request.user.job_title}}</label>
                             </li>
                             <li class="email"><a href="#">{{request.user.email}}</a></li>
-                            <li class="activity">Last logged in: {{request.user.last_login|naturaltime}}</li>
+                            <li><h6 class="activity">Last Login</h6>{{request.user.last_login|naturaltime}}</li>
+                            <li><h6 class="activity">Date Joined</h6>{{request.user.date_joined}}</li>
                         </ul>
                     </div>
                     {% with request.user.get_classified_files as classified_files %}
@@ -44,10 +47,12 @@
                   				<h5 class="mb-0 text-primary font-weight-bold"><span class="float-end text-secondary">{{request.user.used_storege|filesizeformat}}</span> Uploaded</h5>
                           {% with request.user.files.count as total_files_num %}
                   				<div class="progress mt-3" style="height:20px;">
-                  					<div class="progress-bar" role="progressbar" style="width: {{ classified_files.images.count|div:total_files_num|mul:100}}%" aria-valuenow="15" aria-valuemin="0" aria-valuemax="100">Images</div>
-                            <div class="progress-bar bg-warning" role="progressbar" style="width: {{ classified_files.others.count|div:total_files_num|mul:100}}%" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">Other</div>
-                  					<div class="progress-bar bg-success" role="progressbar" style="width: {{ classified_files.docs.count|div:total_files_num|mul:100}}%" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100">Docs</div>
-                  					<div class="progress-bar bg-danger" role="progressbar" style="width: {{ classified_files.audio.count|add:classified_files.videos.count|div:total_files_num|mul:100}}%" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">Media</div>
+                  					{% if total_files_num %}
+                            <div class="progress-bar progress-bar-striped" role="progressbar" style="width: {{ classified_files.images.count|div:total_files_num|mul:100}}%" aria-valuenow="15" aria-valuemin="0" aria-valuemax="100">Images</div>
+                            <div class="progress-bar progress-bar-striped bg-success" role="progressbar" style="width: {{ classified_files.docs.count|div:total_files_num|mul:100}}%" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100">Docs</div>
+                            <div class="progress-bar progress-bar-striped bg-danger" role="progressbar" style="width: {{ classified_files.audio.count|add:classified_files.videos.count|div:total_files_num|mul:100}}%" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">Media</div>
+                            <div class="progress-bar progress-bar-striped bg-warning" role="progressbar" style="width: {{ classified_files.others.count|div:total_files_num|mul:100}}%" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">Other</div>
+                            {% endif %}
                   				</div>
                           {% endwith %}
                   				<div class="mt-3"></div>
@@ -135,6 +140,7 @@
                                     <li><a href="{% url 'uploader:category' 'docs' %}"><i class="fa fa-file"></i> Documents</a></li>
                                     <li><a href="{% url 'uploader:category' 'images' %}"><i class="fa fa-file-image-o"></i> Images</a></li>
                                     <li><a href="{% url 'uploader:category' 'media' %}"><i class="fa fa-file-video-o"></i> Media Files</a></li>
+                                    <li><a href="{% url 'uploader:category' 'other' %}"><i class="fa fa-hdd-o"></i> Other</a></li>
                                     <li><a href="{% url 'uploader:category' 'other' %}"><i class="fa fa-folder"></i> Folders</a></li>
                                 </ul>
                             </div>
@@ -165,9 +171,17 @@
                                                   <div class="file">
                                                       <a href="javascript:void(0);">
                                                           <div class="hover">
-                                                              <button type="button" class="btn btn-icon btn-danger">
-                                                                  <i class="fa fa-trash"></i>
-                                                              </button>
+
+                                                            <h4><a id="link-{{file.pk}}" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ file.get_url }}', 'link-{{file.pk}}')" class="fa fa-files-o copy icons"></i></a></h4>
+                                                            <h4><a href="{{file.file.url}}" download data-toggle="tooltip" data-placement="top" title="" data-original-title="Download"><i class="lni lni-arrow-down-circle download icons"></i></a></h4>
+                                                            <h4><a href="#" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete">
+                                                              <form action="{% url 'uploader:delete' file.id %}" method="POST">
+                                                              <i class="lni lni-trash-can delete icons"></i>
+                                                            </form></a></h4>
+
+
+
+
                                                           </div>
                                                           <div class="icon">
                                                               <i class="fa fa-file text-info"></i>
@@ -224,12 +238,9 @@
                                         <td class="name truncate"><a href="{{file.file.url}}" target="_blank">{{file.file_name}}</a></td>
                                         <td class="date">{{file.uploaded_at}}</td>
                                         <td class="size">{{file.file_size|filesizeformat}}</td>
-                                        <td class="center"><a href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ file.get_url }}')" class="fa fa-clipboard"></i></a></td>
-                                        <td class="center"><a href="{{file.file.url}}" download data-toggle="tooltip" data-placement="top" title="" data-original-title="Download"><i class="fa fa-download"></i></a></td>
-                                        <td class="center"><a href="#" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete">
-                                          <form action="{% url 'uploader:delete' file.id %}" method="POST">
-                                          <i class="fa fa-trash"></i>
-                                        </form></a></td>
+                                        <td class="center"><a id="link-{{file.pk}}" class="copy" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ file.get_url }}', 'link-{{file.pk}}')" class="fa fa-files-o"></i></a></td>
+                                        <td class="center"><a href="{{file.file.url}}" class="download" data-toggle="tooltip" data-placement="top" title="" data-original-title="Download" download><i class="lni lni-arrow-down-circle download"></i></a></td>
+                                        <td class="center"><a href="{% url 'uploader:delete' file.id %}" class="delete" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"><i class="lni lni-trash-can delete"></i></a></td>
                                     </tr>
                                     {% endfor %}
 
@@ -302,7 +313,9 @@ body{
 .view-account .side-bar .user-info .meta li.activity {
     color: #a2a6af
 }
-
+.activity{
+  color: #a2a6af
+}
 .view-account .side-bar .side-menu {
     text-align: center
 }
@@ -367,7 +380,8 @@ body{
 }
 
 .view-account .content-panel {
-    padding: 30px
+    padding: 30px;
+    border-radius: 4px
 }
 
 .view-account .content-panel .title {
@@ -560,8 +574,8 @@ body{
 .drive-wrapper {
     padding: 15px;
     background: #f5f5f5;
-    overflow: hidden;
-    border-radius: 2px
+
+    border-radius: 4px
 }
 
 .drive-wrapper .drive-item {
@@ -767,7 +781,7 @@ body{
     .view-account .content-panel {
         min-height: 800px;
         border-left: 1px solid #f3f3f7;
-        margin-left: 200px
+        margin-left: 300px
     }
     .view-account .mail-subject .subject {
         max-width: 280px;
@@ -777,7 +791,7 @@ body{
     }
     .view-account .side-bar {
         position: absolute;
-        width: 200px;
+        width: 300px;
         min-height: 600px
     }
     .view-account .side-bar .user-info {
@@ -957,7 +971,6 @@ body{
 .file_manager .file {
     position: relative;
     border-radius: .55rem;
-    overflow: hidden
 }
 
 .file_manager .file .image,
@@ -972,7 +985,8 @@ body{
     position: absolute;
     right: 10px;
     top: 10px;
-    display: none;
+    display: block;
+
     transition: all 0.2s ease-in-out
 }
 
@@ -1034,6 +1048,21 @@ a:hover {
     text-decoration:none;
 }
 
+.icons{
+  color: gray;
+}
+
+.copy:hover{
+  color: #007bff!important
+}
+.download:hover{
+  color: green
+}
+.delete:hover{
+  color: red
+}
+
+
 </style>
 
 <script type="text/javascript">
@@ -1041,13 +1070,24 @@ $(function(){
     $("[data-toggle='tooltip']").tooltip();
 })
 
-function CopyFileLink(link)  {
-      const el = document.createElement('textarea');
-      el.value = link;
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand('copy');
-      document.body.removeChild(el);
+function CopyFileLink(link, id)  {
+    const file_id = document.getElementById(id);
+    const el = document.createElement('textarea');
+    el.value = link;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    file_id.style.display = "none";
+    file_id.setAttribute('data-original-title', 'Copied!')
+    setTimeout(function(){
+      file_id.style.display = "block";
+    }, 0);
+
+    setTimeout(function(){
+      file_id.setAttribute('data-original-title', 'Copy Link')
+    }, 500);
+
   };
 </script>
 </body>

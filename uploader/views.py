@@ -18,14 +18,22 @@ def home(request):
 @login_required(login_url='login')
 def upload(request):
     if request.method == 'POST':
+        files_links = []
         user = request.user
 
-        uploaded_file = request.FILES['file']
-        file_size = uploaded_file.size
-        file = File.objects.create(uploader=user, file_name=uploaded_file.name, file_size=file_size, file=uploaded_file)
+        uploaded_files = request.FILES.getlist('file')
+
+        for file in uploaded_files:
+
+            file_name = file.name
+            file_size = file.size
+            file_category = get_file_cat(file)
+            file_type = file.content_type
+            file = File.objects.create(uploader=user, file_name=file_name, file_size=file_size, file_type=file_type, file_category=file_category, file=file)
+            files_links.append(file.get_url())
 
         context = {
-          'file': file
+          'files_links': files_links
         }
 
         return render(request, 'uploader/upload.html', context)
@@ -35,16 +43,12 @@ def upload(request):
 @login_required(login_url='login')
 def delete(request, id):
     context = {}
-
-    if request.method == 'POST':
-        try:
-            file = File.objects.get(pk=id, uploader=request.user)
-            file.delete()
-            context['message'] = 'File Deleted Successfully!'
-        except File.DoesNotExist:
-            context['message'] = 'File Does not Exists!'
-    else:
-        context['message'] = 'Method not Allowed!'
+    try:
+        file = File.objects.get(pk=id, uploader=request.user)
+        file.delete()
+        context['message'] = 'File Deleted Successfully!'
+    except File.DoesNotExist:
+        context['message'] = 'File Does not Exists!'
 
     return render(request, 'uploader/home.html', context)
 
@@ -59,3 +63,16 @@ def filter(request, cat):
 
     context['files'] = files
     return render(request, 'uploader/home.html', context)
+
+
+
+def get_file_cat(file):
+    docs_ext =  ['pdf','doc','docx','xls','ppt','txt']
+    if file.content_type.split('/')[0] == 'image':
+        return 'images'
+    elif file.content_type.split('/')[0] == 'audio' or file.content_type.split('/')[0] == 'video':
+        return 'media'
+    elif file.name.split('.')[-1] in docs_ext or file.content_type.split('/')[0] == 'text':
+        return 'docs'
+    else:
+        return 'other'

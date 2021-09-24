@@ -1,7 +1,12 @@
 <form method="POST" enctype="multipart/form-data">
   {% csrf_token %}
   <label for="myfile">Select a file:</label>
-  <input type="file" id="myfile" name="file">
+  <input type="file" id="myfile" name="file" multiple>
   <button type="submit" name="button">upload</button>
 </form>
-{{file.get_url}}
+
+{% for link in files_links %}
+  <div class="">
+    {{link}}
+  </div>
+{% endfor %}

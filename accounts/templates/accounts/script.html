@@ -26,14 +26,18 @@
         parent.classList.add('slide-up')
       }else{
         loginBtn.parentNode.parentNode.classList.add('slide-up')
+        parent.classList.remove('slide-up')
         loginBtn.innerHTML = '<span>or</span>Log in</h2>'
         signupBtn.innerHTML = '<div class="centeralize"><img class="center img-responsive" style="width:150px;" src="{% static "accounts/logo.png" %}" alt=""></div>'
-        parent.classList.remove('slide-up')
+
       }
     });
   });
 
-  loginBtn.click()
+
+  setTimeout(function(){
+    loginBtn.click()
+  }, 300);
 
   $("#login_btn").click(function(){
 
