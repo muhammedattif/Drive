@@ -29,3 +29,10 @@ class File(models.Model):
 
     def get_url(self):
         return 'http://%s%s' % (Site.objects.get_current().domain, self.file.url)
+
+class Trash(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="trash")
+    files = models.ManyToManyField(File)
+
+    def __str__(self):
+          return f'{self.user.username}-Trash'

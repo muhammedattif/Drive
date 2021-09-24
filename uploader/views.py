@@ -7,12 +7,13 @@ from django.contrib.auth.decorators import login_required
 def home(request):
     if not request.user.is_authenticated:
         return redirect('login')
-
-    files = File.objects.filter(uploader=request.user)
+    trashed_files = request.user.trash.files.all()
+    files = File.objects.filter(uploader=request.user).exclude(pk__in=trashed_files)
 
     context = {
     'files':files
     }
+    print(files.count())
     return render(request, 'uploader/home.html', context)
 
 @login_required(login_url='login')

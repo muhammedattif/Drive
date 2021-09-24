@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'django.contrib.humanize',
     'mathfilters',
+    'django_crontab',
 
     'accounts',
     'uploader',
@@ -135,6 +136,10 @@ USE_L10N = True
 
 USE_TZ = True
 
+# schedule tasks
+CRONJOBS = [
+    ('* * * * *', 'uploader.schedule_tasks.delete_trashed_files')
+]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
