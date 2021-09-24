@@ -47,3 +47,15 @@ def delete(request, id):
         context['message'] = 'Method not Allowed!'
 
     return render(request, 'uploader/home.html', context)
+
+
+@login_required(login_url='login')
+def filter(request, cat):
+    context = {}
+    if cat == 'all':
+        files = request.user.files.all()
+    else:
+        files = File.objects.filter(uploader=request.user, file_category = cat)
+
+    context['files'] = files
+    return render(request, 'uploader/home.html', context)

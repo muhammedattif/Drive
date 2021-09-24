@@ -1,0 +1,111 @@
+{% load static %}
+<script type="text/javascript">
+  console.clear();
+
+  const loginBtn = document.getElementById('login');
+  const signupBtn = document.getElementById('signup');
+
+  loginBtn.addEventListener('click', (e) => {
+    let parent = e.target.parentNode.parentNode;
+    Array.from(e.target.parentNode.parentNode.classList).find((element) => {
+      if(element !== "slide-up") {
+        parent.classList.add('slide-up')
+      }else{
+        signupBtn.parentNode.classList.add('slide-up')
+        signupBtn.innerHTML = '<span>or</span>Sign up</h2>'
+        loginBtn.innerHTML = '<div class=""><img class=" img-responsive" style="width:150px;" src="{% static "accounts/logo.png" %}" alt=""></div>'
+        parent.classList.remove('slide-up')
+      }
+    });
+  });
+
+  signupBtn.addEventListener('click', (e) => {
+    let parent = e.target.parentNode;
+    Array.from(e.target.parentNode.classList).find((element) => {
+      if(element !== "slide-up") {
+        parent.classList.add('slide-up')
+      }else{
+        loginBtn.parentNode.parentNode.classList.add('slide-up')
+        loginBtn.innerHTML = '<span>or</span>Log in</h2>'
+        signupBtn.innerHTML = '<div class="centeralize"><img class="center img-responsive" style="width:150px;" src="{% static "accounts/logo.png" %}" alt=""></div>'
+        parent.classList.remove('slide-up')
+      }
+    });
+  });
+
+  loginBtn.click()
+
+  $("#login_btn").click(function(){
+
+    const email = document.getElementById('login_email').value;
+    const password = document.getElementById('login_pass').value;
+    payload = {
+        "email": email,
+        "password": password,
+      }
+    $.ajax({
+      method: "POST",
+      data: payload,
+      headers: {'X-CSRFToken': '{{csrf_token}}'},
+      url: "{% url 'login' %}",
+      success: function(res){
+        res = JSON.parse(res)
+        if(res['status'] === true){
+          $("#login_btn").html('success');
+          setTimeout(function(){
+            location.href="{% url 'home' %}"
+          }, 1000);
+
+        }
+        if(res['status'] === false){
+
+          $("#login_messages").text('Invalid Cradentials!');
+        }
+
+        }
+  });
+  });
+
+
+    $("#signup_btn").click(function(){
+
+      const username = document.getElementById('signup_username');
+      const email = document.getElementById('signup_email');
+      const job_title = document.getElementById('signup_job_title');
+      const password1 = document.getElementById('signup_pass1');
+      const password2 = document.getElementById('signup_pass2');
+
+      payload = {
+          "username": username.value,
+          "email": email.value,
+          "job_title": job_title.value,
+          "password1": password1.value,
+          "password2": password2.value,
+        }
+      $.ajax({
+        method: "POST",
+        data: payload,
+        headers: {'X-CSRFToken': '{{csrf_token}}'},
+        url: "{% url 'register' %}",
+        success: function(res){
+          res = JSON.parse(res)
+          if(res['status'] === true){
+            $("#signup_btn").html('success');
+            $("#signup_messages").text('');
+            username.value = ''
+            email.value = ''
+            job_title.value = ''
+            password1.value = ''
+            password2.value = ''
+            setTimeout(function(){
+              loginBtn.click()
+            }, 500);
+          }
+          if(res['status'] === false){
+            $("#signup_messages").text('Invalid info!');
+          }
+
+          }
+    });
+    });
+</script>

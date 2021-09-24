@@ -52,10 +52,10 @@ def delete(request, id):
 def get_file_cat(file):
     docs_ext =  ['pdf','doc','docx','xls','ppt','txt']
     if file.content_type.split('/')[0] == 'image':
-        return 'image'
+        return 'images'
     elif file.content_type.split('/')[0] == 'audio' or file.content_type.split('/')[0] == 'video':
         return 'media'
     elif file.name.split('.')[-1] in docs_ext or file.content_type.split('/')[0] == 'text':
-        return 'doc'
+        return 'docs'
     else:
         return 'other'

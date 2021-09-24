@@ -1,4 +1,6 @@
 from django.shortcuts import render, redirect
+from django.http import JsonResponse
+import json
 from django.contrib.auth.forms import UserCreationForm
 from accounts.models import Account
 from accounts.forms import CreateUserForm
@@ -14,16 +16,21 @@ def register_view(request):
         if form.is_valid():
             form.save()
             user = form.cleaned_data.get('username')
-            messages.success(request, "Account was created for " + user)
-            return redirect('')
+            response = {'status': True}
+            return JsonResponse(json.dumps(response), content_type="application/json",safe=False)
+
+        else:
+            response = {'status': False}
+            return JsonResponse(json.dumps(response), content_type="application/json",safe=False)
     context = {
     'form': form
     }
-    return render(request, 'accounts/register.html', context)
+    return render(request, 'accounts/authenticate.html', context)
 
 
 
 def login_view(request):
+    context = {}
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
@@ -31,13 +38,13 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
-            return redirect('home')
+            response = {'status': True}
+            return JsonResponse(json.dumps(response), content_type="application/json",safe=False)
 
-        messages.error(request, 'Invalid cradentials!')
+        response = {'status': False}
+        return JsonResponse(json.dumps(response), content_type="application/json",safe=False)
 
-    context = {
-    }
-    return render(request, 'accounts/login.html', context)
+    return render(request, 'accounts/authenticate.html', context)
 
 def logout_view(request):
     logout(request)

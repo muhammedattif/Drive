@@ -22,6 +22,8 @@ class File(models.Model):
     file_category = models.CharField(max_length=30)
     uploaded_at = models.DateTimeField(verbose_name="Date Uploaded", auto_now_add=True)
 
+    class Meta:
+        ordering = ('-uploaded_at',)
     def __str__(self):
         return self.file.name
 
