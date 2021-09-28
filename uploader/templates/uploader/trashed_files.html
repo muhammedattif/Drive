@@ -1,0 +1,183 @@
+{% extends 'uploader/base.html' %}
+
+{% block content %}
+<div class="drive-wrapper drive-grid-view" id="collapse_grid">
+    <div class="grid-items-wrapper">
+      <div id="main-content" class="file_manager">
+
+              <div class="container-fluid">
+                <div class="alert alert-danger d-flex align-items-center" role="alert">
+                  <svg width="24" height="24" fill="currentColor" class="mr-4 text-danger bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
+                    <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                  </svg>
+                  <div>
+                    Files in Trash will be deleted permenantly after 30 days.
+                  </div>
+                </div>
+                  <div class="row clearfix">
+                    {% if trashed_files %}
+                      {% for trash in trashed_files.all %}
+                      <div class="col-lg-3 col-md-4 col-sm-12">
+                          <div class="card">
+                              <div class="file">
+                                  <a href="javascript:void(0);">
+                                      <div class="hover">
+
+                                        <h4><a id="link-{{trash.file.pk}}" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ trash.file.get_url }}', 'link-{{trash.file.pk}}')" class="fa fa-files-o copy icons"></i></a></h4>
+                                        <h4><a href="{% url 'uploader:recover' trash.file.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Recover"><i class='bx bx-undo text-success'></i></a></h4>
+                                        <h4><a href="{% url 'uploader:delete'  trash.file.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Permanently Delete">
+
+                                          <i class="lni lni-trash-can delete icons"></i>
+                                        </a></h4>
+                                      </div>
+                                      <div class="icon">
+                                          <i class="fa fa-file text-info"></i>
+                                      </div>
+
+                                      <button type="button" class="container btn btn-danger remainingdays">
+                                          {{trash.remaining_days}} day{{trash.remaining_days|pluralize}} remaining
+                                      </button>
+
+
+                                      <div class="file-name">
+                                          <a title="{{ trash.file.file_name }}" href="{{file.file.url}}" target="_blank"><p class="text-muted">{{trash.file.file_name|truncatechars:45}}</p></a>
+                                          <small>Size: {{trash.file.file_size|filesizeformat}} <span class="date text-muted">Trash date: {{trash.trashed_at}}</span></small>
+                                          <small><span class="date text-muted"></span></small>
+                                      </div>
+                                  </a>
+                              </div>
+                          </div>
+                      </div>
+                      {% endfor %}
+
+                      {% else %}
+                      <div class="jumbotron">
+                        <h1 class="display-4">Hello, world!</h1>
+                        <p class="lead">This is a simple hero unit, a simple jumbotron-style component for calling extra attention to featured content or information.</p>
+                        <hr class="my-4">
+
+                        <p>It uses utility classes for typography and spacing to space content out within the larger container.</p>
+                        <a class="btn btn-primary btn-lg" href="#" role="button">Learn more</a>
+                      </div>
+
+                    {% endif %}
+
+                  </div>
+
+              </div>
+          </div>
+
+    </div>
+
+</div>
+<!-- <div class="drive-wrapper drive-list-view d-none" id="collapse_list">
+    <div class="table-responsive drive-items-table-wrapper">
+      {% if trashed_files %}
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th class="type"></th>
+                    <th class="name truncate">Name</th>
+                    <th class="date">Deleted</th>
+                    <th class="size">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trash in trashed_files.all %}
+                <tr>
+                    <td class="type">
+                      {% if trash.file.file_category == 'images' %}
+                        <i class="fa fa-file-image-o text-primary">
+                      {% elif trash.file.file_category == 'docs' %}
+                        <i class="fa fa-file-text-o text-success">
+                      {% elif trash.file.file_category == 'media' %}
+                        <i class="fa fa-file-video-o text-danger">
+                      {% elif trash.file.file_category == 'zip' %}
+                        <i class="fa fa-file-archive-o text-warning">
+                      {% else %}
+                        <i class="fa fa-file-o text-info">
+                      {% endif %}
+                    </i></td>
+                    <td class="name truncate"><a href="{{file.file.url}}" target="_blank">{{trash.file.file_name|truncatechars:45}}</a></td>
+                    <td class="date">{{trash.file.trashed_at}}</td>
+                    <td class="size">{{trash.file.file_size|filesizeformat}}</td>
+                    <td><button type="button" class="btn btn-success">Recover</button></td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+        {% else %}
+        <div class="container">
+          <h1 class="display-4">Fluid jumbotron</h1>
+          <p class="lead">This is a modified jumbotron that occupies the entire horizontal space of its parent.</p>
+        </div>
+        {% endif %}
+    </div>
+</div> -->
+<script type="text/javascript">
+  function CopyFileLink(link, id)  {
+      const file_id = document.getElementById(id);
+      const el = document.createElement('textarea');
+      el.value = link;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      file_id.style.display = "none";
+      file_id.setAttribute('data-original-title', 'Copied!')
+      setTimeout(function(){
+        file_id.style.display = "block";
+      }, 0);
+
+      setTimeout(function(){
+        file_id.setAttribute('data-original-title', 'Copy Link')
+      }, 500);
+
+    };
+
+    const grid_toggle = document.getElementById('drive-grid-toggle');
+    const list_toggle = document.getElementById('drive-list-toggle');
+
+    grid_toggle.addEventListener('click', (e) => {
+      $("#collapse_list").addClass('d-none');
+      $("#collapse_grid").removeClass("d-none");
+      anime({
+        targets: '#collapse_grid',
+        translateY: 10,
+        direction: 'alternate',
+        easing: 'spring(1, 80, 10, 0)'
+      })
+
+      anime({
+        targets: '#collapse_list',
+        translateY: 0,
+        direction: 'alternate',
+        easing: 'spring(1, 80, 10, 0)'
+      })
+    });
+
+
+
+
+    // list_toggle.addEventListener('click', (e) => {
+    //   $("#collapse_grid").addClass("d-none");
+    //   $("#collapse_list").removeClass("d-none");
+    //
+    //   anime({
+    //     targets: '#collapse_grid',
+    //     translateY: 0,
+    //     direction: 'alternate',
+    //     easing: 'spring(1, 80, 10, 0)'
+    //   })
+    //
+    //   anime({
+    //     targets: '#collapse_list',
+    //     translateY: 10,
+    //     direction: 'alternate',
+    //     easing: 'spring(1, 80, 10, 0)'
+    //   })
+    // });
+</script>
+{% endblock %}

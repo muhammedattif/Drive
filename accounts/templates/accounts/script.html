@@ -47,6 +47,7 @@
         "email": email,
         "password": password,
       }
+    $("#login_btn").html('Verifying...');
     $.ajax({
       method: "POST",
       data: payload,
@@ -55,7 +56,7 @@
       success: function(res){
         res = JSON.parse(res)
         if(res['status'] === true){
-          $("#login_btn").html('success');
+          $("#login_btn").html('Success');
           setTimeout(function(){
             location.href="{% url 'home' %}"
           }, 1000);
@@ -64,6 +65,7 @@
         if(res['status'] === false){
 
           $("#login_messages").text('Invalid Cradentials!');
+          $("#login_btn").html('Login');
         }
 
         }
@@ -86,6 +88,7 @@
           "password1": password1.value,
           "password2": password2.value,
         }
+      $("#signup_btn").html('Verifying...');
       $.ajax({
         method: "POST",
         data: payload,
@@ -94,19 +97,21 @@
         success: function(res){
           res = JSON.parse(res)
           if(res['status'] === true){
-            $("#signup_btn").html('success');
+            $("#signup_btn").html('Success');
             $("#signup_messages").text('');
             username.value = ''
             email.value = ''
             job_title.value = ''
             password1.value = ''
             password2.value = ''
+            $("#signup_btn").html('Sign up');
             setTimeout(function(){
               loginBtn.click()
             }, 500);
           }
           if(res['status'] === false){
             $("#signup_messages").text('Invalid info!');
+            $("#signup_btn").html('Sign up');
           }
 
           }

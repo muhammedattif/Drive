@@ -1,19 +1,22 @@
-from django.shortcuts import render, redirect
-from uploader.models import File
+from django.shortcuts import render, redirect, reverse
+from uploader.models import File, Trash
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+import json
 
 # Create your views here.
 @login_required(login_url='login')
 def home(request):
     if not request.user.is_authenticated:
         return redirect('login')
-    trashed_files = request.user.trash.files.all()
-    files = File.objects.filter(uploader=request.user).exclude(pk__in=trashed_files)
+    try:
+        files = File.objects.filter(uploader=request.user, trash = None )
+    except Exception as e:
+        files = File.objects.filter(uploader=request.user)
 
     context = {
     'files':files
     }
-    print(files.count())
     return render(request, 'uploader/home.html', context)
 
 @login_required(login_url='login')
@@ -37,9 +40,40 @@ def upload(request):
           'files_links': files_links
         }
 
-        return render(request, 'uploader/upload.html', context)
+        return JsonResponse(json.dumps(context), content_type="application/json",safe=False)
 
     return render(request, 'uploader/upload.html')
+
+
+@login_required(login_url='login')
+def filter(request, cat):
+    context = {}
+    if cat == 'all':
+        files = request.user.files.filter(trash = None)
+    else:
+        files = File.objects.filter(uploader=request.user, file_category = cat, trash = None)
+
+    context['files'] = files
+    return render(request, 'uploader/home.html', context)
+
+
+@login_required(login_url='login')
+def get_trashed_files(request):
+    context = {}
+    trashed_files = Trash.objects.all()
+    context['trashed_files'] = trashed_files
+    return render(request, 'uploader/trashed_files.html', context)
+
+@login_required(login_url='login')
+def move_to_trash(request, id):
+    context = {}
+    try:
+        file = File.objects.get(pk=id, uploader=request.user)
+        Trash.objects.create(user=file.uploader, file=file)
+        context['message'] = 'File Trashed Successfully!'
+    except File.DoesNotExist:
+        context['message'] = 'File Does not Exists!'
+    return redirect('home')
 
 @login_required(login_url='login')
 def delete(request, id):
@@ -47,24 +81,20 @@ def delete(request, id):
     try:
         file = File.objects.get(pk=id, uploader=request.user)
         file.delete()
-        context['message'] = 'File Deleted Successfully!'
     except File.DoesNotExist:
         context['message'] = 'File Does not Exists!'
-
-    return render(request, 'uploader/home.html', context)
+    return redirect('/uploader/trash')
 
 
 @login_required(login_url='login')
-def filter(request, cat):
-    context = {}
-    if cat == 'all':
-        files = request.user.files.all()
-    else:
-        files = File.objects.filter(uploader=request.user, file_category = cat)
+def recover(request, id):
 
-    context['files'] = files
-    return render(request, 'uploader/home.html', context)
-
+    try:
+        trashed_file = Trash.objects.get(file__id=id, user=request.user)
+        trashed_file.delete()
+    except Trash.DoesNotExist:
+        return redirect('/uploader/trash')
+    return redirect('/uploader/trash')
 
 
 def get_file_cat(file):

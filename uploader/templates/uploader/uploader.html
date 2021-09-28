@@ -1,0 +1,25 @@
+{% load static %}
+<link href="{% static 'uploader/filepond.css' %}" rel="stylesheet" />
+<style media="screen">
+  .filepond--credits{
+    display: none
+  }
+
+</style>
+<input type="file" name="file" multiple>
+
+<script src="{% static 'uploader/filepond.js' %}"></script>
+<script>
+    // Get a reference to the file input element
+    const inputElement = document.querySelector('input[type="file"]');
+
+    // Create a FilePond instance
+    const pond = FilePond.create(inputElement);
+    file = FilePond.setOptions({
+      server: {
+                url: '{% url "uploader:upload" %}',
+                headers: {'X-CSRFToken': '{{csrf_token}}'},
+              },
+    });
+    console.log(file);
+</script>

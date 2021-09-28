@@ -153,3 +153,6 @@ MEDIA_URL = '/uploads/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Days to delete files in Trash
+TRASH_DAYS = 30

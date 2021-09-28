@@ -15,10 +15,33 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf.urls import url
 from django.conf.urls.static import static
 from django.conf import settings
 from accounts.views import login_view, register_view, logout_view
 from uploader.views import home
+
+from django.contrib.auth.decorators import login_required
+from django.views.static import serve
+
+from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import HttpResponse
+from uploader.models import File
+
+# this function is for checking link privacy
+def protected_serve(request, path, document_root=None):
+    try:
+        path_fields = path.split('/')
+        file_user = path_fields[0]
+        file_name = path_fields[-1]
+        file = File.objects.get(uploader__username=file_user, file_name = file_name)
+        if file.is_public() or file.uploader == request.user:
+            return serve(request, path, settings.MEDIA_ROOT)
+        else:
+            return HttpResponse("Sorry you don't have permission to access this file")
+    except File.DoesNotExist:
+        return HttpResponse("File Doesn Not Exist")
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -31,7 +54,9 @@ urlpatterns = [
 
     path('api/uploader/', include('uploader.api.urls', 'uploader_api')),
     path('uploader/', include('uploader.urls', namespace='uploader')),
-    path('api-auth/', include('rest_framework.urls'))
+    path('api-auth/', include('rest_framework.urls')),
+    url(r'^{}(?P<path>.*)$'.format(settings.MEDIA_URL[1:]), protected_serve),
+
 
 ]
 
