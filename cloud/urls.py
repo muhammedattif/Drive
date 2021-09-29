@@ -25,27 +25,29 @@ from django.contrib.auth.decorators import login_required
 from django.views.static import serve
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import HttpResponse
+from django.shortcuts import HttpResponse,redirect
 from uploader.models import File
+from .utils import error
 
 # this function is for checking link privacy
 def protected_serve(request, path, document_root=None):
     try:
         path_fields = path.split('/')
-        file_user = path_fields[0]
+        file_user = path_fields[1]
         file_name = path_fields[-1]
         file = File.objects.get(uploader__username=file_user, file_name = file_name)
         if file.is_public() or file.uploader == request.user:
-            return serve(request, path, settings.MEDIA_ROOT)
+            return serve(request, path, f'{settings.MEDIA_ROOT}/{settings.DRIVE_PATH}')
         else:
-            return HttpResponse("Sorry you don't have permission to access this file")
+            return redirect('error')
     except File.DoesNotExist:
-        return HttpResponse("File Doesn Not Exist")
+        return redirect('error')
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home, name='home'),
+    path('error', error, name='error'),
 
     path('login', login_view, name='login'),
     path('register', register_view, name='register'),
@@ -55,7 +57,7 @@ urlpatterns = [
     path('api/uploader/', include('uploader.api.urls', 'uploader_api')),
     path('uploader/', include('uploader.urls', namespace='uploader')),
     path('api-auth/', include('rest_framework.urls')),
-    url(r'^{}(?P<path>.*)$'.format(settings.MEDIA_URL[1:]), protected_serve),
+    url(r'^{}{}(?P<path>.*)$'.format(settings.MEDIA_URL[1:], settings.DRIVE_PATH), protected_serve),
 
 
 ]

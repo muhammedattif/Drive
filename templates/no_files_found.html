@@ -1,0 +1,20 @@
+{% load static %}
+
+<!-- Google font -->
+<link href="https://fonts.googleapis.com/css?family=Raleway:400,700" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Passion+One:900" rel="stylesheet">
+
+<link type="text/css" rel="stylesheet" href="{% static 'no_files_found.css' %}" />
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div id="notfound">
+                <div class="notfound">
+                    <h2>Folder is Empty!</h2>
+                    <p>Upload new files and start sharing them.</p>
+                    <a data-toggle="modal" data-target="#UploadFileModal" href="#"><i class="fas fa-cloud-upload-alt"></i> Upload File</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

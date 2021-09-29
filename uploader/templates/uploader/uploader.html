@@ -1,12 +1,37 @@
 {% load static %}
+{% load define_action %}
 <link href="{% static 'uploader/filepond.css' %}" rel="stylesheet" />
+<link href="{% static 'uploader/uploader_page.css' %}" rel="stylesheet" />
 <style media="screen">
-  .filepond--credits{
-    display: none
-  }
+.filepond--credits{
+display: none
+}
+.filepond--drop-label{
+  background-image: url('{% static 'uploader/grain.png' %}');
+  background-repeat: repeat;
+}
 
 </style>
+
+ <div class="upload">
+ <div class="upload-files">
+  <header>
+   <p>
+    <i class="fa fa-cloud-upload" aria-hidden="true"></i>
+    <span class="up">Variiance</span>
+    <span class="load"> Cloud</span>
+   </p>
+  </header>
+ </div>
+</div>
 <input type="file" name="file" multiple>
+
+{% if folder_id %}
+    {% define folder_id as folder_id %}
+{% else %}
+     {% define '' as folder_id %}
+{% endif %}
+
 
 <script src="{% static 'uploader/filepond.js' %}"></script>
 <script>
@@ -15,11 +40,21 @@
 
     // Create a FilePond instance
     const pond = FilePond.create(inputElement);
+
     file = FilePond.setOptions({
       server: {
-                url: '{% url "uploader:upload" %}',
-                headers: {'X-CSRFToken': '{{csrf_token}}'},
-              },
+          process: {
+              url: '{% url "uploader:upload" %}',
+              method: "POST",
+              headers: {'X-CSRFToken': '{{csrf_token}}'},
+              ondata: (formData) => {
+              formData.append('folder_id', {% if folder_id %} {{ folder_id }} {% else %} '' {% endif %});
+              return formData;
+          }
+          },
+
+      }
+
     });
     console.log(file);
 </script>

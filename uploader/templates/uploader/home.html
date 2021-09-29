@@ -1,11 +1,43 @@
 {% extends 'uploader/base.html' %}
 
+{% block navbar %}
+
+    {% include 'uploader/navbar.html' with folder_id=0 %}
+{% endblock %}
+
 {% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb ">
+        <li class="breadcrumb-item "><a href="{% url 'home' %}"><i class="fas fa-home"></i> Home</a></li>
+    </ol>
+</nav>
 <div class="drive-wrapper drive-grid-view" id="collapse_grid">
     <div class="grid-items-wrapper">
       <div id="main-content" class="file_manager">
               <div class="container-fluid">
                   <div class="row clearfix">
+                    {% if folders.all %}
+                        {% for folder in folders.all %}
+                            <div class="col-lg-3 col-md-4 col-sm-12">
+                          <div class="card">
+                              <div class="file">
+                                  <a href="javascript:void(0);">
+                                      <div class="hover">
+                                        <h4><a href="" data-toggle="tooltip" data-placement="top" title="" data-original-title="Move To Trash"><i class="lni lni-trash-can delete icons"></i></a></h4>
+                                      </div>
+                                      <div class="icon">
+                                          <i class="fa fa-folder text-primary"></i>
+                                      </div>
+                                      <div class="file-name">
+                                          <a title="{{ folder.name }}" href="{% url 'uploader:folder' folder.id %}"><p class="m-b-5 text-muted">{{ folder.name }}</p></a>
+                                          <small>Files: {{folder.files.count}} <span class="date text-muted">{{folder.created_at}}</span></small>
+                                      </div>
+                                  </a>
+                              </div>
+                          </div>
+                      </div>
+                        {% endfor %}
+                    {% endif %}
                     {% if files.all %}
                       {% for file in files.all %}
                       <div class="col-lg-3 col-md-4 col-sm-12">
@@ -19,10 +51,21 @@
                                         <h4><a href="{% url 'uploader:move_to_trash' file.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Move To Trash"><i class="lni lni-trash-can delete icons"></i></a></h4>
                                       </div>
                                       <div class="icon">
-                                          <i class="fa fa-file text-info"></i>
+                                           {% if file.file_category == 'images' %}
+                                            <i class="fa fa-file-image-o text-primary"></i>
+                                          {% elif file.file_category == 'docs' %}
+                                            <i class="fa fa-file-text-o text-success"></i>
+                                          {% elif file.file_category == 'media' %}
+                                            <i class="fa fa-file-video-o text-danger"></i>
+                                          {% elif file.file_category == 'zip' %}
+                                            <i class="fa fa-file-archive-o text-warning"></i>
+                                          {% else %}
+                                            <i class="fa fa-file text-info"></i>
+                                          {% endif %}
+
                                       </div>
                                       <div class="file-name">
-                                          <a title="{{ file.file_name }}" href="{{file.file.url}}" target="_blank"><p class="m-b-5 text-muted">{{file.file_name|truncatechars:45}}</p></a>
+                                          <a title="{{ file.file_name }}" href="{{file.file.url}}" target="_blank"><p class="m-b-5 text-muted">{{file.file_name|truncatechars:35}}</p></a>
                                           <small>Size: {{file.file_size|filesizeformat}} <span class="date text-muted">{{file.uploaded_at}}</span></small>
                                       </div>
                                   </a>
@@ -30,17 +73,10 @@
                           </div>
                       </div>
                       {% endfor %}
+                    {% endif %}
 
-                      {% else %}
-                      <div class="jumbotron">
-                        <h1 class="display-4">Hello, world!</h1>
-                        <p class="lead">This is a simple hero unit, a simple jumbotron-style component for calling extra attention to featured content or information.</p>
-                        <hr class="my-4">
-
-                        <p>It uses utility classes for typography and spacing to space content out within the larger container.</p>
-                        <a class="btn btn-primary btn-lg" href="#" role="button">Learn more</a>
-                      </div>
-
+                    {% if not files.all and not folders.all %}
+                      {% include 'no_files_found.html' %}
                     {% endif %}
 
                   </div>
@@ -72,18 +108,18 @@
                 <tr>
                     <td class="type">
                       {% if file.file_category == 'images' %}
-                        <i class="fa fa-file-image-o text-primary">
+                        <i class="fa fa-file-image-o text-primary"></i>
                       {% elif file.file_category == 'docs' %}
-                        <i class="fa fa-file-text-o text-success">
+                        <i class="fa fa-file-text-o text-success"></i>
                       {% elif file.file_category == 'media' %}
-                        <i class="fa fa-file-video-o text-danger">
+                        <i class="fa fa-file-video-o text-danger"></i>
                       {% elif file.file_category == 'zip' %}
-                        <i class="fa fa-file-archive-o text-warning">
+                        <i class="fa fa-file-archive-o text-warning"></i>
                       {% else %}
-                        <i class="fa fa-file-o text-info">
+                        <i class="fa fa-file text-info"></i>
                       {% endif %}
-                    </i></td>
-                    <td class="name truncate"><a title="{{ file.file_name }}" href="{{file.file.url}}" target="_blank">{{file.file_name|truncatechars:45}}</a></td>
+                    </td>
+                    <td class="name truncate"><a title="{{ file.file_name }}" href="{{file.file.url}}" target="_blank">{{file.file_name|truncatechars:35}}</a></td>
                     <td class="date">{{file.uploaded_at}}</td>
                     <td class="size">{{file.file_size|filesizeformat}}</td>
                     <td class="center"><a id="link-{{file.pk}}" class="copy" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ file.get_url }}', 'link-{{file.pk}}')" class="fa fa-files-o"></i></a></td>

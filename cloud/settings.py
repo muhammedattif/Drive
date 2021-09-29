@@ -145,7 +145,11 @@ CRONJOBS = [
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+# STATIC_ROOT = os.path.join(BASE_DIR, "static")
+#
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "uploads")
 MEDIA_URL = '/uploads/'
@@ -156,3 +160,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Days to delete files in Trash
 TRASH_DAYS = 30
+
+# Directory where users uploads are gonna be stored
+PROFILE_IMAGES_URL = 'profile_images'
+
+# Directory where other uploded files are gonna be stored
+DRIVE_PATH = 'drive'
+
+# Max storage limit for user
+MAX_STORAGE_LIMIT = 150 # number in GB

@@ -1,0 +1,27 @@
+https://erpdev.variiance.com/VLC/room/en/update
+
+def update(data):
+
+    query = """SELECT room.name, room.student_id FROM `tabVLCRoom` room
+                WHERE room.student_id = %(student_id)s AND room.name = %(room_id)s """
+    result = frappe.db.sql(query, {'student_id': data['student_id'], 'room_id': data['room_id']}, as_dict=True)
+    if result:
+        query = """UPDATE `tabVLCRoom` room SET room.title = %(title)s, room.description = %(description)s
+                                WHERE room.student_id = %(student_id)s AND room.name = %(room_id)s """
+        frappe.db.sql(query, {'student_id': data['student_id'], 'room_id': data['room_id'],
+                              'title': data['title'], 'description': data['description']}, as_dict=True)
+        message = "Updated Successfully!"
+        helper.response_success(message)
+    else:
+        message = "Something went wrong!"
+        helper.response_error(message)
+
+
+{
+    "data": {
+            "student_id": "EDU-STU-2021-07-00006",
+            "room_id": "muhammed995",
+            "title": "muhammedd4",
+            "description": "API Mdetting 4"
+            }
+}

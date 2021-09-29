@@ -715,8 +715,16 @@ body{
 
 
 .file_manager .file {
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
     position: relative;
     border-radius: .55rem;
+
+}
+.file_manager .file:hover {
+    transition: all 0.2s ease-in-out;
+    background-color: rgb(253, 243, 235)
+
 }
 .file_manager .file .image,
 .file_manager .file .icon {
@@ -813,7 +821,7 @@ a:hover {
 
 .primary:hover{
   color: white;
-  background-color: rgb(238, 133, 29, 0.9)
+  background-color: rgba(238, 133, 29, 0.9)
 }
 
 .content-panel{
@@ -827,3 +835,13 @@ th:not(:first-child){
 .remainingdays{
   border-radius: 0px
 }
+
+
+.active-dir{
+    color: #6c757d;
+}
+
+.breadcrumb{
+    background: #f5f5f5;
+}
+

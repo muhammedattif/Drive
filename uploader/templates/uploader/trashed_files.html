@@ -40,7 +40,7 @@
 
 
                                       <div class="file-name">
-                                          <a title="{{ trash.file.file_name }}" href="{{file.file.url}}" target="_blank"><p class="text-muted">{{trash.file.file_name|truncatechars:45}}</p></a>
+                                          <a title="{{ trash.file.file_name }}" href="{{file.file.url}}" target="_blank"><p class="text-muted">{{trash.file.file_name|truncatechars:35}}</p></a>
                                           <small>Size: {{trash.file.file_size|filesizeformat}} <span class="date text-muted">Trash date: {{trash.trashed_at}}</span></small>
                                           <small><span class="date text-muted"></span></small>
                                       </div>
@@ -51,14 +51,20 @@
                       {% endfor %}
 
                       {% else %}
-                      <div class="jumbotron">
-                        <h1 class="display-4">Hello, world!</h1>
-                        <p class="lead">This is a simple hero unit, a simple jumbotron-style component for calling extra attention to featured content or information.</p>
-                        <hr class="my-4">
 
-                        <p>It uses utility classes for typography and spacing to space content out within the larger container.</p>
-                        <a class="btn btn-primary btn-lg" href="#" role="button">Learn more</a>
-                      </div>
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div id="notfound">
+                                        <div class="notfound">
+                                            <h2>Trash is Empty!</h2>
+                                            <p>Trashed files will appear here.</p>
+                                            <a href="{% url 'home' %}"><i class="fas fa-home"></i> Home Page</a></li></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                     {% endif %}
 
@@ -99,7 +105,7 @@
                         <i class="fa fa-file-o text-info">
                       {% endif %}
                     </i></td>
-                    <td class="name truncate"><a href="{{file.file.url}}" target="_blank">{{trash.file.file_name|truncatechars:45}}</a></td>
+                    <td class="name truncate"><a href="{{file.file.url}}" target="_blank">{{trash.file.file_name|truncatechars:35}}</a></td>
                     <td class="date">{{trash.file.trashed_at}}</td>
                     <td class="size">{{trash.file.file_size|filesizeformat}}</td>
                     <td><button type="button" class="btn btn-success">Recover</button></td>

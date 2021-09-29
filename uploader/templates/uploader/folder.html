@@ -1,0 +1,212 @@
+
+{% extends 'uploader/base.html' %}
+
+{% block navbar %}
+    {% include 'uploader/navbar.html' with folder_id=folder.id %}
+{% endblock %}
+
+class="active"
+
+{% block content %}
+    {% with folder.get_folder_tree as folder_tree %}
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb ">
+
+                {% if folder_tree %}
+                     <li class="breadcrumb-item "><a href="{% url 'home' %}"><i class="fas fa-home"></i> Home</a></li>
+                    {% for folder in folder_tree %}
+                        <li class="breadcrumb-item"><a {% if forloop.last %} class="active-dir" {% endif %} href="{% url 'uploader:folder' folder.id %}">{% if forloop.last %} <i class="fas fa-folder-open"></i> {% else %} <i class="fas fa-folder"></i> {% endif %} {{ folder.name }}</a></li>
+                    {% endfor %}
+                {% endif %}
+            </ol>
+        </nav>
+    {% endwith %}
+
+
+<div class="drive-wrapper drive-grid-view" id="collapse_grid">
+    <div class="grid-items-wrapper">
+      <div id="main-content" class="file_manager">
+              <div class="container-fluid">
+                  <div class="row clearfix">
+                      {% if not files and not folders %}
+                          {% include 'no_files_found.html' %}
+                      {% endif %}
+                    {% if folders.all %}
+                        {% for child_folder in folders.all %}
+                            <div class="col-lg-3 col-md-4 col-sm-12">
+                          <div class="card">
+                              <div class="file">
+                                  <a href="javascript:void(0);">
+                                      <div class="hover">
+                                        <h4><a href="" data-toggle="tooltip" data-placement="top" title="" data-original-title="Move To Trash"><i class="lni lni-trash-can delete icons"></i></a></h4>
+                                      </div>
+                                      <div class="icon">
+                                          <i class="fa fa-folder text-primary"></i>
+                                      </div>
+                                      <div class="file-name">
+                                          <a title="{{ child_folder.name }}" href="{% url 'uploader:folder' child_folder.id %}"><p class="m-b-5 text-muted">{{ child_folder.name }}</p></a>
+                                          <small>Files: {{child_folder.files.count}} <span class="date text-muted">{{child_folder.created_at}}</span></small>
+                                      </div>
+                                  </a>
+                              </div>
+                          </div>
+                      </div>
+                        {% endfor %}
+                    {% endif %}
+                    {% if files.all %}
+                      {% for file in files.all %}
+                      <div class="col-lg-3 col-md-4 col-sm-12">
+                          <div class="card">
+                              <div class="file">
+                                  <a href="javascript:void(0);">
+                                      <div class="hover">
+
+                                        <h4><a id="link-{{file.pk}}" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ file.get_url }}', 'link-{{file.pk}}')" class="fa fa-files-o copy icons"></i></a></h4>
+                                        <h4><a href="{{file.file.url}}" download data-toggle="tooltip" data-placement="top" title="" data-original-title="Download"><i class="lni lni-arrow-down-circle download icons"></i></a></h4>
+                                        <h4><a href="{% url 'uploader:move_to_trash' file.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Move To Trash"><i class="lni lni-trash-can delete icons"></i></a></h4>
+                                      </div>
+                                      <div class="icon">
+                                           {% if file.file_category == 'images' %}
+                                            <i class="fa fa-file-image-o text-primary"></i>
+                                          {% elif file.file_category == 'docs' %}
+                                            <i class="fa fa-file-text-o text-success"></i>
+                                          {% elif file.file_category == 'media' %}
+                                            <i class="fa fa-file-video-o text-danger"></i>
+                                          {% elif file.file_category == 'zip' %}
+                                            <i class="fa fa-file-archive-o text-warning"></i>
+                                          {% else %}
+                                            <i class="fa fa-file text-info"></i>
+                                          {% endif %}
+
+                                      </div>
+                                      <div class="file-name">
+                                          <a title="{{ file.file_name }}" href="{{file.file.url}}" target="_blank"><p class="m-b-5 text-muted">{{file.file_name|truncatechars:35}}</p></a>
+                                          <small>Size: {{file.file_size|filesizeformat}} <span class="date text-muted">{{file.uploaded_at}}</span></small>
+                                      </div>
+                                  </a>
+                              </div>
+                          </div>
+                      </div>
+                      {% endfor %}
+
+                    {% endif %}
+
+                  </div>
+
+              </div>
+          </div>
+
+    </div>
+
+</div>
+<div class="drive-wrapper drive-list-view d-none" id="collapse_list">
+    <div class="table-responsive drive-items-table-wrapper">
+      {% if files %}
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th class="type"></th>
+                    <th class="name truncate">Name</th>
+                    <th class="date">Uploaded</th>
+                    <th class="size">Size</th>
+                    <th class="size">Copy Link</th>
+                    <th class="size">Download</th>
+                    <th class="size">Trash</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in files %}
+                <tr>
+                    <td class="type">
+                      {% if file.file_category == 'images' %}
+                        <i class="fa fa-file-image-o text-primary"></i>
+                      {% elif file.file_category == 'docs' %}
+                        <i class="fa fa-file-text-o text-success"></i>
+                      {% elif file.file_category == 'media' %}
+                        <i class="fa fa-file-video-o text-danger"></i>
+                      {% elif file.file_category == 'zip' %}
+                        <i class="fa fa-file-archive-o text-warning"></i>
+                      {% else %}
+                        <i class="fa fa-file-o text-info"></i>
+                      {% endif %}
+                    </i></td>
+                    <td class="name truncate"><a title="{{ file.file_name }}" href="{{file.file.url}}" target="_blank">{{file.file_name|truncatechars:35}}</a></td>
+                    <td class="date">{{file.uploaded_at}}</td>
+                    <td class="size">{{file.file_size|filesizeformat}}</td>
+                    <td class="center"><a id="link-{{file.pk}}" class="copy" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ file.get_url }}', 'link-{{file.pk}}')" class="fa fa-files-o"></i></a></td>
+                    <td class="center"><a href="{{file.file.url}}" class="download" data-toggle="tooltip" data-placement="top" title="" data-original-title="Download" download><i class="lni lni-arrow-down-circle download"></i></a></td>
+                    <td class="center"><a href="{% url 'uploader:move_to_trash' file.id %}" class="delete" data-toggle="tooltip" data-placement="top" title="" data-original-title="Move To Trash"><i class="lni lni-trash-can delete"></i></a></td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+</div>
+<script type="text/javascript">
+  function CopyFileLink(link, id)  {
+      const file_id = document.getElementById(id);
+      const el = document.createElement('textarea');
+      el.value = link;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      file_id.style.display = "none";
+      file_id.setAttribute('data-original-title', 'Copied!')
+      setTimeout(function(){
+        file_id.style.display = "block";
+      }, 0);
+
+      setTimeout(function(){
+        file_id.setAttribute('data-original-title', 'Copy Link')
+      }, 500);
+
+    };
+
+    const grid_toggle = document.getElementById('drive-grid-toggle');
+    const list_toggle = document.getElementById('drive-list-toggle');
+
+    grid_toggle.addEventListener('click', (e) => {
+      $("#collapse_list").addClass('d-none');
+      $("#collapse_grid").removeClass("d-none");
+      anime({
+        targets: '#collapse_grid',
+        translateY: 10,
+        direction: 'alternate',
+        easing: 'spring(1, 80, 10, 0)'
+      })
+
+      anime({
+        targets: '#collapse_list',
+        translateY: 0,
+        direction: 'alternate',
+        easing: 'spring(1, 80, 10, 0)'
+      })
+    });
+
+
+
+
+    list_toggle.addEventListener('click', (e) => {
+      $("#collapse_grid").addClass("d-none");
+      $("#collapse_list").removeClass("d-none");
+
+      anime({
+        targets: '#collapse_grid',
+        translateY: 0,
+        direction: 'alternate',
+        easing: 'spring(1, 80, 10, 0)'
+      })
+
+      anime({
+        targets: '#collapse_list',
+        translateY: 10,
+        direction: 'alternate',
+        easing: 'spring(1, 80, 10, 0)'
+      })
+    });
+</script>
+{% endblock %}

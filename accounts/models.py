@@ -4,13 +4,45 @@ from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
-# Create your models here.
+from django.db.models import F
+# profile image resizing imports
+import uuid
+from PIL import Image
+from io import BytesIO
+from django.core.files import File
+from django.core.files.base import ContentFile
+from django.db import models
+
+
+class ResizeImageMixin:
+    def resize(self, imageField: models.ImageField, size:tuple):
+        im = Image.open(imageField)  # Catch original
+        source_image = im.convert('RGB')
+
+        source_image.thumbnail(size)  # Resize to size
+        output = BytesIO()
+        source_image.save(output, format='JPEG', quality=100) # Save resize image to bytes
+        output.seek(0)
+
+        content_file = ContentFile(output.read())  # Read output and create ContentFile in memory
+        file = File(content_file)
+
+        random_name = f'{uuid.uuid4()}.jpeg'
+        imageField.save(random_name, file, save=False)
+
+
+# this function is for initializing file path
+def get_profile_image_path(self, filename):
+    return f'{settings.PROFILE_IMAGES_URL}/{self.username}/{filename}'
+
+def get_default_profile_image():
+    return 'profile_images/avatar.png'
 
 class MyAccountManager(BaseUserManager):
 
     def create_user(self, email, username, password=None):
         if not email:
-            raise ValueError('User must have an email addredd')
+            raise ValueError('User must have an email address')
         if not username:
             raise VlaueError('User must have a username')
 
@@ -32,13 +64,14 @@ class MyAccountManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-class Account(AbstractBaseUser):
+class Account(AbstractBaseUser, ResizeImageMixin):
 
     email = models.EmailField(verbose_name='email', max_length=60, unique=True)
     username = models.CharField(max_length=30, unique=True)
     job_title = models.CharField(max_length=30)
     date_joined = models.DateTimeField(verbose_name="Date Joined", auto_now_add=True)
     last_login = models.DateTimeField(verbose_name="Last Login", auto_now=True)
+    image = models.ImageField(upload_to=get_profile_image_path, default=get_default_profile_image)
     is_admin = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -69,10 +102,48 @@ class Account(AbstractBaseUser):
     def get_classified_files(self):
         return classify_files(self.files.all())
 
+    # resize profile image
+    def save(self, created=None, *args, **kwargs):
+        if self.pk:
+            self.resize(self.image, (315, 315))
+
+        super().save(*args, **kwargs)
+
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
         Token.objects.create(user=instance)
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_user_drive_settings(sender, instance=None, created=False, **kwargs):
+    if created:
+        DriveSettings.objects.create(user=instance)
+
+class DriveSettings(models.Model):
+    user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name="drive_settings")
+    storage_limit = models.FloatField(help_text="Storage in GB.", default=settings.MAX_STORAGE_LIMIT)
+    storage_uploaded = models.FloatField(help_text="Storage in GB.", default=0)
+
+    class Meta:
+        verbose_name_plural = "DriveSettings"
+
+    def __str__(self):
+        return self.user.username
+
+    def get_used_storage_percentage(self):
+        return (self.storage_uploaded/self.storage_limit)*100
+
+    def get_storage_limit_in_bytes(self):
+        return self.storage_limit * 1073741824
+
+    def get_storage_uploaded_in_bytes(self):
+        return self.storage_uploaded * 1073741824
+
+    def add_storage_uploaded(self, file_size):
+        self.storage_uploaded =  F('storage_uploaded') + file_size / 1073741824
+
+    def subtract_storage_uploaded(self, file_size):
+        self.storage_uploaded =  F('storage_uploaded') -  file_size / 1073741824
 
 def classify_files(files):
 

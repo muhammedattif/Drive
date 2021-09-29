@@ -23,7 +23,7 @@ def get_file_path(self, filename):
     date = datetime.now()
     year = str(date.strftime('%Y'))
     month = str(date.strftime('%m'))
-    return f'drive/{self.uploader.username}/{year}/{month}/{filename}'
+    return f'{settings.DRIVE_PATH}/{self.uploader.username}/{year}/{month}/{filename}'
 
 
 # this function is for image compression
@@ -40,24 +40,41 @@ def compress_image(image, image_type):
     return image
 
 
-class File(models.Model):
+class Folder(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name = "folders")
+    name = models.CharField(default="New Folder", max_length=30)
+    parent_folder = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True)
+    created_at = models.DateTimeField(verbose_name="Date Created", auto_now_add=True)
 
+
+
+    def __str__(self):
+        return f'{self.user.username}-{self.name}'
+
+    def get_folder_tree(self):
+        folder_tree = []
+        folder = self
+        folder_tree.append(folder)
+        while True:
+            if folder.parent_folder:
+                folder = folder.parent_folder
+                folder_tree.append(folder)
+            else:
+                break
+        folder_tree.reverse()
+        return folder_tree
+
+
+class File(models.Model):
     uploader = models.ForeignKey(User, on_delete=models.CASCADE, related_name = "files")
     file = models.FileField(upload_to=get_file_path)
-    file_name = models.CharField(max_length=30)
+    file_name = models.CharField(max_length=255)
     file_size = models.IntegerField()
     file_type = models.CharField(max_length=30)
     file_category = models.CharField(max_length=30)
     uploaded_at = models.DateTimeField(verbose_name="Date Uploaded", auto_now_add=True)
+    parent_folder = models.ForeignKey(Folder, on_delete=models.CASCADE, related_name="files", null=True, blank=True)
 
-
-    PRIVACY_CHOICES = (
-        ('public', 'Public'),
-        ('friends', 'Friends'),
-        ('private', 'Private'),
-    )
-
-    privacy = models.CharField(max_length=10, choices=PRIVACY_CHOICES, default="public")
 
     class Meta:
         ordering = ('-uploaded_at',)
@@ -69,18 +86,40 @@ class File(models.Model):
         return 'http://%s%s' % (Site.objects.get_current().domain, self.file.url)
 
     def is_private(self):
-        return self.privacy == 'private'
+        return self.privacy.option == 'private'
 
     def is_public(self):
-        return self.privacy == 'public'
+        return self.privacy.option == 'public'
 
     # this save method is used to hardcode file field
     # if the uploaded file is an image then it will be compressed
     def save(self, *args, **kwargs):
-        if self.file_type.split('/')[0] == 'image' and not self.id:
+        if (self.file_type.split('/')[1].lower() == 'jpeg' or self.file_type.split('/')[1].lower() == 'jpg' or self.file_type.split('/')[1].lower() == 'png') and not self.id:
             self.file = compress_image(self.file, self.file_type)
+            self.file_size = self.file.size
         super().save(*args, **kwargs)
 
+# This function is for Creating Privacy object for a file
+@receiver(post_save, sender=File)
+def create_file_privacy(sender, instance=None, created=False, **kwargs):
+    if created:
+        print(1)
+        FilePrivacy.objects.create(file=instance)
+
+# This function is for cleaning file name before uploading
+@receiver(post_save, sender=File)
+def add_storage_uploaded(sender, instance=None, created=False, **kwargs):
+    if created:
+        file_size = instance.file_size
+        instance.uploader.drive_settings.add_storage_uploaded(file_size)
+        instance.uploader.drive_settings.save()
+
+@receiver(post_delete, sender=File)
+def subtract_storage_uploaded(sender, instance, **kwargs):
+
+    file_size = instance.file_size
+    instance.uploader.drive_settings.subtract_storage_uploaded(file_size)
+    instance.uploader.drive_settings.save()
 
 # This function is for cleaning file name before uploading
 @receiver(post_save, sender=File)
@@ -98,6 +137,22 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
     if instance.file and os.path.isfile(instance.file.path):
             os.remove(instance.file.path)
 
+
+class FilePrivacy(models.Model):
+    PRIVACY_CHOICES = (
+        ('public', 'Public'),
+        ('friends', 'Friends'),
+        ('private', 'Private'),
+    )
+    file = models.OneToOneField(File, on_delete=models.CASCADE, default=1, related_name='privacy')
+    option = models.CharField(max_length=10, choices=PRIVACY_CHOICES, default="private")
+    allowed_users = models.ManyToManyField(User, blank=True, null=True)
+
+    def __str__(self):
+        return f'{self.file.uploader.username}-{self.file.parent_folder}-{self.file.file_name}'
+
+
+
 class Trash(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="trashed_files")
     file = models.OneToOneField(File, on_delete=models.CASCADE, default=1)
@@ -106,7 +161,7 @@ class Trash(models.Model):
     def __str__(self):
           return f'{self.user.username}-{self.file.file_name}-Trash'
 
-    # this function is buit the remainig dayes for a file to be delated
+    # this function is built the remaining days for a file to be deleted
     def remaining_days(self):
 
         current_date = datetime.now(timezone.utc)

@@ -1,0 +1,7 @@
+from django.core.files.storage import FileSystemStorage
+    img_file = request.FILES['file']
+    
+    fs = FileSystemStorage()
+    filename = fs.save(img_file.name, img_file)
+    uploaded_file_path = fs.path(filename)
+    print('absolute file path', uploaded_file_path)    

@@ -1,0 +1,30 @@
+UNION ALL
+            SELECT
+                null, package.title, null, cart_item.price, cart_item.discount, null,
+                null, package.creation, null, cart_item.name as id, 
+                null, null, null, cart_item.buyable_type AS item_type,
+                package.name AS session_name, null, null
+            FROM `tabCart Items` cart_item
+                INNER JOIN `tabCart` cart
+                    ON cart_item.parent = cart.name
+                INNER JOIN `tabStudent` student
+                    ON student.name = cart.user_id
+                INNER JOIN `tabCapacityPackages` capacity_package 
+                    ON cart_item.buyable_id = capacity_package.name AND cart_item.buyable_type = 'CapacityPackages'
+            WHERE student.student_email_id = %(email)s
+
+
+UNION ALL
+            SELECT
+                null, package.title, null, cart_item.price, cart_item.discount, null,
+                null, package.creation, null, cart_item.name as id, 
+                null, null, null, cart_item.buyable_type AS item_type,
+                package.name AS session_name, null, null
+            FROM `tabCart Items` cart_item
+                INNER JOIN `tabCart` cart
+                    ON cart_item.parent = cart.name
+                INNER JOIN `tabStudent` student
+                    ON student.name = cart.user_id
+                INNER JOIN `tabCapacityPackages` capacity_package 
+                    ON cart_item.buyable_id = capacity_package.name AND cart_item.buyable_type = 'CapacityPackages'
+            WHERE student.student_email_id = %(email)s
