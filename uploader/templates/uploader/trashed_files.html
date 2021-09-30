@@ -1,6 +1,25 @@
 {% extends 'uploader/base.html' %}
 
 {% block content %}
+
+{% for message in messages %}
+
+  <div class="position-fixed top-10% right-0% p-3" style="z-index: 5; right: 0; top: 0;">
+    <div id="liveToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
+      <div class="toast-header {% if message.tags == 'error' %} bg-danger {% else %} bg-success{% endif %}  " style="color: white;">
+        <strong class="mr-auto">System</strong>
+        <small>Now</small>
+        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="toast-body">
+        {{message}}
+      </div>
+    </div>
+  </div>
+{% endfor %}
+
 <div class="drive-wrapper drive-grid-view" id="collapse_grid">
     <div class="grid-items-wrapper">
       <div id="main-content" class="file_manager">

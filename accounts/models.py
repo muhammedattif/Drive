@@ -145,6 +145,15 @@ class DriveSettings(models.Model):
     def subtract_storage_uploaded(self, file_size):
         self.storage_uploaded =  F('storage_uploaded') -  file_size / 1073741824
 
+    def is_allowed_to_upload_files(self, files_size):
+
+        if self.storage_uploaded < self.storage_limit:
+            storage_after_uploade = self.storage_uploaded + (files_size / 1073741824)
+            if storage_after_uploade < self.storage_limit:
+                return True
+
+        return False
+
 def classify_files(files):
 
     docs_ext =  ['pdf','doc','docx','xls','ppt','txt']

@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'django.contrib.humanize',
     'mathfilters',
+    # this is for CRONJOBS
     'django_crontab',
 
     'accounts',
@@ -138,7 +139,7 @@ USE_TZ = True
 
 # schedule tasks
 CRONJOBS = [
-    ('* * * * *', 'uploader.schedule_tasks.delete_trashed_files')
+    ('* * * * *', 'uploader.cron.delete_trashed_files')
 ]
 
 # Static files (CSS, JavaScript, Images)

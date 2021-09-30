@@ -3,11 +3,11 @@ from uploader.models import File, Trash, Folder
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 import json
+from django.contrib import messages
 
 # Create your views here.
 @login_required(login_url='login')
 def home(request):
-    print(dir(request.user.drive_settings))
     if not request.user.is_authenticated:
         return redirect('login')
     try:
@@ -30,13 +30,16 @@ def home(request):
 
 def folder(request, id=None):
     context = {}
-    if id:
-        folder = Folder.objects.get(id=id, user=request.user)
-        context['folder'] = folder
-        context['folders'] = folder.folder_set.all()
-        context['files'] = folder.files.all().filter(trash = None)
-    else:
-        context['folders'] = Folder.objects.filter(parent_folder=None, user=request.user)
+    try:
+        if id:
+            folder = Folder.objects.get(id=id, user=request.user)
+            context['folder'] = folder
+            context['folders'] = folder.folder_set.all()
+            context['files'] = folder.files.all().filter(trash = None)
+        else:
+            context['folders'] = Folder.objects.filter(parent_folder=None, user=request.user)
+    except Exception:
+        return redirect('error')
 
     return render(request, 'uploader/folder.html', context)
 
@@ -44,53 +47,104 @@ def folder(request, id=None):
 @login_required(login_url='login')
 def upload(request):
     if request.method == 'POST':
-        files_links = []
-        user = request.user
 
+        user = request.user
         uploaded_files = request.FILES.getlist('file')
 
+        files_links = []
+        files_size = 0
+
         for file in uploaded_files:
+            files_size += file.size
+        if user.drive_settings.is_allowed_to_upload_files(files_size):
+            for file in uploaded_files:
+                file_name = file.name
+                file_size = file.size
+                file_category = get_file_cat(file)
+                file_type = file.content_type
 
-            file_name = file.name
-            file_size = file.size
-            file_category = get_file_cat(file)
-            file_type = file.content_type
+                try:
+                    folder_id = request.POST['folder_id']
+                    if folder_id:
+                        parent_folder = Folder.objects.get(id=folder_id)
+                    else:
+                        parent_folder = None
 
-            try:
-                file = File.objects.create(uploader=user, file_name=file_name, file_size=file_size, file_type=file_type,
-                                           file_category=file_category, file=file)
-                folder_id = request.POST['folder_id']
-                if folder_id:
-                    folder = Folder.objects.get(id=folder_id)
-                    folder.files.add(file)
-            except Exceptio as e:
-                pass
+                    file = File.objects.create(uploader=user, file_name=file_name, file_size=file_size, file_type=file_type,
+                                               file_category=file_category, file=file, parent_folder=parent_folder)
 
-            files_links.append(file.get_url())
+                except Exceptio as e:
+                    pass
 
-        context = {
-          'files_links': files_links
-        }
+                files_links.append(file.get_url())
+            context = {
+              'files_links': files_links
+            }
+            return JsonResponse(json.dumps(context),content_type="application/json",safe=False)
+        else:
+            context = {
+              'message': 'Limit Exceeded!'
+            }
+            return JsonResponse(json.dumps(context), status=400, content_type="application/json",safe=False)
 
-        return JsonResponse(json.dumps(context), content_type="application/json",safe=False)
-
-    return render(request, 'uploader/upload.html')
+    return redirect('home')
 
 @login_required(login_url='login')
 def create_folder(request, id):
-
     if request.method == 'POST':
         parent_folder_id = id
         child_folder_name = request.POST['child_folder_name']
+        # in case if this folder has a parent folder
         if parent_folder_id:
             parent_folder = Folder.objects.get(user=request.user, id=parent_folder_id)
-            Folder.objects.create(user=request.user, name=child_folder_name, parent_folder = parent_folder)
-            return redirect('/uploader/folder/{}'.format(parent_folder_id))
-        else:
-            Folder.objects.create(user=request.user, name=child_folder_name)
-            return redirect('home')
 
+            # in case there is already another folder in this parent folder with the same name
+            parent_folder_childs_names = parent_folder.folder_set.all().values_list('name', flat=True)
+            if child_folder_name in parent_folder_childs_names:
+                messages.error(request, 'A folder with the same name already exists.')
+                return redirect('/uploader/folder/{}'.format(parent_folder_id))
+            else:
+                # in case there is no folders with the same name in this parent folder then create it
+                Folder.objects.create(user=request.user, name=child_folder_name, parent_folder = parent_folder)
+                messages.success(request, f'{child_folder_name} Created Successfully!.')
+                return redirect('/uploader/folder/{}'.format(parent_folder_id))
+        else:
+            # in case this folder does not have a parent folder then create it in home directory
+            home_folder_set_names = Folder.objects.filter(user=request.user, parent_folder=None).values_list('name', flat=True)
+            if child_folder_name in home_folder_set_names:
+                messages.error(request, 'A folder with the same name already exists.')
+                return redirect('home')
+            else:
+                Folder.objects.create(user=request.user, name=child_folder_name)
+                messages.success(request, f'{child_folder_name} Created Successfully!.')
+                return redirect('home')
+    messages.error(request, 'Something went wrong!.')
     return redirect('home')
+
+@login_required(login_url='login')
+def delete_folder(request, id):
+    user = request.user
+    try:
+        folder = Folder.objects.get(user=user, id=id)
+
+        folder_name = folder.name
+
+        if folder.parent_folder is not None:
+            parent_folder_id = folder.parent_folder.id
+            redirect_path = '/uploader/folder/{}'.format(parent_folder_id)
+        else:
+            redirect_path = '/uploader'
+
+        folder.delete()
+
+        messages.success(request, f'{folder_name} deleted successfully!.')
+        return redirect(redirect_path)
+
+    except Exception:
+        return redirect('error')
+
+
+
 
 @login_required(login_url='login')
 def filter(request, cat):
@@ -125,9 +179,9 @@ def move_to_trash(request, id):
     try:
         file = File.objects.get(pk=id, uploader=request.user)
         Trash.objects.create(user=file.uploader, file=file)
-        context['message'] = 'File Trashed Successfully!'
+        messages.success(request, f'{file.file_name} moved to trash.')
     except File.DoesNotExist:
-        context['message'] = 'File Does not Exists!'
+        messages.error(request, 'File Does not Exists!')
     return redirect('home')
 
 @login_required(login_url='login')
@@ -136,18 +190,20 @@ def delete(request, id):
     try:
         file = File.objects.get(pk=id, uploader=request.user)
         file.delete()
+        messages.success(request, f'{file.file_name} was permanently deleted.')
     except File.DoesNotExist:
-        context['message'] = 'File Does not Exists!'
+        messages.error(request, 'File Does not Exists!')
     return redirect('/uploader/trash')
 
 
 @login_required(login_url='login')
 def recover(request, id):
-
     try:
         trashed_file = Trash.objects.get(file__id=id, user=request.user)
         trashed_file.delete()
+        messages.success(request, f'{trashed_file.file.file_name} was recovered')
     except Trash.DoesNotExist:
+        messages.error(request, 'File Does not Exists!')
         return redirect('/uploader/trash')
     return redirect('/uploader/trash')
 

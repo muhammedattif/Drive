@@ -11,22 +11,41 @@
         <li class="breadcrumb-item "><a href="{% url 'home' %}"><i class="fas fa-home"></i> Home</a></li>
     </ol>
 </nav>
+
+{% for message in messages %}
+
+  <div class="position-fixed top-10% right-0% p-3" style="z-index: 5; right: 0; top: 0;">
+    <div id="liveToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
+      <div class="toast-header {% if message.tags == 'error' %} bg-danger {% else %} bg-success{% endif %}  " style="color: white;">
+        <strong class="mr-auto">System</strong>
+        <small>Now</small>
+        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="toast-body">
+        {{message}}
+      </div>
+    </div>
+  </div>
+{% endfor %}
+
 <div class="drive-wrapper drive-grid-view" id="collapse_grid">
     <div class="grid-items-wrapper">
       <div id="main-content" class="file_manager">
               <div class="container-fluid">
                   <div class="row clearfix">
-                    {% if folders.all %}
-                        {% for folder in folders.all %}
+                    {% if folders %}
+                        {% for folder in folders %}
                             <div class="col-lg-3 col-md-4 col-sm-12">
                           <div class="card">
                               <div class="file">
-                                  <a href="javascript:void(0);">
-                                      <div class="hover">
-                                        <h4><a href="" data-toggle="tooltip" data-placement="top" title="" data-original-title="Move To Trash"><i class="lni lni-trash-can delete icons"></i></a></h4>
-                                      </div>
+                                <div class="hover">
+                                  <h4><a href="{% url 'uploader:delete_folder' folder.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Move To Trash"><i class="lni lni-trash-can delete icons"></i></a></h4>
+                                </div>
+                                  <a href="{% url 'uploader:folder' folder.id %}">
                                       <div class="icon">
-                                          <i class="fa fa-folder text-primary"></i>
+                                          <i class="fa fa-folder text-primary " style="font-size: 40px;"></i>
                                       </div>
                                       <div class="file-name">
                                           <a title="{{ folder.name }}" href="{% url 'uploader:folder' folder.id %}"><p class="m-b-5 text-muted">{{ folder.name }}</p></a>
@@ -130,13 +149,40 @@
 
             </tbody>
         </table>
-        {% else %}
-        <div class="container">
-          <h1 class="display-4">Fluid jumbotron</h1>
-          <p class="lead">This is a modified jumbotron that occupies the entire horizontal space of its parent.</p>
-        </div>
         {% endif %}
+
+        {% if folders %}
+
+          <table class="table">
+              <thead>
+                  <tr>
+                      <th class="type"></th>
+                      <th class="name truncate">Name</th>
+                      <th class="date">Uploaded</th>
+                      <th class="size">Delete</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  {% for folder in folders.all %}
+                  <tr>
+                      <td class="type">
+                        <i class="fa fa-folder text-primary "></i>
+                      </td>
+                      <td class="name truncate"><a href="{% url 'uploader:folder' folder.id %}">{{folder.name|truncatechars:35}}</a></td>
+                      <td class="date">{{folder.created_at}}</td>
+                      <td class="center"><a href="{% url 'uploader:delete_folder' folder.id %}" class="delete" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"><i class="lni lni-trash-can delete"></i></a></td>
+                  </tr>
+                  {% endfor %}
+
+              </tbody>
+          </table>
+          {% endif %}
+
+
     </div>
+    {% if not files.all and not folders.all %}
+      {% include 'no_files_found.html' %}
+    {% endif %}
 </div>
 <script type="text/javascript">
   function CopyFileLink(link, id)  {
