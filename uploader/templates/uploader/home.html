@@ -17,10 +17,15 @@
   <div class="position-fixed top-10% right-0% p-3" style="z-index: 5; right: 0; top: 0;">
     <div id="liveToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
       <div class="toast-header {% if message.tags == 'error' %} bg-danger {% else %} bg-success{% endif %}  " style="color: white;">
-        <strong class="mr-auto">System</strong>
+        {% if message.tags == 'success' %}
+          <i class="fas fa-check-circle"></i>
+        {% else %}
+          <i class="fas fa-exclamation-triangle"></i>
+        {% endif %}
+        <strong class="mr-auto ml-2">System</strong>
         <small>Now</small>
         <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
+          <span style="color: white;" aria-hidden="true">&times;</span>
         </button>
       </div>
       <div class="toast-body">
@@ -37,15 +42,15 @@
                   <div class="row clearfix">
                     {% if folders %}
                         {% for folder in folders %}
-                            <div class="col-lg-3 col-md-4 col-sm-12">
+                          <div class="col-lg-3 col-md-4 col-sm-12">
                           <div class="card">
                               <div class="file">
                                 <div class="hover">
-                                  <h4><a href="{% url 'uploader:delete_folder' folder.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Move To Trash"><i class="lni lni-trash-can delete icons"></i></a></h4>
+                                  <h4><a href="{% url 'uploader:delete_folder' folder.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete Folder"><i class="lni lni-trash-can delete icons"></i></a></h4>
                                 </div>
                                   <a href="{% url 'uploader:folder' folder.id %}">
                                       <div class="icon">
-                                          <i class="fa fa-folder text-primary " style="font-size: 40px;"></i>
+                                          <i class="fa fa-folder text-primary folder-icon" ></i>
                                       </div>
                                       <div class="file-name">
                                           <a title="{{ folder.name }}" href="{% url 'uploader:folder' folder.id %}"><p class="m-b-5 text-muted">{{ folder.name }}</p></a>
@@ -62,13 +67,14 @@
                       <div class="col-lg-3 col-md-4 col-sm-12">
                           <div class="card">
                               <div class="file">
-                                  <a href="javascript:void(0);">
-                                      <div class="hover">
+                                <div class="hover">
 
-                                        <h4><a id="link-{{file.pk}}" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ file.get_url }}', 'link-{{file.pk}}')" class="fa fa-files-o copy icons"></i></a></h4>
-                                        <h4><a href="{{file.file.url}}" download data-toggle="tooltip" data-placement="top" title="" data-original-title="Download"><i class="lni lni-arrow-down-circle download icons"></i></a></h4>
-                                        <h4><a href="{% url 'uploader:move_to_trash' file.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Move To Trash"><i class="lni lni-trash-can delete icons"></i></a></h4>
-                                      </div>
+                                  <h4><a id="link-{{file.pk}}" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ file.get_url }}', 'link-{{file.pk}}')" class="fa fa-files-o copy icons"></i></a></h4>
+                                  <h4><a href="{{file.file.url}}" download data-toggle="tooltip" data-placement="top" title="" data-original-title="Download"><i class="lni lni-arrow-down-circle download icons"></i></a></h4>
+                                  <h4><a href="{% url 'uploader:move_to_trash' file.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Move To Trash"><i class="lni lni-trash-can delete icons"></i></a></h4>
+                                </div>
+                                  <a href="{{file.file.url}}" target="_blank">
+
                                       <div class="icon">
                                            {% if file.file_category == 'images' %}
                                             <i class="fa fa-file-image-o text-primary"></i>

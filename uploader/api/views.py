@@ -2,65 +2,17 @@ from django.shortcuts import render
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from uploader.models import File, Folder
+
 # Create your views here.
 
-# Upload File
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def upload(request, format=None):
-    content = {}
-    links = []
-    if bool(request.FILES.get('file', False)) == True:
-        user = request.user
-        for file in request.FILES.getlist('file'):
-            uploaded_file = file
-            file_name = uploaded_file.name
-            file_size = uploaded_file.size
-            file_category = get_file_cat(uploaded_file)
-            file_type = uploaded_file.content_type
-            file = File.objects.create(uploader=user, file_name=file_name, file_size=file_size, file_type=file_type, file_category=file_category, file=uploaded_file)
-            content = {
-                'uploader': file.uploader.email,
-                'file_name': file.file_name,
-                'file_id': file.pk,
-                'file_link': file.get_url(),
-                'file_size': file.file_size,
-                'file_type': file.file_type,
-                'file_category': file.file_category,
-                'uploaded_at': file.uploaded_at
-            }
-            links.append(content)
-    else:
-        content['error'] = 'No file found'
-        return Response(content)
+# this function create folder tree if not exist and return directory object
+def create_folder_tree_if_not_exist(folder_tree, user):
 
-    return Response(links)
+    parent_folder = None
 
-# Delete File
-@api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
-def delete(request, id):
-    content = {}
-    user = request.user
-    try:
-        file = File.objects.get(pk=id, uploader=user)
-        file.delete()
-        content['message'] = 'File Deleted Successfully!'
-    except File.DoesNotExist:
-        content['message'] = 'File Does not Exists!'
-    return Response(content)
-
-
-# Upload File
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def create_folder(request, format=None):
-
-    user = request.user
-
-    folder_tree = request.POST['folder_tree']
     folder_tree = folder_tree.split('/')
     folder_tree = list(filter(None, folder_tree))
 
@@ -86,7 +38,122 @@ def create_folder(request, format=None):
             # set current folder as a parent to the next folder
             parent_folder = folder
 
-    content = {'message': 'Folders Created Successfully!'}
+    return parent_folder
+
+# Upload File
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def upload(request, format=None):
+    content = {}
+    links = []
+
+    if bool(request.FILES.get('file', False)) == True:
+
+        user = request.user
+        uploaded_files = request.FILES.getlist('file')
+
+        folder_tree = request.POST['folder_tree'] if 'folder_tree' in request.POST else None
+        directory_id = request.POST['directory_id'] if 'directory_id' in request.POST else None
+        privacy = request.POST['privacy'] if 'privacy' in request.POST else None
+
+        files_size = 0
+
+        for file in uploaded_files:
+            files_size += file.size
+        if user.drive_settings.is_allowed_to_upload_files(files_size):
+
+            if folder_tree:
+                parent_folder = create_folder_tree_if_not_exist(folder_tree, user)
+
+            elif directory_id:
+                try:
+                    parent_folder = Folder.objects.get(id=directory_id, user=user)
+                except Folder.DoesNotExist:
+                    content['message'] = 'Directory Not found.'
+                    return Response(content, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                parent_folder = None
+
+
+            for file in uploaded_files:
+                uploaded_file = file
+                file_name = uploaded_file.name
+                file_size = uploaded_file.size
+                file_category = get_file_cat(uploaded_file)
+                file_type = uploaded_file.content_type
+
+                try:
+
+                    file = File.objects.create(
+                         uploader=user, file_name=file_name,
+                         file_size=file_size, file_type=file_type,
+                         file_category=file_category,
+                         file=uploaded_file, parent_folder=parent_folder
+                    )
+                    if privacy:
+                        file.privacy.option = privacy
+                        file.privacy.save()
+
+                except File.DoesNotExist:
+                    content['message'] = 'Something went wrong!'
+                    return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+                if not parent_folder:
+                    directory_id = ''
+                else:
+                    directory_id = parent_folder.id
+
+                content = {
+                    'uploader': file.uploader.email,
+                    'file_name': file.file_name,
+                    'file_id': file.pk,
+                    'file_link': file.get_url(),
+                    'file_size': file.file_size,
+                    'file_type': file.file_type,
+                    'file_category': file.file_category,
+                    'uploaded_at': file.uploaded_at,
+                    'directory_id': directory_id
+                }
+                links.append(content)
+        else:
+            content['message'] = 'Limit Exceeded!'
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        content['message'] = 'No file to upload.'
+        return Response(content, status=status.HTTP_404_NOT_FOUND)
+
+    return Response(links)
+
+# Delete File
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete(request, id):
+    content = {}
+    user = request.user
+    try:
+        file = File.objects.get(pk=id, uploader=user)
+        file.delete()
+        content['message'] = 'File Deleted Successfully!'
+    except File.DoesNotExist:
+        content['message'] = 'File Does not Exists!'
+    return Response(content)
+
+
+# Upload File
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_folder_tree(request, format=None):
+
+    user = request.user
+
+    folder_tree = request.POST['folder_tree']
+
+    parent_folder = create_folder_tree_if_not_exist(folder_tree, user)
+
+    content = {
+    'message': 'Folders Created Successfully!',
+    'directory_id': parent_folder.id
+    }
     return Response(content)
 
 # Upload File

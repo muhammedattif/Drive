@@ -146,7 +146,7 @@ class FilePrivacy(models.Model):
     )
     file = models.OneToOneField(File, on_delete=models.CASCADE, default=1, related_name='privacy')
     option = models.CharField(max_length=10, choices=PRIVACY_CHOICES, default="private")
-    allowed_users = models.ManyToManyField(User, blank=True, null=True)
+    allowed_users = models.ManyToManyField(User, blank=True)
 
     def __str__(self):
         return f'{self.file.uploader.username}-{self.file.parent_folder}-{self.file.file_name}'

@@ -313,8 +313,7 @@ body{
 .drive-wrapper {
     padding: 15px;
     background: #f5f5f5;
-
-    border-radius: 4px
+    border-radius: 4px;
 }
 
 .drive-wrapper .drive-item {
@@ -845,3 +844,12 @@ th:not(:first-child){
     background: #f5f5f5;
 }
 
+
+.file_manager .file .icon i{
+  font-size: 40px;
+  transition: 0.5s;
+}
+.file_manager .file:hover .icon i{
+  transition: 0.5s;
+  font-size: 45px
+}
