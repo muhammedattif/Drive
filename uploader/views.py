@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, reverse
-from uploader.models import File, Trash, Folder
+from uploader.models import File, Trash, Folder, FilePrivacy
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 import json
 from django.contrib import messages
-
+from uploader.forms import FilePrivacyForm
+from accounts.models import Account
 # Create your views here.
 @login_required(login_url='login')
 def home(request):
@@ -28,6 +29,7 @@ def home(request):
     return render(request, 'uploader/home.html', context)
 
 
+@login_required(login_url='login')
 def folder(request, id=None):
     context = {}
     try:
@@ -42,6 +44,50 @@ def folder(request, id=None):
         return redirect('error')
 
     return render(request, 'uploader/folder.html', context)
+
+
+@login_required(login_url='login')
+def file_settings(request, id):
+
+    file_settings = FilePrivacy.objects.get(id=id)
+
+    if request.method == 'POST':
+
+        shared_with_users = request.POST['users']
+        shared_with_users = shared_with_users.replace('\r\n', ' ')
+        shared_with_users = shared_with_users.split(' ')
+
+
+        form = FilePrivacyForm(request.POST, instance=file_settings)
+
+        if form.is_valid():
+            form = form.save(commit=False)
+            if len(shared_with_users) > 0:
+                invalid_user = False
+                file_settings.shared_with.clear()
+                for user in shared_with_users:
+                    if user:
+                        try:
+                            user = Account.objects.get(email=user)
+                            file_settings.shared_with.add(user)
+                        except Account.DoesNotExist:
+                            invalid_user = True
+
+                file_settings.save()
+            form.save()
+
+            if invalid_user:
+                messages.error(request, 'Saved!, But It seems that you shared this file with an email address that is not associated with any user.')
+            else:
+                messages.success(request, f'{file_settings.file.file_name} sharing settings updated successfully!')
+    context = {
+    'form': FilePrivacyForm(instance=file_settings),
+    'file': file_settings.file,
+    'file_settings': file_settings
+    }
+
+    return render(request, 'uploader/file_settings.html', context)
+
 
 
 @login_required(login_url='login')

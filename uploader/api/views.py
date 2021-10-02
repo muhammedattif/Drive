@@ -29,15 +29,17 @@ def create_folder_tree_if_not_exist(folder_tree, user):
             # set current folder as a parent to the next folder
             parent_folder = folder
         else:
-
+            # if not exist create new one
             if folder_name not in parent_folder.folder_set.all().values_list('name', flat=True):
                 folder = Folder.objects.create(user=user, name=folder_name, parent_folder=parent_folder)
             else:
+                # get folder if exist
                 folder = Folder.objects.get(user=user, name=folder_name, parent_folder=parent_folder)
 
             # set current folder as a parent to the next folder
             parent_folder = folder
 
+    # return end of tree folder id
     return parent_folder
 
 # Upload File
@@ -47,24 +49,33 @@ def upload(request, format=None):
     content = {}
     links = []
 
+    # if request has file
     if bool(request.FILES.get('file', False)) == True:
 
         user = request.user
         uploaded_files = request.FILES.getlist('file')
 
+        # get data from post request
         folder_tree = request.POST['folder_tree'] if 'folder_tree' in request.POST else None
         directory_id = request.POST['directory_id'] if 'directory_id' in request.POST else None
         privacy = request.POST['privacy'] if 'privacy' in request.POST else None
 
         files_size = 0
 
+        # sum all files sizes
         for file in uploaded_files:
             files_size += file.size
+
+        # check if the user is allowed to upload files with these size or his limit reached
         if user.drive_settings.is_allowed_to_upload_files(files_size):
 
+            # check request params
+
+            # if folder tree passed then get or create it
             if folder_tree:
                 parent_folder = create_folder_tree_if_not_exist(folder_tree, user)
 
+            # if directory id passed then upload file to this directory
             elif directory_id:
                 try:
                     parent_folder = Folder.objects.get(id=directory_id, user=user)
@@ -72,9 +83,10 @@ def upload(request, format=None):
                     content['message'] = 'Directory Not found.'
                     return Response(content, status=status.HTTP_400_BAD_REQUEST)
             else:
+                # if no folder tree or directory id then upload to base folder
                 parent_folder = None
 
-
+            # get all files in the request and upload it
             for file in uploaded_files:
                 uploaded_file = file
                 file_name = uploaded_file.name
@@ -90,16 +102,18 @@ def upload(request, format=None):
                          file_category=file_category,
                          file=uploaded_file, parent_folder=parent_folder
                     )
+                    # if privacy parameter passed then set it, if not then the default is 'private'
                     if privacy:
                         file.privacy.option = privacy
                         file.privacy.save()
 
-                except File.DoesNotExist:
+                except Exception:
                     content['message'] = 'Something went wrong!'
                     return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
                 if not parent_folder:
                     directory_id = ''
+
                 else:
                     directory_id = parent_folder.id
 

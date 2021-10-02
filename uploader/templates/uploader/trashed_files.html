@@ -1,4 +1,4 @@
-{% extends 'uploader/base.html' %}
+{% extends 'uploader/home.html' %}
 
 {% block content %}
 
@@ -43,16 +43,19 @@
                       <div class="col-lg-3 col-md-4 col-sm-12">
                           <div class="card">
                               <div class="file">
+                                <div class="show_settings">
+                                  <div class="hover">
+
+                                    <h4><a id="link-{{trash.file.pk}}" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ trash.file.get_url }}', 'link-{{trash.file.pk}}')" class="lni lni-link copy icons"></i></a></h4>
+                                    <h4><a href="{% url 'uploader:recover' trash.file.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Recover"><i class='bx bx-undo text-success'></i></a></h4>
+                                    <h4><a href="{% url 'uploader:delete'  trash.file.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Permanently Delete">
+
+                                      <i class="lni lni-trash-can delete icons"></i>
+                                    </a></h4>
+                                  </div>
+                                </div>
                                   <a href="javascript:void(0);">
-                                      <div class="hover">
 
-                                        <h4><a id="link-{{trash.file.pk}}" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ trash.file.get_url }}', 'link-{{trash.file.pk}}')" class="fa fa-files-o copy icons"></i></a></h4>
-                                        <h4><a href="{% url 'uploader:recover' trash.file.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Recover"><i class='bx bx-undo text-success'></i></a></h4>
-                                        <h4><a href="{% url 'uploader:delete'  trash.file.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Permanently Delete">
-
-                                          <i class="lni lni-trash-can delete icons"></i>
-                                        </a></h4>
-                                      </div>
                                       <div class="icon">
                                         {% if trash.file.file_category == 'images' %}
                                          <i class="fa fa-file-image-o text-primary"></i>

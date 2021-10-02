@@ -48,6 +48,9 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'django.contrib.humanize',
     'mathfilters',
+    'bootstrap4',
+    # for scanning from virus
+    'django_clamd',
     # this is for CRONJOBS
     'django_crontab',
 

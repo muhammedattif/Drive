@@ -7,6 +7,9 @@ import os
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
+from django_clamd.validators import validate_file_infection
+
+
 # image compression imports
 import sys
 from django.db import models
@@ -80,7 +83,7 @@ class Folder(models.Model):
 
 class File(models.Model):
     uploader = models.ForeignKey(User, on_delete=models.CASCADE, related_name = "files")
-    file = models.FileField(upload_to=get_file_path)
+    file = models.FileField(upload_to=get_file_path, validators=[validate_file_infection])
     file_name = models.CharField(max_length=255)
     file_size = models.IntegerField()
     file_type = models.CharField(max_length=30)
@@ -158,7 +161,7 @@ class FilePrivacy(models.Model):
     )
     file = models.OneToOneField(File, on_delete=models.CASCADE, default=1, related_name='privacy')
     option = models.CharField(max_length=10, choices=PRIVACY_CHOICES, default="private")
-    allowed_users = models.ManyToManyField(User, blank=True)
+    shared_with = models.ManyToManyField(User, blank=True)
 
     def __str__(self):
         return f'{self.file.uploader.username}-{self.file.parent_folder}-{self.file.file_name}'
