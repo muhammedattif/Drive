@@ -314,6 +314,7 @@ body{
     padding: 15px;
     background: #f5f5f5;
     border-radius: 4px;
+    border-radius: 4px;
 }
 
 .drive-wrapper .drive-item {
@@ -739,7 +740,17 @@ body{
     top: 10px;
     display: block;
 
+    z-index: 2;
     transition: all 0.2s ease-in-out
+}
+
+.file_manager .file .file_settings {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    display: block;
+    transition: all 0.2s ease-in-out;
+    z-index: 2;
 }
 
 .file_manager .file a:hover .hover {
@@ -804,6 +815,10 @@ a:hover {
   color: gray;
 }
 
+.share:hover{
+  color: #ffc107!important
+}
+
 .copy:hover{
   color: #007bff!important
 }
@@ -845,30 +860,24 @@ th:not(:first-child){
 }
 
 
-.ftco-section {
-  padding: 7em 0; }
+.file_manager .file .icon i{
+  font-size: 40px;
+  transition: 0.5s;
+}
+.file_manager .file:hover .icon i{
+  transition: 0.5s;
+  transform: scale(1.2);
 
-.ftco-no-pt {
-  padding-top: 0; }
+}
 
-.ftco-no-pb {
-  padding-bottom: 0; }
 
-.heading-section {
-  font-size: 28px;
-  color: #000; }
-  .heading-section small {
-    font-size: 18px; }
+.show_settings{
+  opacity: 0;
+  transition: all 0.3s ease-in-out;
+}
 
-.img {
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center center; }
+.file_manager .file:hover .show_settings{
+  opacity: 1;
+  transition: all 0.3s ease-in-out;
+}
 
-.dropdown-toggle::after {
-  position: absolute;
-  top: 50%;
-  right: 20px;
-  -webkit-transform: translateY(-50%);
-  -ms-transform: translateY(-50%);
-  transform: translateY(-50%); }

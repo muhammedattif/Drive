@@ -49,7 +49,10 @@ def folder(request, id=None):
 @login_required(login_url='login')
 def file_settings(request, id):
 
-    file_settings = FilePrivacy.objects.get(id=id)
+    try:
+        file_privacy_settings = FilePrivacy.objects.get(file__id=id, file__uploader=request.user)
+    except FilePrivacy.DoesNotExist:
+        return redirect('error')
 
     if request.method == 'POST':
 
@@ -58,32 +61,32 @@ def file_settings(request, id):
         shared_with_users = shared_with_users.split(' ')
 
 
-        form = FilePrivacyForm(request.POST, instance=file_settings)
+        form = FilePrivacyForm(request.POST, instance=file_privacy_settings)
 
         if form.is_valid():
             form = form.save(commit=False)
             if len(shared_with_users) > 0:
                 invalid_user = False
-                file_settings.shared_with.clear()
+                file_privacy_settings.shared_with.clear()
                 for user in shared_with_users:
                     if user:
                         try:
                             user = Account.objects.get(email=user)
-                            file_settings.shared_with.add(user)
+                            file_privacy_settings.shared_with.add(user)
                         except Account.DoesNotExist:
                             invalid_user = True
 
-                file_settings.save()
+                file_privacy_settings.save()
             form.save()
 
             if invalid_user:
                 messages.error(request, 'Saved!, But It seems that you shared this file with an email address that is not associated with any user.')
             else:
-                messages.success(request, f'{file_settings.file.file_name} sharing settings updated successfully!')
+                messages.success(request, f'{file_privacy_settings.file.file_name} sharing settings updated successfully!')
     context = {
-    'form': FilePrivacyForm(instance=file_settings),
-    'file': file_settings.file,
-    'file_settings': file_settings
+    'form': FilePrivacyForm(instance=file_privacy_settings),
+    'file': file_privacy_settings.file,
+    'file_settings': file_privacy_settings
     }
 
     return render(request, 'uploader/file_settings.html', context)
@@ -167,6 +170,7 @@ def create_folder(request, id):
     messages.error(request, 'Something went wrong!.')
     return redirect('home')
 
+
 @login_required(login_url='login')
 def delete_folder(request, id):
     user = request.user
@@ -194,6 +198,9 @@ def delete_folder(request, id):
 
 @login_required(login_url='login')
 def filter(request, cat):
+    """
+    This function is to filter files based on category
+    """
     context = {}
     if cat == 'all':
         files = File.objects.filter(uploader=request.user, trash=None, parent_folder = None)
@@ -202,7 +209,7 @@ def filter(request, cat):
     elif cat == 'folders':
         try:
             folders = Folder.objects.filter(parent_folder=None, user=request.user)
-        except Exception as e:
+        except Exception:
             folders = None
         context['folders'] = folders
     else:
@@ -221,18 +228,19 @@ def get_trashed_files(request):
 
 @login_required(login_url='login')
 def move_to_trash(request, id):
-    context = {}
+    file = None
     try:
         file = File.objects.get(pk=id, uploader=request.user)
         Trash.objects.create(user=file.uploader, file=file)
         messages.success(request, f'{file.file_name} moved to trash.')
     except File.DoesNotExist:
         messages.error(request, 'File Does not Exists!')
+    if file.parent_folder is not None:
+        return redirect(f'/uploader/folder/{file.parent_folder.id}')
     return redirect('home')
 
 @login_required(login_url='login')
-def delete(request, id):
-    context = {}
+def delete_file(request, id):
     try:
         file = File.objects.get(pk=id, uploader=request.user)
         file.delete()

@@ -4,6 +4,6 @@ from accounts.api.views import ObtainAuthTokenView
 app_name = 'accounts'
 
 urlpatterns = [
-    path('login', obtain_auth_token, name='login'),
-    path('login2', ObtainAuthTokenView.as_view(), name="login2"),
+    # path('login', obtain_auth_token, name='login'),
+    path('login', ObtainAuthTokenView.as_view(), name="login"),
   ]

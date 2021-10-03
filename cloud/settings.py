@@ -30,8 +30,7 @@ SECRET_KEY = 'django-insecure-uh6jw=6xfyv58dpdyvh3)-fgzj--(7at@z@$iorf9%qx%^9v3+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['10.0.0.198']
 
 # Application definition
 
@@ -177,5 +176,8 @@ PROFILE_IMAGES_URL = 'profile_images'
 # Directory where other uploded files are gonna be stored
 DRIVE_PATH = 'drive'
 
+# Alias for drive path
+ALIAS_DRIVE_PATH = 'link/'
+
 # Max storage limit for user
-MAX_STORAGE_LIMIT = 150 # number in GB
+MAX_STORAGE_LIMIT = 15 # number in GB

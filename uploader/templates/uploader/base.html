@@ -8,10 +8,12 @@
     <meta charset="utf-8">
     <!--  This file has been downloaded from bootdey.com @bootdey on twitter -->
     <!--  All snippets are MIT license http://bootdey.com/license -->
-    <title>Home</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    {% block title %}
 
+    {% endblock %}
+    <link rel="shortcut icon" type="image/png" href="{% static 'imgs/favicon.png' %}"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
 </head>
 <body>
 <link type="text/css" rel="stylesheet" href="{% static 'no_files_found.css' %}" />
@@ -136,10 +138,10 @@
                     </nav> -->
                 </div>
                 <div class="content-panel">
-                  <div class="container">
+                  <div class="container-fluid">
                     <div class="row text-right">
-                      <div class="col-12 col-sm-12">
-                        <div class="mb-4 position-relative">
+                      <div class="col-lg-12 col-sm-12">
+                        <div class="mb-4">
                           <div class="btn-group">
                             <button type="button" class="btn primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                               <i class="fas fa-user-circle"></i> Profile
@@ -187,16 +189,16 @@
 
                                   </div>
                             </div>
-                            <div class="btn-group">
-                              <button type="button" class="btn  dropdown-toggle primary" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fa fa-filter"></i> Sorting <span class="caret"></span>
-                              </button>
-
-                                <div class="dropdown-menu">
-                                  <li><a class="dropdown-item" href="{% url 'uploader:category' 'all' %}">Newest</a></li>
-                                  <li><a class="dropdown-item" href="{% url 'uploader:category' 'docs' %}">Oldest</a></li>
-                                </div>
-                            </div>
+{#                            <div class="btn-group">#}
+{#                              <button type="button" class="btn  dropdown-toggle primary" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">#}
+{#                                <i class="fa fa-filter"></i> Sorting <span class="caret"></span>#}
+{#                              </button>#}
+{##}
+{#                                <div class="dropdown-menu">#}
+{#                                  <li><a class="dropdown-item" href="{% url 'uploader:category' 'all' %}">Newest</a></li>#}
+{#                                  <li><a class="dropdown-item" href="{% url 'uploader:category' 'docs' %}">Oldest</a></li>#}
+{#                                </div>#}
+{#                            </div>#}
                             <div class="btn-group" role="group">
                                 <button type="button" id="refresh" class="btn primary" data-toggle="tooltip" data-placement="top" title="" data-original-title="Refresh"><i class="fas fa-sync-alt"></i></button>
                                 <button type="button" class="btn primary" data-toggle="tooltip" data-placement="top" title="" data-original-title="Trash"><a class="primary"href="{% url 'uploader:trash' %}"><i class="fas fa-trash "></i></a></button>
@@ -213,8 +215,8 @@
     </div>
 </div>
 <script src="{% static 'uploader/anime.min.js' %}"></script>
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" crossorigin="anonymous"></script>
+<script src="{% static 'js/jquery-3.5.1.slim.min.js' %}"  crossorigin="anonymous"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}" crossorigin="anonymous"></script>
 
 <script type="text/javascript">
     $(function(){

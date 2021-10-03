@@ -8,6 +8,16 @@
             <set />
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/accounts/api/urls.py">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/accounts/forms.py">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/accounts/models.py">
           <value>
             <set />
@@ -23,6 +33,11 @@
             <set />
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/accounts/views.py">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/cloud/settings.py">
           <value>
             <set />
@@ -34,6 +49,46 @@
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/cloud/utils.py">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/general_static/css/bootstrab.min.css">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/general_static/css/boxicon.css">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/general_static/css/font-awesome.css">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/general_static/css/font-awesome4.7.css">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/general_static/css/lineicons.css">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/general_static/js/bootstrap.boundle.min.js">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/general_static/js/dfdf.js">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/general_static/js/jquery.js">
           <value>
             <set />
           </value>
@@ -88,6 +143,11 @@
             <set />
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/uploader/api/views.py">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/uploader/models.py">
           <value>
             <set />
@@ -109,6 +169,11 @@
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/uploader/templates/uploader/base.html">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/uploader/templates/uploader/file_settings.html">
           <value>
             <set />
           </value>
@@ -144,6 +209,11 @@
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/uploader/views.py">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/venv/Lib/site-packages/django/views/static.py">
           <value>
             <set />
           </value>

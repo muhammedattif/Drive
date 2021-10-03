@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="{% static 'accounts/style.css' %}">
 </head>
 <body>
+
 <!-- partial:index.partial.html -->
 <div class="form-structor">
 	<div class="signup">
@@ -17,12 +18,11 @@
       </div>
     </h2>
   		<div class="form-holder">
-        {% csrf_token %}
-  			<input type="username" id="signup_username" name="username" class="input" placeholder="Username" />
-        <input type="job_title" id="signup_job_title" name="job_title" class="input" placeholder="Job Title" />
-  			<input type="email"  id="signup_email" name="email" class="input" placeholder="Email" />
-  			<input type="password" id="signup_pass1" name="password1" class="input" placeholder="Password" />
-        <input type="password" id="signup_pass2" name="password2" class="input" placeholder="Confirm Password" />
+  			<input type="username" id="id_username" name="username" class="input" placeholder="Username" />
+        <input type="job_title" id="id_job_title" name="job_title" class="input" placeholder="Job Title" />
+  			<input type="email"  id="id_email" name="email" class="input" placeholder="Email" />
+  			<input type="password" id="id_password1" name="password1" class="input" placeholder="Password" />
+        <input type="password" id="id_password2" name="password2" class="input" placeholder="Confirm Password" />
   		</div>
 
         <div id="signup_messages" style="color:white" class="pl-3 mb-2 d-block centeralize"></div>
@@ -55,7 +55,7 @@
   <small><footer><strong class="primary">Variiance CLOUD</strong> - a safe home for all your data</footer></small>
 </div>
 <!-- partial -->
-<script src="{% static 'accounts/js.js' %}"></script>
+<script src="{% static 'js/jquery.js' %}"></script>
   {% include "accounts/script.html" %}
 
 </body>

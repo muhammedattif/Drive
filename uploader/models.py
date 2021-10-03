@@ -38,7 +38,8 @@ def get_file_path(self, filename):
     date = datetime.now()
     year = str(date.strftime('%Y'))
     month = str(date.strftime('%m'))
-    return f'{settings.DRIVE_PATH}/{self.uploader.username}/{year}/{month}/{filename}'
+    day = str(date.strftime('%d'))
+    return f'{settings.DRIVE_PATH}/{self.uploader.username}/{year}/{month}/{day}/{filename}'
 
 
 # this function is for image compression

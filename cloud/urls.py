@@ -43,6 +43,9 @@ def protected_serve(request, path, document_root=None):
     except File.DoesNotExist:
         return redirect('error')
 
+def media_serve(request, path, document_root=None):
+    return serve(request, path, f'{settings.MEDIA_ROOT}/{settings.PROFILE_IMAGES_URL}')
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -58,6 +61,7 @@ urlpatterns = [
     path('uploader/', include('uploader.urls', namespace='uploader')),
     path('api-auth/', include('rest_framework.urls')),
     url(r'^{}{}(?P<path>.*)$'.format(settings.MEDIA_URL[1:], settings.DRIVE_PATH), protected_serve),
+    url(r'^{}{}(?P<path>.*)$'.format(settings.MEDIA_URL[1:], settings.PROFILE_IMAGES_URL), media_serve),
 
 
 ]

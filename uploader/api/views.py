@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from uploader.models import File, Folder
+import json
 
 # Create your views here.
 
@@ -136,7 +137,7 @@ def upload(request, format=None):
         content['message'] = 'No file to upload.'
         return Response(content, status=status.HTTP_404_NOT_FOUND)
 
-    return Response(links)
+    return Response({"files": links})
 
 # Delete File
 @api_view(['DELETE'])

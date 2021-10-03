@@ -11,21 +11,9 @@ J
 uploader/shcedule_tasks.py,c\3\c34289c79f4e3d59b1049f73962e5945af44ac7e
 I
 static/no_files_found.css,d\d\ddd35c5189f50c9f53fb9d82f1cbfc21280289cd
-]
--accounts/templates/accounts/authenticate.html,a\6\a6bb487d10e6190bb08a9012708ca33ae515fa09
 D
 templates/error.html,1\2\127d2364058a31ca77aa8c81782c0052845ea0c0
-U
-%uploader/templates/uploader/home.html,8\e\8e24e35745772768e90a2215bb6eb8e1c39632a8
-U
-%uploader/templates/uploader/base.html,6\f\6f65150214dbff8a2a5dcf7529295ae8b83785b0
 M
 templates/no_files_found.html,f\8\f889ee67c0b3e42950da8a132a5f631214436a50
-W
-'uploader/templates/uploader/folder.html,e\3\e33db57b62584948407be93fae4366a80d126663
-^
-.uploader/templates/uploader/trashed_files.html,0\9\09f464957c77ddc69c211a7790f6c11b20f7b319
-A
-uploader/views.py,3\3\3331025a0d993e7756c0c2379aa7aeaaba900464
 W
 'uploader/static/uploader/upload_page.js,e\d\ed4a3ca431cede1e38ec030be0c99300e017eec7

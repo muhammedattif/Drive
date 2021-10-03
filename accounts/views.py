@@ -11,21 +11,17 @@ from django.contrib.auth import authenticate, login, logout
 
 def register_view(request):
     if not request.user.is_authenticated:
-        form = CreateUserForm()
         if request.method == 'POST':
             form = CreateUserForm(request.POST)
             if form.is_valid():
+
                 form.save()
-                user = form.cleaned_data.get('username')
                 response = {'status': True}
                 return JsonResponse(json.dumps(response), content_type="application/json",safe=False)
-
             else:
                 response = {'status': False}
                 return JsonResponse(json.dumps(response), content_type="application/json",safe=False)
-        context = {
-        'form': form
-        }
+
         return render(request, 'accounts/authenticate.html', context)
     return redirect('home')
 

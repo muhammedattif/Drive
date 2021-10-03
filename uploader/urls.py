@@ -1,12 +1,12 @@
 from django.urls import path
-from uploader.views import upload, move_to_trash, filter, get_trashed_files, recover, delete, folder, file_settings, create_folder, delete_folder
+from uploader.views import upload, move_to_trash, filter, get_trashed_files, recover, delete_file, folder, file_settings, create_folder, delete_folder
 
 app_name = 'uploader'
 
 urlpatterns = [
     path('', upload, name='upload'),
-    path('<int:id>/trash', move_to_trash, name='move_to_trash'),
-    path('<int:id>/delete', delete, name='delete'),
+    path('<int:id>/move_to_trash', move_to_trash, name='move_to_trash'),
+    path('<int:id>/delete_file', delete_file, name='delete_file'),
     path('category/<str:cat>', filter, name='category'),
     path('trash', get_trashed_files, name='trash'),
     path('<int:id>/recover', recover, name='recover'),

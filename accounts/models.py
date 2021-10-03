@@ -77,10 +77,12 @@ class Account(AbstractBaseUser, ResizeImageMixin):
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
+    objects = MyAccountManager()
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
-    objects = MyAccountManager()
+
 
     def __str__(self):
         return self.email

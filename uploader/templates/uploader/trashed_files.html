@@ -1,5 +1,10 @@
 {% extends 'uploader/home.html' %}
 
+
+{% block title %}
+    <title>Trash</title>
+{% endblock %}
+
 {% block content %}
 
 {% for message in messages %}
@@ -48,7 +53,7 @@
 
                                     <h4><a id="link-{{trash.file.pk}}" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ trash.file.get_url }}', 'link-{{trash.file.pk}}')" class="lni lni-link copy icons"></i></a></h4>
                                     <h4><a href="{% url 'uploader:recover' trash.file.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Recover"><i class='bx bx-undo text-success'></i></a></h4>
-                                    <h4><a href="{% url 'uploader:delete'  trash.file.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Permanently Delete">
+                                    <h4><a href="{% url 'uploader:delete_file'  trash.file.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Permanently Delete">
 
                                       <i class="lni lni-trash-can delete icons"></i>
                                     </a></h4>

@@ -1,2 +1,0 @@
-https://erpdev.variiance.com/api/resource/CapacityPackages?fields=["name","package_name","price","duration","storage_capacity"]
-https://erpdev.variiance.com/api/resource/CapacityPackages?fields=["*"]

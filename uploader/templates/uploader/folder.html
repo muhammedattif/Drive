@@ -1,6 +1,9 @@
 
 {% extends 'uploader/base.html' %}
 
+{% block title %}
+    <title>Folder</title>
+{% endblock %}
 
 {% block navbar %}
     {% include 'uploader/navbar.html' with folder_id=folder.id %}
@@ -46,7 +49,7 @@
 <div class="drive-wrapper drive-grid-view" id="collapse_grid">
     <div class="grid-items-wrapper">
       <div id="main-content" class="file_manager">
-              <div class="container">
+              <div class="container-fluid">
                   <div class="row clearfix">
                       {% if not files and not folders %}
                           {% include 'no_files_found.html' %}
@@ -56,8 +59,10 @@
                           <div class="col-lg-3 col-md-4 col-sm-12">
                           <div class="card">
                               <div class="file">
-                                  <div class="hover">
-                                    <h4><a href="{% url 'uploader:delete_folder' child_folder.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete Folder"><i class="lni lni-trash-can delete icons"></i></a></h4>
+                                  <div class="show_settings">
+                                      <div class="hover">
+                                        <h4><a href="{% url 'uploader:delete_folder' child_folder.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete Folder"><i class="lni lni-trash-can delete icons"></i></a></h4>
+                                      </div>
                                   </div>
                                   <a href="{% url 'uploader:folder' child_folder.id %}">
                                       <div class="icon">
@@ -80,7 +85,7 @@
                               <div class="file">
                                 <div class="show_settings">
                                   <div class="file_settings">
-                                    <h4><a href="{% url 'uploader:file_settings' file.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Sharing Settings"><i class="lni lni-users icons"></i></a></h4>
+                                    <h4><a href="{% url 'uploader:file_settings' file.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Sharing Settings"><i class="lni lni-users share icons"></i></a></h4>
                                   </div>
                                   <div class="hover">
                                     <h4><a id="link-{{file.pk}}" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ file.get_url }}', 'link-{{file.pk}}')" class="lni lni-link copy icons"></i></a></h4>
