@@ -36,7 +36,7 @@ def protected_serve(request, path, document_root=None):
         file_user = path_fields[1]
         file_name = path_fields[-1]
         file = File.objects.get(uploader__username=file_user, file_name = file_name)
-        if file.is_public() or file.uploader == request.user:
+        if file.is_public() or (file.uploader == request.user ) or (request.user in file.privacy.shared_with.all()):
             return serve(request, path, f'{settings.MEDIA_ROOT}/{settings.DRIVE_PATH}')
         else:
             return redirect('error')

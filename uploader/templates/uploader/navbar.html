@@ -5,7 +5,7 @@
 }
 </style>
 <div class="content-header-wrapper">
-    <h2 class="title">My Drive</h2>
+    <h2 class="title"><a href="{% url 'home' %}">My Drive</a></h2>
     <div class="actions">
         <a data-toggle="modal" data-target="#UploadFileModal" href="#" class="btn primary"><i class="fas fa-cloud-upload-alt"></i> Upload File</a>
         <a data-toggle="modal" data-target="#CreateFolderModal" href="#" class="btn primary"><i class="fas fa-folder-plus"></i> Create Folder</a>
@@ -30,7 +30,7 @@
     <!-- Create Folder Modal -->
     <div class="modal fade " id="CreateFolderModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content\">
+        <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="CreateFolderModal">Create Folder</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">

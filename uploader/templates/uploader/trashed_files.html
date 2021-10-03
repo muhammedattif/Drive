@@ -1,17 +1,40 @@
-{% extends 'uploader/base.html' %}
+{% extends 'uploader/home.html' %}
 
 {% block content %}
+
+{% for message in messages %}
+
+  <div class="position-fixed top-10% right-0% p-3" style="z-index: 5; right: 0; top: 0;">
+    <div id="liveToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
+      <div class="toast-header {% if message.tags == 'error' %} bg-danger {% else %} bg-success{% endif %}  " style="color: white;">
+        {% if message.tags == 'success' %}
+          <i class="fas fa-check-circle"></i>
+        {% else %}
+          <i class="fas fa-exclamation-triangle"></i>
+        {% endif %}
+        <strong class="mr-auto ml-2">System</strong>
+        <small>Now</small>
+        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+          <span style="color: white;" aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="toast-body">
+        {{message}}
+      </div>
+    </div>
+  </div>
+{% endfor %}
+
 <div class="drive-wrapper drive-grid-view" id="collapse_grid">
     <div class="grid-items-wrapper">
       <div id="main-content" class="file_manager">
 
               <div class="container-fluid">
                 <div class="alert alert-danger d-flex align-items-center" role="alert">
-                  <svg width="24" height="24" fill="currentColor" class="mr-4 text-danger bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
+                  <svg width="24" height="24" fill="currentColor" class="mr-3 text-danger bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
                     <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
                   </svg>
-                  <div>
-                    Files in Trash will be deleted permenantly after 30 days.
+                  <div>Files in Trash will be deleted permenantly after 30 days from trash date.
                   </div>
                 </div>
                   <div class="row clearfix">
@@ -20,18 +43,31 @@
                       <div class="col-lg-3 col-md-4 col-sm-12">
                           <div class="card">
                               <div class="file">
+                                <div class="show_settings">
+                                  <div class="hover">
+
+                                    <h4><a id="link-{{trash.file.pk}}" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ trash.file.get_url }}', 'link-{{trash.file.pk}}')" class="lni lni-link copy icons"></i></a></h4>
+                                    <h4><a href="{% url 'uploader:recover' trash.file.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Recover"><i class='bx bx-undo text-success'></i></a></h4>
+                                    <h4><a href="{% url 'uploader:delete'  trash.file.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Permanently Delete">
+
+                                      <i class="lni lni-trash-can delete icons"></i>
+                                    </a></h4>
+                                  </div>
+                                </div>
                                   <a href="javascript:void(0);">
-                                      <div class="hover">
 
-                                        <h4><a id="link-{{trash.file.pk}}" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ trash.file.get_url }}', 'link-{{trash.file.pk}}')" class="fa fa-files-o copy icons"></i></a></h4>
-                                        <h4><a href="{% url 'uploader:recover' trash.file.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Recover"><i class='bx bx-undo text-success'></i></a></h4>
-                                        <h4><a href="{% url 'uploader:delete'  trash.file.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Permanently Delete">
-
-                                          <i class="lni lni-trash-can delete icons"></i>
-                                        </a></h4>
-                                      </div>
                                       <div class="icon">
-                                          <i class="fa fa-file text-info"></i>
+                                        {% if trash.file.file_category == 'images' %}
+                                         <i class="fa fa-file-image-o text-primary"></i>
+                                       {% elif trash.file.file_category == 'docs' %}
+                                         <i class="fa fa-file-text-o text-success"></i>
+                                       {% elif trash.file.file_category == 'media' %}
+                                         <i class="fa fa-file-video-o text-danger"></i>
+                                       {% elif trash.file.file_category == 'zip' %}
+                                         <i class="fa fa-file-archive-o text-warning"></i>
+                                       {% else %}
+                                         <i class="fa fa-file text-info"></i>
+                                       {% endif %}
                                       </div>
 
                                       <button type="button" class="container btn btn-danger remainingdays">
@@ -40,7 +76,7 @@
 
 
                                       <div class="file-name">
-                                          <a title="{{ trash.file.file_name }}" href="{{file.file.url}}" target="_blank"><p class="text-muted">{{trash.file.file_name|truncatechars:35}}</p></a>
+                                          <a title="{{ trash.file.file_name }}" href="{{trash.file.file.url}}" target="_blank"><p class="text-muted">{{trash.file.file_name|truncatechars:35}}</p></a>
                                           <small>Size: {{trash.file.file_size|filesizeformat}} <span class="date text-muted">Trash date: {{trash.trashed_at}}</span></small>
                                           <small><span class="date text-muted"></span></small>
                                       </div>

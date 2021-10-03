@@ -7,14 +7,10 @@ C
 accounts/urls.py,6\0\605dfdd3d50bf83b921d6fff90cbd98052a71d27
 >
 cloud/utils.py,6\6\6606dff54909344de48e3e729673a1eb4a32e7a3
-=
-cloud/urls.py,2\c\2c0a24958b9c571f2a6623541aff86aab86a4748
 J
 uploader/shcedule_tasks.py,c\3\c34289c79f4e3d59b1049f73962e5945af44ac7e
 I
 static/no_files_found.css,d\d\ddd35c5189f50c9f53fb9d82f1cbfc21280289cd
-W
-'accounts/templates/accounts/script.html,e\8\e82fc353b794a2b4acf5ae97c7ec6de6ebdf71ec
 ]
 -accounts/templates/accounts/authenticate.html,a\6\a6bb487d10e6190bb08a9012708ca33ae515fa09
 D
@@ -31,7 +27,5 @@ W
 .uploader/templates/uploader/trashed_files.html,0\9\09f464957c77ddc69c211a7790f6c11b20f7b319
 A
 uploader/views.py,3\3\3331025a0d993e7756c0c2379aa7aeaaba900464
-B
-uploader/models.py,7\a\7a6315ceb38a8973a6bacb5593953e792e05ccea
 W
 'uploader/static/uploader/upload_page.js,e\d\ed4a3ca431cede1e38ec030be0c99300e017eec7

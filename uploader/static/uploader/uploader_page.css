@@ -16,16 +16,16 @@
   transform: translateY(20px);
   opacity: 0;
   font-size: 30px;
-  -webkit-animation: fadeup 0.5s 1s ease both;
-          animation: fadeup 0.5s 1s ease both;
+  -webkit-animation: fadeup 0.5s 0s ease both;
+          animation: fadeup 0.5s 0s ease both;
 }
 .upload .upload-files header p .up {
   font-weight: bold;
   transform: translateX(-20px);
   display: inline-block;
   opacity: 0;
-  -webkit-animation: faderight 0.5s 1.5s ease both;
-          animation: faderight 0.5s 1.5s ease both;
+  -webkit-animation: faderight 0.5s 0.2s ease both;
+          animation: faderight 0.5s 0.2s ease both;
 }
 .upload .upload-files header p .load {
   display: inline-block;
@@ -33,8 +33,8 @@
   margin-left: -8px;
   transform: translateX(-20px);
   opacity: 0;
-  -webkit-animation: faderight 1s 1.5s ease both;
-          animation: faderight 1s 1.5s ease both;
+  -webkit-animation: faderight 1s 0.2s ease both;
+          animation: faderight 1s 0.2s ease both;
 }
 .upload .upload-files .body {
   text-align: center;
@@ -329,4 +329,3 @@
     height: 100%;
   }
 }
-
