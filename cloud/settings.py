@@ -103,7 +103,7 @@ DATABASES = {
             'NAME': 'cloud',
             'USER': 'cloud',
             'PASSWORD': 'cloud',
-            'HOST': '172.17.0.45',   # Or an IP Address that your DB is hosted on
+            'HOST': 'mysql',   # Or an IP Address that your DB is hosted on
             'PORT': '3306',
          }
 }
