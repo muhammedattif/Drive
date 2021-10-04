@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-uh6jw=6xfyv58dpdyvh3)-fgzj--(7at@z@$iorf9%qx%^9v3+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['10.0.0.198']
+ALLOWED_HOSTS = ['dev-cloud.cloudapps.variiance.com']
 
 # Application definition
 
@@ -97,19 +97,15 @@ WSGI_APPLICATION = 'cloud.wsgi.application'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    },
 
-    # 'default': {
-    #         'ENGINE': 'django.db.backends.mysql',
-    #         'NAME': 'DB_NAME',
-    #         'USER': 'DB_USER',
-    #         'PASSWORD': 'DB_PASSWORD',
-    #         'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
-    #         'PORT': '3306',
-    #     }
+    'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'cloud',
+            'USER': 'cloud',
+            'PASSWORD': 'cloud',
+            'HOST': 'mysql',   # Or an IP Address that your DB is hosted on
+            'PORT': '3306',
+         }
 }
 
 REST_FRAMEWORK = {
