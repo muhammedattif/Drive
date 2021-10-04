@@ -5,7 +5,7 @@
 <head>
   <meta charset="UTF-8">
   <title>CodePen - login/signup form animation</title>
-  <link rel="stylesheet" href="{% static 'accounts/style.css' %}">
+  <link rel="stylesheet" href="{% static 'accounts/css/style.css' %}">
 </head>
 <body>
 
@@ -14,7 +14,7 @@
 	<div class="signup">
 		<h2 class="form-title" id="signup">
       <div class="centeralize">
-        <img class="center img-responsive" style="width:150px;" src="{% static 'accounts/logo.png' %}" alt="">
+        <img class="center img-responsive" style="width:150px;" src="{% static 'imgs/logo.png' %}" alt="">
       </div>
     </h2>
   		<div class="form-holder">
@@ -46,7 +46,7 @@
     .form-structor::after {
 
       /* background-color: rgb(238, 133, 29); */
-      background-image: url("{% static 'accounts/4.gif' %}");
+      background-image: url("{% static 'accounts/imgs/4.gif' %}");
     }
   </style>
 
@@ -55,7 +55,7 @@
   <small><footer><strong class="primary">Variiance CLOUD</strong> - a safe home for all your data</footer></small>
 </div>
 <!-- partial -->
-<script src="{% static 'js/jquery.js' %}"></script>
+<script src="{% static 'uploader/js/jquery.js' %}"></script>
   {% include "accounts/script.html" %}
 
 </body>

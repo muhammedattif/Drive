@@ -13,7 +13,7 @@
       }else{
         signupBtn.parentNode.classList.add('slide-up')
         signupBtn.innerHTML = '<span>or</span>Sign up</h2>'
-        loginBtn.innerHTML = '<div class=""><img class=" img-responsive" style="width:150px;" src="{% static "accounts/logo.png" %}" alt=""></div>'
+        loginBtn.innerHTML = '<div class=""><img class=" img-responsive" style="width:150px;" src="{% static "imgs/logo.png" %}" alt=""></div>'
         parent.classList.remove('slide-up')
       }
     });
@@ -28,7 +28,7 @@
         loginBtn.parentNode.parentNode.classList.add('slide-up')
         parent.classList.remove('slide-up')
         loginBtn.innerHTML = '<span>or</span>Log in</h2>'
-        signupBtn.innerHTML = '<div class="centeralize"><img class="center img-responsive" style="width:150px;" src="{% static "accounts/logo.png" %}" alt=""></div>'
+        signupBtn.innerHTML = '<div class="centeralize"><img class="center img-responsive" style="width:150px;" src="{% static "imgs/logo.png" %}" alt=""></div>'
 
       }
     });
