@@ -28,7 +28,7 @@ AUTHENTICATION_BACKENDS = (
 SECRET_KEY = 'django-insecure-uh6jw=6xfyv58dpdyvh3)-fgzj--(7at@z@$iorf9%qx%^9v3+'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['dev-cloud.cloudapps.variiance.com']
 
