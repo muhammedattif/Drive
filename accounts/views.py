@@ -8,13 +8,12 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 # Create your views here.
 
-
+# Registration View
 def register_view(request):
     if not request.user.is_authenticated:
         if request.method == 'POST':
             form = CreateUserForm(request.POST)
             if form.is_valid():
-
                 form.save()
                 response = {'status': True}
                 return JsonResponse(json.dumps(response), content_type="application/json",safe=False)
@@ -27,6 +26,7 @@ def register_view(request):
 
 
 
+# Login View
 def login_view(request):
     if not request.user.is_authenticated:
         context = {}
@@ -46,6 +46,7 @@ def login_view(request):
         return render(request, 'accounts/authenticate.html', context)
     return redirect('home')
 
+# Logout View
 def logout_view(request):
     logout(request)
     return redirect('login')

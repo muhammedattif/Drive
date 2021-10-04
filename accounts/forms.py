@@ -4,6 +4,7 @@ from django.contrib.auth import password_validation
 from django.contrib.auth import get_user_model
 from accounts.models import Account
 
+# This is a User Registration form ModelForm
 class CreateUserForm(UserCreationForm):
     email = forms.EmailField(max_length=255, help_text="Required. Add a valid Email Address.")
     password1 = forms.CharField(widget=forms.PasswordInput())

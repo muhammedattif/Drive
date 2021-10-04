@@ -12,7 +12,6 @@ urlpatterns = [
     path('<int:id>/recover', recover, name='recover'),
     path('create_folder/<int:id>', create_folder, name='create_folder'),
     path('delete_folder/<int:id>', delete_folder, name='delete_folder'),
-    path('folder', folder, name='folder'),
     path('folder/<int:id>', folder, name='folder'),
     path('file_settings/<int:id>', file_settings, name='file_settings'),
 

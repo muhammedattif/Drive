@@ -51,11 +51,11 @@
       <div id="main-content" class="file_manager">
               <div class="container-fluid">
                   <div class="row clearfix">
-                      {% if not files and not folders %}
+                      {% if not child_files and not child_folders %}
                           {% include 'no_files_found.html' %}
                       {% endif %}
-                    {% if folders.all %}
-                        {% for child_folder in folders.all %}
+                    {% if child_folders.all %}
+                        {% for child_folder in child_folders.all %}
                           <div class="col-lg-3 col-md-4 col-sm-12">
                           <div class="card">
                               <div class="file">
@@ -78,8 +78,8 @@
                       </div>
                         {% endfor %}
                     {% endif %}
-                    {% if files.all %}
-                      {% for file in files.all %}
+                    {% if child_files %}
+                      {% for file in child_files.all %}
                       <div class="col-lg-3 col-md-4 col-sm-12">
                           <div class="card">
                               <div class="file">
@@ -130,7 +130,7 @@
 </div>
 <div class="drive-wrapper drive-list-view d-none" id="collapse_list">
     <div class="table-responsive drive-items-table-wrapper">
-      {% if files %}
+      {% if child_files %}
 
         <table class="table">
             <thead>
@@ -145,7 +145,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for file in files %}
+                {% for file in child_files %}
                 <tr>
                     <td class="type">
                       {% if file.file_category == 'images' %}
@@ -173,7 +173,7 @@
         </table>
         {% endif %}
 
-        {% if folders %}
+        {% if child_folders %}
 
           <table class="table">
               <thead>
@@ -185,7 +185,7 @@
                   </tr>
               </thead>
               <tbody>
-                  {% for folder in folders.all %}
+                  {% for folder in child_folders.all %}
                   <tr>
                       <td class="type">
                         <i class="fa fa-folder text-primary "></i>
@@ -201,7 +201,7 @@
           {% endif %}
 
     </div>
-    {% if not files and not folders %}
+    {% if not child_files and not child_folders %}
         {% include 'no_files_found.html' %}
     {% endif %}
 </div>

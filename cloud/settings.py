@@ -160,8 +160,8 @@ STATICFILES_DIRS = [
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 
-MEDIA_ROOT = os.path.join(BASE_DIR, "uploads")
-MEDIA_URL = '/uploads/'
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = '/media/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
@@ -170,10 +170,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Days to delete files in Trash
 TRASH_DAYS = 30
 
+
 # Directory where users uploads are gonna be stored
 PROFILE_IMAGES_URL = 'profile_images'
 
-# Directory where other uploded files are gonna be stored
+# Directory where other uploaded files are gonna be stored
 DRIVE_PATH = 'drive'
 
 # Alias for drive path

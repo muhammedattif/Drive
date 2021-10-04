@@ -1,6 +1,9 @@
 {% load static %}
 {% load define_action %}
-<link href="{% static 'uploader/filepond.css' %}" rel="stylesheet" />
+
+<link href="{% static 'uploader/filepond/css/filepond.css' %}" rel="stylesheet" />
+<link href="{% static 'uploader/filepond/css/filepond-plugin-image-preview.css' %}" rel="stylesheet">
+
 <link href="{% static 'uploader/uploader_page.css' %}" rel="stylesheet" />
 <style media="screen">
 .filepond--credits{
@@ -32,15 +35,21 @@ display: none
      {% define '' as folder_id %}
 {% endif %}
 
+<script src="{% static 'uploader/filepond/js/filepond-plugin-image-preview.js' %}"></script>
 
-<script src="{% static 'uploader/filepond.js' %}"></script>
+<script src="{% static 'uploader/filepond/js/filepond.js' %}"></script>
 <script>
     // Get a reference to the file input element
     const inputElement = document.querySelector('input[type="file"]');
+    FilePond.registerPlugin(
+          FilePondPluginImagePreview,
+
+        );
 
     // Create a FilePond instance
     const pond = FilePond.create(inputElement);
 
+    let serverResponse = '';
     file = FilePond.setOptions({
       server: {
           process: {
@@ -50,10 +59,18 @@ display: none
               ondata: (formData) => {
               formData.append('folder_id', {% if folder_id %} {{ folder_id }} {% else %} '' {% endif %});
               return formData;
-          }
+          },
+          onerror: (response) => {
+              response = JSON.parse(response)
+              serverResponse = response
+          },
           },
 
-      }
+      },
+    labelFileProcessingError: () => {
+        // replaces the error on the FilePond error label
+        return serverResponse.message;
+    }
 
     });
     console.log(file);

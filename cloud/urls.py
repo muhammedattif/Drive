@@ -29,39 +29,65 @@ from django.shortcuts import HttpResponse,redirect
 from uploader.models import File
 from .utils import error
 
-# this function is for checking link privacy
 def protected_serve(request, path, document_root=None):
+    """
+    this function is for serving uploaded files and checking link privacy
+    """
     try:
         path_fields = path.split('/')
+        # Get user
         file_user = path_fields[1]
+        # Get file name
         file_name = path_fields[-1]
+        # Get file object
         file = File.objects.get(uploader__username=file_user, file_name = file_name)
+        # Check privacy settings
         if file.is_public() or (file.uploader == request.user ) or (request.user in file.privacy.shared_with.all()):
+            # If allowed to view the file then redirect to the file page
             return serve(request, path, f'{settings.MEDIA_ROOT}/{settings.DRIVE_PATH}')
         else:
+            # If the user is not allowed then redirect to error page
             return redirect('error')
+    # If the file is not exist then redirect to error page
     except File.DoesNotExist:
         return redirect('error')
 
+
 def media_serve(request, path, document_root=None):
+    """
+    this function is for serving Media files
+    """
     return serve(request, path, f'{settings.MEDIA_ROOT}/{settings.PROFILE_IMAGES_URL}')
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home, name='home'),
-    path('error', error, name='error'),
 
     path('login', login_view, name='login'),
     path('register', register_view, name='register'),
     path('logout', logout_view, name='logout'),
+
+    # Account APIs
     path('api/account/', include('accounts.api.urls', 'account_api')),
 
+    # Uploader APIs
     path('api/uploader/', include('uploader.api.urls', 'uploader_api')),
+
     path('uploader/', include('uploader.urls', namespace='uploader')),
     path('api-auth/', include('rest_framework.urls')),
+
+    # Error url
+    path('error', error, name='error'),
+
+    # This Urls is for serving urls in production
+
+    # Serving Uploaded files
     url(r'^{}{}(?P<path>.*)$'.format(settings.MEDIA_URL[1:], settings.DRIVE_PATH), protected_serve),
-    url(r'^{}{}(?P<path>.*)$'.format(settings.MEDIA_URL[1:], settings.PROFILE_IMAGES_URL), media_serve),
+
+    # Not Used
+    # serving media files
+    #url(r'^{}{}(?P<path>.*)$'.format(settings.MEDIA_URL[1:], settings.MEDIA_FILES), media_serve),
 
 
 ]

@@ -31,7 +31,15 @@
             <div class="module-inner">
                 <div class="side-bar">
                     <div class="user-info">
-                        <img class="img-profile rounded-circle img-responsive center-block" src="{{ request.user.image.url }}" alt="">
+                        <img class="img-profile rounded-circle img-responsive center-block"
+                             src="
+                                {% if request.user.image %}
+                                    {{ request.user.image.url }}
+                                {% else %}
+                                    {% static 'imgs/avatar.png' %}
+                                {% endif %}
+                                "
+                             alt="">
                         <ul class="meta list list-unstyled">
                             <li class="name"><strong>{{request.user.username}}</strong><br>
                                 <label class="badge badge-secondary p-2 m-2 primary">{{request.user.job_title}}</label>
