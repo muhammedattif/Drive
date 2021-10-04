@@ -163,13 +163,13 @@ class DriveSettings(models.Model):
         """
         This function add the uploaded file size to the uploaded storage of the user
         """
-        self.storage_uploaded =  F('storage_uploaded') + file_size / 1073741824
+        self.storage_uploaded =  self.storage_uploaded + file_size / 1073741824
 
     def subtract_storage_uploaded(self, file_size):
         """
         This function subtract the deleted file size from the uploaded storage of the user
         """
-        self.storage_uploaded =  F('storage_uploaded') -  file_size / 1073741824
+        self.storage_uploaded =  self.storage_uploaded -  file_size / 1073741824
 
 
     def is_allowed_to_upload_files(self, files_size):
