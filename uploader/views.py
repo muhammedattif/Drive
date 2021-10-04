@@ -56,7 +56,6 @@ def folder(request, id=None):
 # Change file settings view
 @login_required(login_url='login')
 def file_settings(request, id):
-
     try:
         file_privacy_settings = FilePrivacy.objects.get(file__id=id, file__uploader=request.user)
     except FilePrivacy.DoesNotExist:
