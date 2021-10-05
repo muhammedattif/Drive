@@ -98,7 +98,7 @@ class Account(AbstractBaseUser, ResizeImageMixin):
     def has_module_perms(self, app_label):
         return True
 
-    def used_storege(self):
+    def used_storage(self):
         storage = 0
         files = self.files.all()
         for file in files:
