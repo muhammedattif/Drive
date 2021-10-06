@@ -120,7 +120,6 @@ class File(models.Model):
 @receiver(post_save, sender=File)
 def create_file_privacy(sender, instance=None, created=False, **kwargs):
     if created:
-        print(1)
         FilePrivacy.objects.create(file=instance)
 
 # This function is for cleaning file name before uploading

@@ -7,6 +7,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from uploader.models import File, Folder
 import json
 
+
 # Create your views here.
 
 # this function create folder tree if not exist and return directory object
@@ -87,7 +88,9 @@ def upload(request, format=None):
             # if directory id passed then upload file to this directory
             elif directory_id:
                 # check if directory id is valid integer number
-                if not isinstance(directory_id, int):
+                try:
+                    directory_id = int(directory_id)
+                except ValueError:
                     content['message'] = 'Directory ID must be an integer.'
                     return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
@@ -108,9 +111,7 @@ def upload(request, format=None):
                 file_size = uploaded_file.size
                 file_category = get_file_cat(uploaded_file)
                 file_type = uploaded_file.content_type
-
                 try:
-
                     file = File.objects.create(
                          uploader=user, file_name=file_name,
                          file_size=file_size, file_type=file_type,
@@ -122,8 +123,8 @@ def upload(request, format=None):
                         file.privacy.option = privacy
                         file.privacy.save()
 
-                except Exception:
-                    content['message'] = 'Something went wrong!'
+                except Exception as error:
+                    content['message'] = str(error)
                     return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
                 # this check is for returning directory id in the response
@@ -154,8 +155,12 @@ def upload(request, format=None):
         content['message'] = 'No file to upload.'
         return Response(content, status=status.HTTP_404_NOT_FOUND)
 
-    # return uploaded files data
-    return Response({"files": links})
+    if len(links) > 1:
+        # return uploaded files data
+        return Response({"files": links})
+    else:
+        # return uploaded file data
+        return Response({"file": links[0]})
 
 # Delete file API ( it is not used yet! )
 @api_view(['DELETE'])
