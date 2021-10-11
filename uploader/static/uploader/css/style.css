@@ -837,7 +837,10 @@ a:hover {
   color: white;
   background-color: rgba(238, 133, 29, 0.9)
 }
-
+.primary_bg{
+    background-color: rgb(238, 133, 29);
+    color: white
+}
 .content-panel{
   margin: 0px;
   padding: 0px

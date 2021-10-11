@@ -27,7 +27,7 @@ display: none
   </header>
  </div>
 </div>
-<input type="file" name="file" multiple>
+<input class="filepond" type="file" name="file" multiple>
 
 {% if folder_id %}
     {% define folder_id as folder_id %}
@@ -41,16 +41,16 @@ display: none
 <script>
     // Get a reference to the file input element
     const inputElement = document.querySelector('input[type="file"]');
-    FilePond.registerPlugin(
-          FilePondPluginImagePreview,
-
-        );
+    const uploadFileBtn = document.getElementById('uploadfile');
+    const uploadFileBrowser = document.getElementById('UploadFileModal');
 
     // Create a FilePond instance
     const pond = FilePond.create(inputElement);
 
     let serverResponse = '';
     file = FilePond.setOptions({
+     dropOnPage: true,
+     dropOnElement: false,
       server: {
           process: {
               url: '{% url "uploader:upload" %}',
@@ -70,8 +70,26 @@ display: none
     labelFileProcessingError: () => {
         // replaces the error on the FilePond error label
         return serverResponse.message;
-    }
+    },
+     onprocessfiles: () => {
+      setTimeout(function(){
+            location.reload()
+          }, 400);
+     },
+     beforeDropFile: (file) => {
+      console.log('hello')
+     }
 
     });
-    console.log(file);
+
+  const pondBox = document.getElementsByClassName('filepond--root').item(0);
+
+    FilePond.registerPlugin(
+      FilePondPluginImagePreview,
+
+    );
+
+    pondBox.addEventListener('FilePond:addfile', (e) => {
+     $("#UploadFileModal").modal()
+    });
 </script>
