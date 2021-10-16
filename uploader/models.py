@@ -102,7 +102,7 @@ class File(models.Model):
         return self.file.name
 
     def get_url(self):
-        return f'{settings.SITE_DOMAIN}{self.file.url}'
+        return 'https://%s%s' % (Site.objects.get_current().domain, self.file.url)
 
     def is_private(self):
         return self.privacy.option == 'private'
