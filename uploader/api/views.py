@@ -60,7 +60,7 @@ def upload(request, format=None):
     links = []
 
     # if request has file
-    if bool(request.FILES.get('file', False)) == True:
+    if bool(request.FILES.get('file', False)):
 
         user = request.user
         uploaded_files = request.FILES.getlist('file')
@@ -88,15 +88,11 @@ def upload(request, format=None):
             # if directory id passed then upload file to this directory
             elif directory_id:
                 # check if directory id is valid integer number
-                try:
-                    directory_id = int(directory_id)
-                except ValueError:
-                    content['message'] = 'Directory ID must be an integer.'
-                    return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
 
                 try:
                     # get file upload destination
-                    parent_folder = Folder.objects.get(id=directory_id, user=user)
+                    parent_folder = Folder.objects.get(unique_id=directory_id, user=user)
                 except Folder.DoesNotExist:
                     content['message'] = 'Directory Not found.'
                     return Response(content, status=status.HTTP_400_BAD_REQUEST)
@@ -137,7 +133,7 @@ def upload(request, format=None):
                 if not parent_folder:
                     directory_id = ''
                 else:
-                    directory_id = parent_folder.id
+                    directory_id = parent_folder.unique_id
 
                 content = {
                     'uploader': file.uploader.email,
@@ -171,11 +167,11 @@ def upload(request, format=None):
 # Delete file API ( it is not used yet! )
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
-def delete(request, id):
+def delete(request, unique_id):
     content = {}
     user = request.user
     try:
-        file = File.objects.get(pk=id, uploader=user)
+        file = File.objects.get(unique_id=unique_id, uploader=user)
         file.delete()
         content['message'] = 'File Deleted Successfully!'
     except File.DoesNotExist:
@@ -199,7 +195,7 @@ def create_folder_tree(request, format=None):
 
     content = {
     'message': 'Folders Created Successfully!',
-    'directory_id': parent_folder.id
+    'directory_id': parent_folder.unique_id
     }
     return Response(content)
 
