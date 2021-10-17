@@ -224,4 +224,8 @@ class Link(models.Model):
 def create_dynamic_link(sender, instance=None, created=False, **kwargs):
     if created:
         link = rand_link(100)
+
+        # Add random string to filename
+        ext = instance.file_name.rsplit('.', 1)[1]
+        link = link + '.' + ext
         Link.objects.create(user=instance.uploader, file=instance, link=link)
