@@ -89,11 +89,11 @@
                                   </div>
                                   <div class="hover">
                                     <h4><a id="link-{{file.pk}}" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ file.get_url }}', 'link-{{file.pk}}')" class="lni lni-link copy icons"></i></a></h4>
-                                    <h4><a href="{{file.file.url}}" download data-toggle="tooltip" data-placement="top" title="" data-original-title="Download"><i class="lni lni-arrow-down-circle download icons"></i></a></h4>
+                                    <h4><a href="{{file.get_url}}" download data-toggle="tooltip" data-placement="top" title="" data-original-title="Download"><i class="lni lni-arrow-down-circle download icons"></i></a></h4>
                                     <h4><a href="{% url 'uploader:move_to_trash' file.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Move To Trash"><i class="lni lni-trash-can delete icons"></i></a></h4>
                                   </div>
                                 </div>
-                                  <a href="{{file.file.url}}" target="_blank">
+                                  <a href="{{file.get_url}}" target="_blank">
                                       <div class="icon">
                                            {% if file.file_category == 'images' %}
                                             <i class="fa fa-file-image-o text-primary"></i>
@@ -109,7 +109,7 @@
 
                                       </div>
                                       <div class="file-name">
-                                          <a title="{{ file.file_name }}" href="{{file.file.url}}" target="_blank"><p class="m-b-5 text-muted">{{file.file_name|truncatechars:35}}</p></a>
+                                          <a title="{{ file.file_name }}" href="{{file.get_url}}" target="_blank"><p class="m-b-5 text-muted">{{file.file_name|truncatechars:35}}</p></a>
                                           <small>Size: {{file.file_size|filesizeformat}} <span class="date text-muted">{{file.uploaded_at}}</span></small>
                                       </div>
                                   </a>
@@ -160,11 +160,11 @@
                         <i class="fa fa-file-o text-info"></i>
                       {% endif %}
                     </td>
-                    <td class="name truncate"><a title="{{ file.file_name }}" href="{{file.file.url}}" target="_blank">{{file.file_name|truncatechars:35}}</a></td>
+                    <td class="name truncate"><a title="{{ file.file_name }}" href="{{file.get_url}}" target="_blank">{{file.file_name|truncatechars:35}}</a></td>
                     <td class="date">{{file.uploaded_at}}</td>
                     <td class="size">{{file.file_size|filesizeformat}}</td>
                     <td class="center"><a id="link-{{file.pk}}" class="copy" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ file.get_url }}', 'link-{{file.pk}}')" class="lni lni-link share"></i></a></td>
-                    <td class="center"><a href="{{file.file.url}}" class="download" data-toggle="tooltip" data-placement="top" title="" data-original-title="Download" download><i class="lni lni-arrow-down-circle download"></i></a></td>
+                    <td class="center"><a href="{{file.get_url}}" class="download" data-toggle="tooltip" data-placement="top" title="" data-original-title="Download" download><i class="lni lni-arrow-down-circle download"></i></a></td>
                     <td class="center"><a href="{% url 'uploader:move_to_trash' file.id %}" class="delete" data-toggle="tooltip" data-placement="top" title="" data-original-title="Move To Trash"><i class="lni lni-trash-can delete"></i></a></td>
                 </tr>
                 {% endfor %}

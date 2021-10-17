@@ -28,7 +28,7 @@ AUTHENTICATION_BACKENDS = (
 SECRET_KEY = 'django-insecure-uh6jw=6xfyv58dpdyvh3)-fgzj--(7at@z@$iorf9%qx%^9v3+'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['10.0.0.198']
 # Application definition
@@ -179,7 +179,7 @@ PROFILE_IMAGES_URL = 'profile_images'
 DRIVE_PATH = 'drive'
 
 # Alias for drive path
-ALIAS_DRIVE_PATH = 'link/'
+ALIAS_DRIVE_PATH = 'link'
 
 # Max storage limit for user
 MAX_STORAGE_LIMIT = 15 # number in GB

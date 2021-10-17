@@ -81,7 +81,7 @@
 
 
                                       <div class="file-name">
-                                          <a title="{{ trash.file.file_name }}" href="{{trash.file.file.url}}" target="_blank"><p class="text-muted">{{trash.file.file_name|truncatechars:35}}</p></a>
+                                          <a title="{{ trash.file.file_name }}" href="{{trash.file.get_url}}" target="_blank"><p class="text-muted">{{trash.file.file_name|truncatechars:35}}</p></a>
                                           <small>Size: {{trash.file.file_size|filesizeformat}} <span class="date text-muted">Trash date: {{trash.trashed_at}}</span></small>
                                           <small><span class="date text-muted"></span></small>
                                       </div>

@@ -86,10 +86,10 @@ class Folder(models.Model):
 
 class File(models.Model):
     uploader = models.ForeignKey(User, on_delete=models.CASCADE, related_name = "files")
-    file = models.FileField(upload_to=get_file_path, validators=[validate_file_infection])
+    file = models.FileField(upload_to=get_file_path)
     file_name = models.CharField(max_length=255)
     file_size = models.IntegerField()
-    file_type = models.CharField(max_length=30)
+    file_type = models.CharField(max_length=255)
     file_category = models.CharField(max_length=30)
     uploaded_at = models.DateTimeField(verbose_name="Date Uploaded", auto_now_add=True)
     parent_folder = models.ForeignKey(Folder, on_delete=models.CASCADE, related_name="files", null=True, blank=True)
@@ -102,7 +102,7 @@ class File(models.Model):
         return self.file.name
 
     def get_url(self):
-        return 'https://%s%s' % (Site.objects.get_current().domain, self.file.url)
+        return 'http://%s/%s/%s' % (Site.objects.get_current().domain, settings.ALIAS_DRIVE_PATH, self.link.link)
 
     def is_private(self):
         return self.privacy.option == 'private'
