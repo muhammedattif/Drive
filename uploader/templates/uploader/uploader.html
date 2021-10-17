@@ -57,7 +57,7 @@ display: none
               method: "POST",
               headers: {'X-CSRFToken': '{{csrf_token}}'},
               ondata: (formData) => {
-              formData.append('folder_id', {% if folder_id %} {{ folder_id }} {% else %} '' {% endif %});
+              formData.append('folder_id', {% if folder_id %} "{{ folder_id }}" {% else %} '' {% endif %});
               return formData;
           },
           onerror: (response) => {

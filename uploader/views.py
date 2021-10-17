@@ -6,7 +6,7 @@ import json
 from django.contrib import messages
 from uploader.forms import FilePrivacyForm
 from accounts.models import Account
-
+from django.http import FileResponse
 
 # Home Page View
 @login_required(login_url='login')
@@ -37,11 +37,11 @@ def home(request):
 # Folder View
 # This view for a folder to preview its content ( files or child folders )
 @login_required(login_url='login')
-def folder(request, id=None):
+def folder(request, unique_id=None):
     context = {}
     try:
-        if id:
-            folder = Folder.objects.get(id=id, user=request.user)
+        if unique_id:
+            folder = Folder.objects.get(unique_id=unique_id, user=request.user)
             context['folder'] = folder
             context['child_folders'] = folder.folder_set.all()
             context['child_files'] = folder.files.all().filter(trash = None)
@@ -55,9 +55,9 @@ def folder(request, id=None):
 
 # Change file settings view
 @login_required(login_url='login')
-def file_settings(request, id):
+def file_settings(request, unique_id):
     try:
-        file_privacy_settings = FilePrivacy.objects.get(file__id=id, file__uploader=request.user)
+        file_privacy_settings = FilePrivacy.objects.get(file__unique_id=unique_id, file__uploader=request.user)
     except FilePrivacy.DoesNotExist:
         return redirect('error')
 
@@ -128,7 +128,7 @@ def upload(request):
 
                 try:
                     if folder_id:
-                        parent_folder = Folder.objects.get(id=folder_id)
+                        parent_folder = Folder.objects.get(unique_id=folder_id)
                     else:
                         parent_folder = None
 
@@ -155,15 +155,32 @@ def upload(request):
 
     return redirect('home')
 
+# download file view
+def download(request, unique_id):
+    try:
+        file = File.objects.get(unique_id=unique_id)
+
+        # Check privacy settings
+        if file.is_public() or (file.uploader == request.user) or (request.user in file.privacy.shared_with.all()):
+            filename = file.file.path
+            response = FileResponse(open(filename, 'rb'))
+            return response
+        else:
+            return redirect('error')
+
+    except File.DoesNotExist:
+        return redirect('error')
+
+
 # create folder view
 @login_required(login_url='login')
-def create_folder(request, id):
+def create_folder(request, unique_id):
     if request.method == 'POST':
-        parent_folder_id = id
+        parent_folder_id = unique_id
         child_folder_name = request.POST['child_folder_name']
         # in case if this folder has a parent folder
         if parent_folder_id:
-            parent_folder = Folder.objects.get(user=request.user, id=parent_folder_id)
+            parent_folder = Folder.objects.get(user=request.user, unique_id=parent_folder_id)
 
             # Get all child folders of this parent folder
             parent_folder_children_names = parent_folder.folder_set.all().values_list('name', flat=True)
@@ -195,15 +212,15 @@ def create_folder(request, id):
 
 # delete folder View
 @login_required(login_url='login')
-def delete_folder(request, id):
+def delete_folder(request, unique_id):
     user = request.user
     try:
-        folder = Folder.objects.get(user=user, id=id)
+        folder = Folder.objects.get(user=user, unique_id=unique_id)
 
         # This code is to know to which page the user is going to be redirect
         folder_name = folder.name
         if folder.parent_folder is not None:
-            parent_folder_id = folder.parent_folder.id
+            parent_folder_id = folder.parent_folder.unique_id
             redirect_path = '/uploader/folder/{}'.format(parent_folder_id)
         else:
             redirect_path = '/uploader'
@@ -251,23 +268,23 @@ def get_trashed_files(request):
 
 # Move file to trash view
 @login_required(login_url='login')
-def move_to_trash(request, id):
+def move_to_trash(request, unique_id):
     file = None
     try:
-        file = File.objects.get(pk=id, uploader=request.user)
+        file = File.objects.get(unique_id=unique_id, uploader=request.user)
         Trash.objects.create(user=file.uploader, file=file)
         messages.success(request, f'{file.file_name} moved to trash.')
     except File.DoesNotExist:
         messages.error(request, 'File Does not Exists!')
     if file.parent_folder is not None:
-        return redirect(f'/uploader/folder/{file.parent_folder.id}')
+        return redirect(f'/uploader/folder/{file.parent_folder.unique_id}')
     return redirect('home')
 
 # Delete file view
 @login_required(login_url='login')
-def delete_file(request, id):
+def delete_file(request, unique_id):
     try:
-        file = File.objects.get(pk=id, uploader=request.user)
+        file = File.objects.get(unique_id=unique_id, uploader=request.user)
         file.delete()
         messages.success(request, f'{file.file_name} was permanently deleted.')
     except File.DoesNotExist:
@@ -276,9 +293,9 @@ def delete_file(request, id):
 
 # Recover file view
 @login_required(login_url='login')
-def recover(request, id):
+def recover(request, unique_id):
     try:
-        trashed_file = Trash.objects.get(file__id=id, user=request.user)
+        trashed_file = Trash.objects.get(file__unique_id=unique_id, user=request.user)
         trashed_file.delete()
         messages.success(request, f'{trashed_file.file.file_name} was recovered')
     except Trash.DoesNotExist:

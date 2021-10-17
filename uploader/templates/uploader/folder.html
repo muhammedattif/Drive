@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block navbar %}
-    {% include 'uploader/navbar.html' with folder_id=folder.id %}
+    {% include 'uploader/navbar.html' with folder_id=folder.unique_id %}
 {% endblock %}
 
 
@@ -40,7 +40,7 @@
           {% if folder_tree %}
                <li class="breadcrumb-item "><a href="{% url 'home' %}"><i class="fas fa-home"></i> Home</a></li>
               {% for folder in folder_tree %}
-                  <li class="breadcrumb-item"><a {% if forloop.last %} class="active-dir" {% endif %} href="{% url 'uploader:folder' folder.id %}">{% if forloop.last %} <i class="fas fa-folder-open"></i> {% else %} <i class="fas fa-folder"></i> {% endif %} {{ folder.name }}</a></li>
+                  <li class="breadcrumb-item"><a {% if forloop.last %} class="active-dir" {% endif %} href="{% url 'uploader:folder' folder.unique_id %}">{% if forloop.last %} <i class="fas fa-folder-open"></i> {% else %} <i class="fas fa-folder"></i> {% endif %} {{ folder.name }}</a></li>
               {% endfor %}
           {% endif %}
       </ol>
@@ -61,15 +61,15 @@
                               <div class="file">
                                   <div class="show_settings">
                                       <div class="hover">
-                                        <h4><a href="{% url 'uploader:delete_folder' child_folder.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete Folder"><i class="lni lni-trash-can delete icons"></i></a></h4>
+                                        <h4><a href="{% url 'uploader:delete_folder' child_folder.unique_id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete Folder"><i class="lni lni-trash-can delete icons"></i></a></h4>
                                       </div>
                                   </div>
-                                  <a href="{% url 'uploader:folder' child_folder.id %}">
+                                  <a href="{% url 'uploader:folder' child_folder.unique_id %}">
                                       <div class="icon">
                                           <i class="fa fa-folder text-primary"></i>
                                       </div>
                                       <div class="file-name">
-                                          <a title="{{ child_folder.name }}" href="{% url 'uploader:folder' child_folder.id %}"><p class="m-b-5 text-muted">{{ child_folder.name }}</p></a>
+                                          <a title="{{ child_folder.name }}" href="{% url 'uploader:folder' child_folder.unique_id %}"><p class="m-b-5 text-muted">{{ child_folder.name }}</p></a>
                                           <small>Files: {{child_folder.files.count}} <span class="date text-muted">{{child_folder.created_at}}</span></small>
                                       </div>
                                   </a>
@@ -85,12 +85,12 @@
                               <div class="file">
                                 <div class="show_settings">
                                   <div class="file_settings">
-                                    <h4><a href="{% url 'uploader:file_settings' file.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Sharing Settings"><i class="lni lni-users share icons"></i></a></h4>
+                                    <h4><a href="{% url 'uploader:file_settings' file.unique_id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Sharing Settings"><i class="lni lni-users share icons"></i></a></h4>
                                   </div>
                                   <div class="hover">
-                                    <h4><a id="link-{{file.pk}}" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ file.get_url }}', 'link-{{file.pk}}')" class="lni lni-link copy icons"></i></a></h4>
-                                    <h4><a href="{{file.get_url}}" download data-toggle="tooltip" data-placement="top" title="" data-original-title="Download"><i class="lni lni-arrow-down-circle download icons"></i></a></h4>
-                                    <h4><a href="{% url 'uploader:move_to_trash' file.id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Move To Trash"><i class="lni lni-trash-can delete icons"></i></a></h4>
+                                    <h4><a id="link-{{file.unique_id}}" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ file.get_url }}', 'link-{{file.unique_id}}')" class="lni lni-link copy icons"></i></a></h4>
+                                    <h4><a href="{% url 'uploader:download' file.unique_id %}" download data-toggle="tooltip" data-placement="top" title="" data-original-title="Download"><i class="lni lni-arrow-down-circle download icons"></i></a></h4>
+                                    <h4><a href="{% url 'uploader:move_to_trash' file.unique_id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Move To Trash"><i class="lni lni-trash-can delete icons"></i></a></h4>
                                   </div>
                                 </div>
                                   <a href="{{file.get_url}}" target="_blank">
@@ -163,9 +163,9 @@
                     <td class="name truncate"><a title="{{ file.file_name }}" href="{{file.get_url}}" target="_blank">{{file.file_name|truncatechars:35}}</a></td>
                     <td class="date">{{file.uploaded_at}}</td>
                     <td class="size">{{file.file_size|filesizeformat}}</td>
-                    <td class="center"><a id="link-{{file.pk}}" class="copy" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ file.get_url }}', 'link-{{file.pk}}')" class="lni lni-link share"></i></a></td>
-                    <td class="center"><a href="{{file.get_url}}" class="download" data-toggle="tooltip" data-placement="top" title="" data-original-title="Download" download><i class="lni lni-arrow-down-circle download"></i></a></td>
-                    <td class="center"><a href="{% url 'uploader:move_to_trash' file.id %}" class="delete" data-toggle="tooltip" data-placement="top" title="" data-original-title="Move To Trash"><i class="lni lni-trash-can delete"></i></a></td>
+                    <td class="center"><a id="link-{{file.unique_id}}" class="copy" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ file.get_url }}', 'link-{{file.unique_id}}')" class="lni lni-link share"></i></a></td>
+                    <td class="center"><a href="{% url 'uploader:download' file.unique_id %}" class="download" data-toggle="tooltip" data-placement="top" title="" data-original-title="Download" download><i class="lni lni-arrow-down-circle download"></i></a></td>
+                    <td class="center"><a href="{% url 'uploader:move_to_trash' file.unique_id %}" class="delete" data-toggle="tooltip" data-placement="top" title="" data-original-title="Move To Trash"><i class="lni lni-trash-can delete"></i></a></td>
                 </tr>
                 {% endfor %}
 
@@ -190,9 +190,9 @@
                       <td class="type">
                         <i class="fa fa-folder text-primary "></i>
                       </td>
-                      <td class="name truncate"><a href="{% url 'uploader:folder' folder.id %}">{{folder.name|truncatechars:35}}</a></td>
+                      <td class="name truncate"><a href="{% url 'uploader:folder' folder.unique_id %}">{{folder.name|truncatechars:35}}</a></td>
                       <td class="date">{{folder.created_at}}</td>
-                      <td class="center"><a href="{% url 'uploader:delete_folder' folder.id %}" class="delete" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"><i class="lni lni-trash-can delete"></i></a></td>
+                      <td class="center"><a href="{% url 'uploader:delete_folder' folder.unique_id %}" class="delete" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"><i class="lni lni-trash-can delete"></i></a></td>
                   </tr>
                   {% endfor %}
 

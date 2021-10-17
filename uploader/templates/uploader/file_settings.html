@@ -33,9 +33,9 @@
     <div class="row">
       <div class="col-sm-12 col-lg-6">
         <div class="input-group mb-3">
-          <input type="text" class="form-control" id="link-{{file.id}}" placeholder="File Link" value="{{file.get_url}}" aria-describedby="basic-addon2" disabled>
+          <input type="text" class="form-control" id="link-{{file.unique_id}}" placeholder="File Link" value="{{file.get_url}}" aria-describedby="basic-addon2" disabled>
           <div class="input-group-append">
-            <span class="input-group-text btn primary" id="link-{{file.id}}-data" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy link" id="basic-addon2"><i onclick="CopyFileLink('{{file.get_url}}', 'link-{{file.pk}}')" class="lni lni-link"></i></span>
+            <span class="input-group-text btn primary" id="link-{{file.unique_id}}-data" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy link" id="basic-addon2"><i onclick="CopyFileLink('{{file.get_url}}', 'link-{{file.unique_id}}')" class="lni lni-link"></i></span>
           </div>
         </div>
 
