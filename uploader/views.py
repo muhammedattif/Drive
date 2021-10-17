@@ -178,8 +178,13 @@ def create_folder(request, unique_id):
     if request.method == 'POST':
         parent_folder_id = unique_id
         child_folder_name = request.POST['child_folder_name']
+
+        if not child_folder_name:
+            messages.error(request, "Ops, you forget to enter folder's name.")
+            return redirect('home')
+
         # in case if this folder has a parent folder
-        if parent_folder_id:
+        if parent_folder_id and not str(parent_folder_id):
             parent_folder = Folder.objects.get(user=request.user, unique_id=parent_folder_id)
 
             # Get all child folders of this parent folder
