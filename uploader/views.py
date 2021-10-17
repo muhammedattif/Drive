@@ -103,6 +103,7 @@ def file_settings(request, unique_id):
 @login_required(login_url='login')
 def upload(request):
     if request.method == 'POST':
+
         # get current user
         user = request.user
         # get uploaded files
@@ -122,6 +123,14 @@ def upload(request):
         if user.drive_settings.is_allowed_to_upload_files(files_size):
             for file in uploaded_files:
                 file_name = file.name
+
+                # Don't upload files that doesn't has extension
+                if '.' not in file_name:
+                    context = {
+                        'message': 'Invalid File!'
+                    }
+                    return JsonResponse(context, status=400, content_type="application/json", safe=False)
+
                 file_size = file.size
                 file_category = get_file_cat(file)
                 file_type = file.content_type
@@ -311,11 +320,14 @@ def recover(request, unique_id):
 # Function for categorising files
 def get_file_cat(file):
     docs_ext =  ['pdf','doc','docx','xls','ppt','txt']
-    if file.content_type.split('/')[0] == 'image':
-        return 'images'
-    elif file.content_type.split('/')[0] == 'audio' or file.content_type.split('/')[0] == 'video':
-        return 'media'
-    elif file.name.split('.')[-1] in docs_ext or file.content_type.split('/')[0] == 'text':
-        return 'docs'
-    else:
+    try:
+        if file.content_type.split('/')[0] == 'image':
+            return 'images'
+        elif file.content_type.split('/')[0] == 'audio' or file.content_type.split('/')[0] == 'video':
+            return 'media'
+        elif file.name.split('.')[-1] in docs_ext or file.content_type.split('/')[0] == 'text':
+            return 'docs'
+        else:
+            return 'other'
+    except Exception as e:
         return 'other'

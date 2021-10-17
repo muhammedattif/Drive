@@ -108,6 +108,12 @@ def upload(request, format=None):
             for file in uploaded_files:
                 uploaded_file = file
                 file_name = uploaded_file.name
+
+                # Don't upload files that doesn't has extension
+                if '.' not in file_name:
+                    content['message'] = 'Invalid File!'
+                    return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
                 file_size = uploaded_file.size
                 file_category = get_file_cat(uploaded_file)
                 file_type = uploaded_file.content_type
