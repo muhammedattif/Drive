@@ -49,6 +49,7 @@ def folder(request, unique_id=None):
             context['child_folders'] = Folder.objects.filter(parent_folder=None, user=request.user)
     except Exception:
         return redirect('error')
+    print(folder.get_folder_tree())
 
     return render(request, 'uploader/folder.html', context)
 
@@ -192,8 +193,13 @@ def create_folder(request, unique_id):
             messages.error(request, "Ops, you forget to enter folder's name.")
             return redirect('home')
 
+        try:
+            parent_folder_id = int(parent_folder_id)
+        except ValueError:
+            parent_folder_id = parent_folder_id
+
         # in case if this folder has a parent folder
-        if parent_folder_id and not str(parent_folder_id):
+        if parent_folder_id:
             parent_folder = Folder.objects.get(user=request.user, unique_id=parent_folder_id)
 
             # Get all child folders of this parent folder

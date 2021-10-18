@@ -25,7 +25,7 @@ import uuid
 User = settings.AUTH_USER_MODEL
 
 
-
+# This function is for generating a random combines int and string for file links
 legals = digits + ascii_uppercase
 def rand_link(length, char_set=legals):
 
@@ -48,6 +48,10 @@ def get_file_path(self, filename):
     ext = filename.rsplit('.', 1)[1]
     random_text = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
     filename = name + '_' + random_text + '.' + ext
+
+    # Get folder tree to save
+    folder_tree = self.parent_folder.get_folder_tree_as_dirs()
+
 
     return f'{settings.DRIVE_PATH}/{self.uploader.username}/{year}/{month}/{day}/{filename}'
 
@@ -81,6 +85,7 @@ class Folder(models.Model):
     def __str__(self):
         return f'{self.user.username}-{self.name}'
 
+    # This function id to return folder tree as objects [<folder_obj2>, <folder_obj2>, <folder_obj3>]
     def get_folder_tree(self):
         folder_tree = []
         folder = self
@@ -93,6 +98,13 @@ class Folder(models.Model):
                 break
         folder_tree.reverse()
         return folder_tree
+
+    # This function is to return folder tree in a format like folder1/folder2/folder3
+    def get_folder_tree_as_dirs(self):
+        folder_tree = self.get_folder_tree()
+        folder_tree = [folder.name for folder in folder_tree]
+        folder_tree_dirs = '/'.join(folder_tree)
+        return folder_tree_dirs
 
 
 class File(models.Model):
