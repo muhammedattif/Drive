@@ -23,7 +23,7 @@ from uploader.views import home
 
 from django.contrib.auth.decorators import login_required
 from django.views.static import serve
-
+import datetime
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import HttpResponse,redirect
 from uploader.models import File
@@ -35,12 +35,29 @@ def protected_serve(request, path, document_root=None):
     """
     try:
         path_fields = path.split('/')
+
         # Get user
         file_user = path_fields[1]
+
+        # Get file uploaded day
+        file_uploaded_day = int(path_fields[4])
+
+        # Get uploaded month
+        file_uploaded_month = int(path_fields[3])
+
+        # Get uploaded yar
+        file_uploaded_year = int(path_fields[2])
+
         # Get file name
         file_name = path_fields[-1]
         # Get file object
-        file = File.objects.get(uploader__username=file_user, file_name = file_name)
+        file = File.objects.get(
+            uploader__username=file_user,
+            file_name = file_name,
+            uploaded_at__day = file_uploaded_day,
+            uploaded_at__month=file_uploaded_month,
+            uploaded_at__year=file_uploaded_year
+        )
         # Check privacy settings
         if file.is_public() or (file.uploader == request.user ) or (request.user in file.privacy.shared_with.all()):
             # If allowed to view the file then redirect to the file page
