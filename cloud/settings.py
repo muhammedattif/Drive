@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-uh6jw=6xfyv58dpdyvh3)-fgzj--(7at@z@$iorf9%qx%^9v3+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.1.14']
+ALLOWED_HOSTS = ['10.0.0.198']
 # Application definition
 
 INSTALLED_APPS = [
@@ -177,7 +177,7 @@ PROFILE_IMAGES_URL = 'profile_images'
 
 # Directory where other uploaded files are gonna be stored
 DRIVE_PATH = 'drive'
-
+os.makedirs(os.path.join(MEDIA_ROOT, DRIVE_PATH), exist_ok=True)
 # Alias for drive path
 ALIAS_DRIVE_PATH = 'link'
 

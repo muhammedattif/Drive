@@ -4,6 +4,7 @@ from datetime import datetime
 from django.contrib.sites.models import Site
 from datetime import datetime, timezone
 import os
+import shutil
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
@@ -37,23 +38,27 @@ def rand_link(length, char_set=legals):
 # this function is for initializing file path
 def get_file_path(self, filename):
 
-    # Get current date
-    date = datetime.now()
-    year = str(date.strftime('%Y'))
-    month = str(date.strftime('%m'))
-    day = str(date.strftime('%d'))
+    # # Get current date
+    # date = datetime.now()
+    # year = str(date.strftime('%Y'))
+    # month = str(date.strftime('%m'))
+    # day = str(date.strftime('%d'))
 
-    # Add random string to filename
-    name = filename.rsplit('.', 1)[0]
-    ext = filename.rsplit('.', 1)[1]
-    random_text = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
-    filename = name + '_' + random_text + '.' + ext
+    # # Add random string to filename
+    # name = filename.rsplit('.', 1)[0]
+    # ext = filename.rsplit('.', 1)[1]
+    # random_text = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+    # filename = name + '_' + random_text + '.' + ext
 
     # Get folder tree to save
-    folder_tree = self.parent_folder.get_folder_tree_as_dirs()
+    if self.parent_folder:
+        folder_tree = self.parent_folder.get_folder_tree_as_dirs()
+        return f'{settings.DRIVE_PATH}/{str(self.uploader.unique_id)}/{folder_tree}/{filename}'
+
+    return f'{settings.DRIVE_PATH}/{str(self.uploader.unique_id)}/{filename}'
 
 
-    return f'{settings.DRIVE_PATH}/{self.uploader.username}/{year}/{month}/{day}/{filename}'
+
 
 
 # this function is for image compression
@@ -70,7 +75,7 @@ def compress_image(image, image_type):
     return image
 
 
-
+# Folder Model
 class Folder(models.Model):
     unique_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name = "folders")
@@ -106,7 +111,29 @@ class Folder(models.Model):
         folder_tree_dirs = '/'.join(folder_tree)
         return folder_tree_dirs
 
+# This receiver is to create folder dir in physical storage
+@receiver(post_save, sender=Folder)
+def create_folder_dir(sender, instance=None, created=False, **kwargs):
 
+    if created:
+        if instance.parent_folder:
+            folder_path = os.path.join(
+                settings.MEDIA_ROOT,
+                settings.DRIVE_PATH,
+                str(instance.user.unique_id),
+                instance.parent_folder.get_folder_tree_as_dirs(),
+                instance.name)
+        else:
+            folder_path = os.path.join(
+                settings.MEDIA_ROOT,
+                settings.DRIVE_PATH,
+                str(instance.user.unique_id),
+                instance.name)
+
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path, exist_ok=True)
+
+# File Model
 class File(models.Model):
     unique_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     uploader = models.ForeignKey(User, on_delete=models.CASCADE, related_name = "files")
@@ -177,7 +204,7 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
     when corresponding `File` object is deleted.
     """
     if instance.file and os.path.isfile(instance.file.path):
-            os.remove(instance.file.path)
+        os.remove(instance.file.path)
 
 class FilePrivacy(models.Model):
     PRIVACY_CHOICES = (

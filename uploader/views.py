@@ -3,11 +3,12 @@ from uploader.models import File, Trash, Folder, FilePrivacy
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 import json
+from django.conf import settings
 from django.contrib import messages
 from uploader.forms import FilePrivacyForm
 from accounts.models import Account
 from django.http import FileResponse
-
+import os, shutil
 # Home Page View
 @login_required(login_url='login')
 def home(request):
@@ -49,7 +50,6 @@ def folder(request, unique_id=None):
             context['child_folders'] = Folder.objects.filter(parent_folder=None, user=request.user)
     except Exception:
         return redirect('error')
-    print(folder.get_folder_tree())
 
     return render(request, 'uploader/folder.html', context)
 
@@ -196,7 +196,7 @@ def create_folder(request, unique_id):
         try:
             parent_folder_id = int(parent_folder_id)
         except ValueError:
-            parent_folder_id = parent_folder_id
+            pass
 
         # in case if this folder has a parent folder
         if parent_folder_id:
@@ -244,7 +244,28 @@ def delete_folder(request, unique_id):
             redirect_path = '/uploader/folder/{}'.format(parent_folder_id)
         else:
             redirect_path = '/uploader'
-        # Delete folder
+
+        # delete folder dir from physical storage
+        if folder.parent_folder:
+
+            folder_path = os.path.join(
+                settings.MEDIA_ROOT,
+                settings.DRIVE_PATH,
+                str(folder.user.unique_id),
+                folder.parent_folder.get_folder_tree_as_dirs(),
+                folder.name)
+
+        else:
+            folder_path = os.path.join(
+                settings.MEDIA_ROOT,
+                settings.DRIVE_PATH,
+                str(folder.user.unique_id),
+                folder.name)
+
+        if os.path.exists(folder_path):
+            shutil.rmtree(folder_path)
+
+        # Delete folder from db
         folder.delete()
 
         messages.success(request, f'{folder_name} deleted successfully!.')

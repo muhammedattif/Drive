@@ -1,7 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.conf import settings
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 from django.db.models import F
@@ -12,7 +13,7 @@ from io import BytesIO
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.db import models
-
+import os
 
 # this class is for resizing images
 class ResizeImageMixin:
@@ -70,9 +71,9 @@ class MyAccountManager(BaseUserManager):
 
 # Account Model
 class Account(AbstractBaseUser, ResizeImageMixin):
-
+    unique_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     email = models.EmailField(verbose_name='email', max_length=60, unique=True)
-    username = models.CharField(max_length=30, unique=True)
+    username = models.CharField(max_length=30, unique=True, validators=[UnicodeUsernameValidator()])
     job_title = models.CharField(max_length=30)
     date_joined = models.DateTimeField(verbose_name="Date Joined", auto_now_add=True)
     last_login = models.DateTimeField(verbose_name="Last Login", auto_now=True)
@@ -122,6 +123,45 @@ class Account(AbstractBaseUser, ResizeImageMixin):
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
         Token.objects.create(user=instance)
+
+# Not Used
+# This receiver renames user drive directory on username change
+# @receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_username_dir(sender, instance=None, created=False, **kwargs):
+    if created:
+        # Create new user dir
+        print(type(instance.unique_id))
+        user_path = os.path.join(
+            settings.MEDIA_ROOT,
+            settings.DRIVE_PATH,
+            str(instance.unique_id)
+        )
+        # Create user Dir
+        os.mkdir(user_path)
+
+#Not Used
+# This receiver renames user drive directory on username change
+#@receiver(pre_save, sender=settings.AUTH_USER_MODEL)
+def rename_username_dir(sender, instance=None, created=False, **kwargs):
+    if instance.id is not None:
+        previous = Account.objects.get(id=instance.id)
+        if previous.username != instance.username:  # username will be updated
+            user_dir_path = os.path.join(
+                settings.MEDIA_ROOT,
+                settings.DRIVE_PATH,
+                previous.username
+            )
+
+            # Check if this dir already exists
+            if os.path.exists(user_dir_path):
+                # Set new user dir
+                new_user_dir_path = os.path.join(
+                    settings.MEDIA_ROOT,
+                    settings.DRIVE_PATH,
+                    instance.username
+                )
+                # Rename user Dir
+                os.rename(user_dir_path, new_user_dir_path)
 
 # this receiver is for creating and initializing user drive settings after creating his profile
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
