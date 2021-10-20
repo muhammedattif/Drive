@@ -3,7 +3,7 @@ from uploader.models import File, Link
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.views.static import serve
-
+from django.http import FileResponse
 # Error view
 def error(request):
     return render(request, 'error.html')
@@ -13,7 +13,6 @@ def protected_serve(request, path, document_root=None):
     """
     this function is for serving uploaded files and checking link privacy
     """
-    path_fields = []
     try:
         path_fields = path.split('/')
         #
@@ -42,17 +41,17 @@ def protected_serve(request, path, document_root=None):
         file_link = path_fields[1]
 
         file = Link.objects.get(link = file_link).file
-        file_path = file.file.url
         # Check privacy settings
         if file.is_public() or (file.uploader == request.user ) or (request.user in file.privacy.shared_with.all()):
             # If allowed to view the file then redirect to the file page
-            return serve(request, file_path, '')
+            rendered_file = FileResponse(file.file)
+            return rendered_file
         else:
             # If the user is not allowed then redirect to error page
             return redirect('error')
     # If the file is not exist then redirect to error page
-    except File.DoesNotExist:
-        return render(request, 'error.html', context)
+    except Link.DoesNotExist:
+        return redirect('error')
 
 @login_required(login_url='login')
 def protect_drive_path(request, path):

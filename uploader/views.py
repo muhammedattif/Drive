@@ -172,8 +172,7 @@ def download(request, unique_id):
 
         # Check privacy settings
         if file.is_public() or (file.uploader == request.user) or (request.user in file.privacy.shared_with.all()):
-            filename = file.file.path
-            response = FileResponse(open(filename, 'rb'))
+            response = FileResponse(file.file)
             return response
         else:
             return redirect('error')
