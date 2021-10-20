@@ -172,6 +172,15 @@ def create_user_drive_settings(sender, instance=None, created=False, **kwargs):
         else:
             DriveSettings.objects.create(user=instance)
 
+# Not used
+# this receiver is to toggle unlimited storage based on user's role
+# @receiver(pre_save, sender=settings.AUTH_USER_MODEL)
+def on_any_change(sender, instance=None, created=False, **kwargs):
+    if instance.id is not None:
+        if instance.is_admin:
+            instance.drive_settings.unlimited_storage = True
+            instance.drive_settings.save()
+
 # Tis class is for Drive Settings Model for the user
 class DriveSettings(models.Model):
     user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name="drive_settings")

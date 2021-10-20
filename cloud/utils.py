@@ -1,5 +1,5 @@
 from django.shortcuts import HttpResponse,redirect, render
-from uploader.models import File, Link
+from uploader.models import File
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.views.static import serve
@@ -40,7 +40,7 @@ def protected_serve(request, path, document_root=None):
         # )
         file_link = path_fields[1]
 
-        file = Link.objects.get(link = file_link).file
+        file = File.objects.get(link = file_link)
         # Check privacy settings
         if file.is_public() or (file.uploader == request.user ) or (request.user in file.privacy.shared_with.all()):
             # If allowed to view the file then redirect to the file page
@@ -50,7 +50,7 @@ def protected_serve(request, path, document_root=None):
             # If the user is not allowed then redirect to error page
             return redirect('error')
     # If the file is not exist then redirect to error page
-    except Link.DoesNotExist:
+    except File.DoesNotExist:
         return redirect('error')
 
 @login_required(login_url='login')

@@ -144,6 +144,7 @@ class File(models.Model):
     file_category = models.CharField(max_length=30)
     uploaded_at = models.DateTimeField(verbose_name="Date Uploaded", auto_now_add=True)
     parent_folder = models.ForeignKey(Folder, on_delete=models.CASCADE, related_name="files", null=True, blank=True)
+    link = models.CharField(max_length=255, unique=True)
 
 
     class Meta:
@@ -153,7 +154,7 @@ class File(models.Model):
         return self.file.name
 
     def get_url(self):
-        return 'http://%s/%s/%s' % (Site.objects.get_current().domain, settings.ALIAS_DRIVE_PATH, self.link.link)
+        return 'http://%s/%s/%s' % (Site.objects.get_current().domain, settings.ALIAS_DRIVE_PATH, self.link)
 
     def is_private(self):
         return self.privacy.option == 'private'
@@ -249,22 +250,12 @@ class Trash(models.Model):
 
 
 
-class Link(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    file = models.OneToOneField(File, on_delete=models.CASCADE, related_name="link")
-    link = models.CharField(max_length=255)
-
-
-    def __str__(self):
-        return f'{self.user.username}-{self.file.file_name}'
-
-
 @receiver(post_save, sender=File)
 def create_dynamic_link(sender, instance=None, created=False, **kwargs):
     if created:
-        link = rand_link(100)
-
+        link = rand_link(120)
         # Add random string to filename
         ext = instance.file_name.rsplit('.', 1)[1]
         link = link + '.' + ext
-        Link.objects.create(user=instance.uploader, file=instance, link=link)
+        instance.link = link
+        instance.save()
