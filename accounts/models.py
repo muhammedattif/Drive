@@ -167,13 +167,17 @@ def rename_username_dir(sender, instance=None, created=False, **kwargs):
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_user_drive_settings(sender, instance=None, created=False, **kwargs):
     if created:
-        DriveSettings.objects.create(user=instance)
+        if instance.is_admin:
+            DriveSettings.objects.create(user=instance, unlimited_storage=True)
+        else:
+            DriveSettings.objects.create(user=instance)
 
 # Tis class is for Drive Settings Model for the user
 class DriveSettings(models.Model):
     user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name="drive_settings")
     storage_limit = models.FloatField(help_text="Storage in GB.", default=settings.MAX_STORAGE_LIMIT)
     storage_uploaded = models.FloatField(help_text="Storage in GB.", default=0)
+    unlimited_storage = models.BooleanField(default=False)
 
     class Meta:
         verbose_name_plural = "DriveSettings"
@@ -185,12 +189,16 @@ class DriveSettings(models.Model):
         """
         This function returns percentage used of user's storage
         """
+        if self.unlimited_storage:
+            return 0
         return (self.storage_uploaded/self.storage_limit)*100
 
     def get_storage_limit_in_bytes(self):
         """
         This function returns user's storage in bytes
         """
+        if self.unlimited_storage:
+            return 0
         return self.storage_limit * 1073741824
 
     def get_storage_uploaded_in_bytes(self):
@@ -216,7 +224,10 @@ class DriveSettings(models.Model):
         """
         This function returns True if the user not reached his upload limit, otherwise returns False
         """
-        if self.storage_uploaded < self.storage_limit:
+        if self.unlimited_storage:
+            return True
+
+        elif self.storage_uploaded < self.storage_limit:
             storage_after_upload = self.storage_uploaded + (files_size / 1073741824)
             if storage_after_upload < self.storage_limit:
                 return True

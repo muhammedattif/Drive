@@ -884,3 +884,45 @@ th:not(:first-child){
   transition: all 0.3s ease-in-out;
 }
 
+@import url('https://fonts.googleapis.com/css?family=Poppins:100,200,300,400,500,600,700,800,900');
+
+    .box{
+      position: relative;
+      height: 60px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      border-radius: 5px;
+    }
+
+    .box::before{
+      content: '';
+      position: absolute;
+      width: 12%;
+      height: 600%;
+      background: linear-gradient(to right, #f12711, #f5af19);
+      animation: animate 4s linear infinite;
+    }
+
+    .box::after{
+      content: '';
+      position: absolute;
+      inset: 4px;
+      background: white;
+      border-radius: 1px
+    }
+    @keyframes animate{
+      0%{
+        transform: rotate(0deg);
+      }
+      100%{
+        transform: rotate(360deg);
+      }
+
+    }
+    .box h2{
+      position: relative;
+      color: rgba(0,0,0,0.7);
+      z-index: 10;
+    }
