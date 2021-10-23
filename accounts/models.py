@@ -5,6 +5,7 @@ from django.conf import settings
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
+from storage_package.models import StoragePackage
 from django.db.models import F
 # profile image resizing imports
 import uuid
@@ -184,9 +185,11 @@ def on_any_change(sender, instance=None, created=False, **kwargs):
 # Tis class is for Drive Settings Model for the user
 class DriveSettings(models.Model):
     user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name="drive_settings")
+    storage_package = models.ForeignKey(StoragePackage, on_delete=models.CASCADE, related_name="package")
     storage_limit = models.FloatField(help_text="Storage in GB.", default=settings.MAX_STORAGE_LIMIT)
     storage_uploaded = models.FloatField(help_text="Storage in GB.", default=0)
     unlimited_storage = models.BooleanField(default=False)
+
 
     class Meta:
         verbose_name_plural = "DriveSettings"

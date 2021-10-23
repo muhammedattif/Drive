@@ -52,8 +52,10 @@ INSTALLED_APPS = [
     # this is for CRONJOBS
     'django_crontab',
 
+    # APPS
     'accounts',
     'uploader',
+    'storage_package'
 ]
 
 SITE_ID = 1
@@ -181,5 +183,6 @@ os.makedirs(os.path.join(MEDIA_ROOT, DRIVE_PATH), exist_ok=True)
 # Alias for drive path
 ALIAS_DRIVE_PATH = 'link'
 
-# Max storage limit for user
+# Max storage limit of the default storage package for user
 MAX_STORAGE_LIMIT = 15 # number in GB
+
