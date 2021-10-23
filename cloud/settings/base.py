@@ -9,11 +9,16 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-
+import environ
 from pathlib import Path
 import os
+
+env = environ.Env()
+# reading .env file
+environ.Env.read_env()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 AUTH_USER_MODEL = "accounts.Account"
 
@@ -25,12 +30,12 @@ AUTHENTICATION_BACKENDS = (
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-uh6jw=6xfyv58dpdyvh3)-fgzj--(7at@z@$iorf9%qx%^9v3+'
+SECRET_KEY = env('SECRET_KEY')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+# Allowed hosts
+ALLOWED_HOSTS = [env('ALLOWED_HOST')]
 
-ALLOWED_HOSTS = ['10.0.0.198']
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -52,7 +57,6 @@ INSTALLED_APPS = [
     # this is for CRONJOBS
     'django_crontab',
 
-    # APPS
     'accounts',
     'uploader',
     'storage_package'
@@ -94,16 +98,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'cloud.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -113,23 +107,6 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     )
 }
-# Password validation
-# https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
 
 
 # Internationalization
@@ -183,6 +160,5 @@ os.makedirs(os.path.join(MEDIA_ROOT, DRIVE_PATH), exist_ok=True)
 # Alias for drive path
 ALIAS_DRIVE_PATH = 'link'
 
-# Max storage limit of the default storage package for user
-MAX_STORAGE_LIMIT = 15 # number in GB
-
+# Max storage limit for user
+BASIC_PACKAGE_STORAGE_LIMIT = 15 # number in GB

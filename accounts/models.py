@@ -125,6 +125,17 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
         Token.objects.create(user=instance)
 
+# this receiver is for creating and initializing user drive settings after creating his profile
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_user_drive_settings(sender, instance=None, created=False, **kwargs):
+    if created:
+        if instance.is_admin:
+            DriveSettings.objects.create(user=instance, unlimited_storage=True)
+        else:
+            DriveSettings.objects.create(user=instance)
+
+
+
 # Not Used
 # This receiver renames user drive directory on username change
 # @receiver(post_save, sender=settings.AUTH_USER_MODEL)
@@ -164,15 +175,6 @@ def rename_username_dir(sender, instance=None, created=False, **kwargs):
                 # Rename user Dir
                 os.rename(user_dir_path, new_user_dir_path)
 
-# this receiver is for creating and initializing user drive settings after creating his profile
-@receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def create_user_drive_settings(sender, instance=None, created=False, **kwargs):
-    if created:
-        if instance.is_admin:
-            DriveSettings.objects.create(user=instance, unlimited_storage=True)
-        else:
-            DriveSettings.objects.create(user=instance)
-
 # Not used
 # this receiver is to toggle unlimited storage based on user's role
 # @receiver(pre_save, sender=settings.AUTH_USER_MODEL)
@@ -185,8 +187,7 @@ def on_any_change(sender, instance=None, created=False, **kwargs):
 # Tis class is for Drive Settings Model for the user
 class DriveSettings(models.Model):
     user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name="drive_settings")
-    storage_package = models.ForeignKey(StoragePackage, on_delete=models.CASCADE, related_name="package")
-    storage_limit = models.FloatField(help_text="Storage in GB.", default=settings.MAX_STORAGE_LIMIT)
+    storage_package = models.ForeignKey(StoragePackage, default=StoragePackage.get_default_package, on_delete=models.CASCADE, related_name="package")
     storage_uploaded = models.FloatField(help_text="Storage in GB.", default=0)
     unlimited_storage = models.BooleanField(default=False)
 
@@ -203,7 +204,7 @@ class DriveSettings(models.Model):
         """
         if self.unlimited_storage:
             return 0
-        return (self.storage_uploaded/self.storage_limit)*100
+        return (self.storage_uploaded/self.storage_package.storage)*100
 
     def get_storage_limit_in_bytes(self):
         """
@@ -211,7 +212,7 @@ class DriveSettings(models.Model):
         """
         if self.unlimited_storage:
             return 0
-        return self.storage_limit * 1073741824
+        return self.storage_package.storage * 1073741824
 
     def get_storage_uploaded_in_bytes(self):
         """
@@ -239,9 +240,9 @@ class DriveSettings(models.Model):
         if self.unlimited_storage:
             return True
 
-        elif self.storage_uploaded < self.storage_limit:
+        elif self.storage_uploaded < self.storage_package.storage:
             storage_after_upload = self.storage_uploaded + (files_size / 1073741824)
-            if storage_after_upload < self.storage_limit:
+            if storage_after_upload < self.storage_package.storage:
                 return True
 
         return False
