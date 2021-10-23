@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, BaseUserManager, PermissionsMixin
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.conf import settings
 from django.db.models.signals import post_save, pre_save
@@ -64,14 +64,13 @@ class MyAccountManager(BaseUserManager):
     def create_superuser(self, email, username, password):
         user = self.create_user(email=self.normalize_email(email),password=password,username=username)
 
-        user.is_admin = True
         user.is_staff = True
         user.is_superuser = True
         user.save(using=self._db)
         return user
 
 # Account Model
-class Account(AbstractBaseUser, ResizeImageMixin):
+class Account(AbstractBaseUser, PermissionsMixin, ResizeImageMixin):
     unique_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     email = models.EmailField(verbose_name='email', max_length=60, unique=True)
     username = models.CharField(max_length=30, unique=True, validators=[UnicodeUsernameValidator()])
@@ -79,10 +78,8 @@ class Account(AbstractBaseUser, ResizeImageMixin):
     date_joined = models.DateTimeField(verbose_name="Date Joined", auto_now_add=True)
     last_login = models.DateTimeField(verbose_name="Last Login", auto_now=True)
     image = models.ImageField(upload_to=get_profile_image_path, blank=True, null=True)
-    is_admin = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
-    is_superuser = models.BooleanField(default=False)
+    is_active = models.BooleanField('Active status', default=True)
+    is_staff = models.BooleanField('Staff status', default=False)
 
     objects = MyAccountManager()
 
@@ -90,15 +87,16 @@ class Account(AbstractBaseUser, ResizeImageMixin):
     REQUIRED_FIELDS = ['username']
 
 
-
     def __str__(self):
         return self.email
 
-    def has_perm(self, perm, obj=None):
-        return self.is_admin
+    # resize profile image before saving
+    def save(self, created=None, *args, **kwargs):
+        if self.pk:
+            if self.image:
+                self.resize(self.image, (315, 315))
 
-    def has_module_perms(self, app_label):
-        return True
+        super().save(*args, **kwargs)
 
     def used_storage(self):
         storage = 0
@@ -111,14 +109,6 @@ class Account(AbstractBaseUser, ResizeImageMixin):
     def get_classified_files(self):
         return classify_files(self.files.all())
 
-    # resize profile image before saving
-    def save(self, created=None, *args, **kwargs):
-        if self.pk:
-            if self.image:
-                self.resize(self.image, (315, 315))
-
-        super().save(*args, **kwargs)
-
 # this is a receiver for creating an auth token for the user after creating his profile
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
@@ -129,7 +119,7 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_user_drive_settings(sender, instance=None, created=False, **kwargs):
     if created:
-        if instance.is_admin:
+        if instance.is_superuser:
             DriveSettings.objects.create(user=instance, unlimited_storage=True)
         else:
             DriveSettings.objects.create(user=instance)
@@ -142,7 +132,6 @@ def create_user_drive_settings(sender, instance=None, created=False, **kwargs):
 def create_username_dir(sender, instance=None, created=False, **kwargs):
     if created:
         # Create new user dir
-        print(type(instance.unique_id))
         user_path = os.path.join(
             settings.MEDIA_ROOT,
             settings.DRIVE_PATH,
@@ -180,7 +169,7 @@ def rename_username_dir(sender, instance=None, created=False, **kwargs):
 # @receiver(pre_save, sender=settings.AUTH_USER_MODEL)
 def on_any_change(sender, instance=None, created=False, **kwargs):
     if instance.id is not None:
-        if instance.is_admin:
+        if instance.is_superuser:
             instance.drive_settings.unlimited_storage = True
             instance.drive_settings.save()
 

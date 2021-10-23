@@ -58,7 +58,7 @@ def protect_drive_path(request, path):
     """
     this function is for preventing anyone to access drive path
     """
-    if not request.user.is_admin:
+    if not request.user.is_superuser:
         return redirect('error')
     return serve(request, path, f'{settings.MEDIA_ROOT}')
 
