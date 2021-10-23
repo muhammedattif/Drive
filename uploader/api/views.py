@@ -7,6 +7,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from uploader.models import File, Folder
 import json
 from django.db import transaction
+from uploader.utils import generate_file_link
 
 # Create your views here.
 
@@ -102,11 +103,13 @@ def upload(request, format=None):
                 file_category = get_file_cat(uploaded_file)
                 file_type = uploaded_file.content_type
                 try:
+                    file_link = generate_file_link(file_name)
                     file = File.objects.create(
                          uploader=user, file_name=file_name,
                          file_size=file_size, file_type=file_type,
                          file_category=file_category,
-                         file=uploaded_file, parent_folder=parent_folder
+                         file=uploaded_file, parent_folder=parent_folder,
+                         link=file_link
                     )
                     # if privacy parameter passed then set it, if not then the default is 'private'
                     if privacy:

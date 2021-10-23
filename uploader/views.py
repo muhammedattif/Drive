@@ -9,7 +9,7 @@ from uploader.forms import FilePrivacyForm
 from accounts.models import Account
 from django.http import FileResponse
 import os, shutil
-
+from uploader.utils import generate_file_link
 
 # Home Page View
 @login_required(login_url='login')
@@ -143,9 +143,9 @@ def upload(request):
                         parent_folder = Folder.objects.get(unique_id=folder_id)
                     else:
                         parent_folder = None
-
+                    file_link = generate_file_link(file_name)
                     file = File.objects.create(uploader=user, file_name=file_name, file_size=file_size, file_type=file_type,
-                                               file_category=file_category, file=file, parent_folder=parent_folder)
+                                               file_category=file_category, file=file, parent_folder=parent_folder, link=file_link)
                 except Folder.DoesNotExist:
                     context = {
                         'message': 'Destination Folder Not found!'

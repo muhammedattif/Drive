@@ -17,22 +17,10 @@ from django.db import models
 from PIL import Image
 from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
-# Create your models here.
-import random
-import string
-from string import digits, ascii_uppercase
 import uuid
 
 User = settings.AUTH_USER_MODEL
 
-
-# This function is for generating a random combines int and string for file links
-legals = digits + ascii_uppercase
-def rand_link(length, char_set=legals):
-
-    link = ''
-    for _ in range(length): link += random.choice(char_set)
-    return link
 
 
 # this function is for initializing file path
@@ -250,15 +238,3 @@ class Trash(models.Model):
         if remaining_days <= 0:
             return True
         return False
-
-
-
-@receiver(post_save, sender=File)
-def create_dynamic_link(sender, instance=None, created=False, **kwargs):
-    if created:
-        link = rand_link(120)
-        # Add random string to filename
-        ext = instance.file_name.rsplit('.', 1)[1]
-        link = link + '.' + ext
-        instance.link = link
-        instance.save()
