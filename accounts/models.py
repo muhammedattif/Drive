@@ -184,7 +184,7 @@ class DriveSettings(models.Model):
 
 
     class Meta:
-        verbose_name_plural = "DriveSettings"
+        verbose_name_plural = "Drive Settings"
 
     def __str__(self):
         return self.user.username
@@ -264,8 +264,13 @@ class Activity(models.Model):
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
 
+    class Meta:
+        verbose_name_plural = "Activities"
+
     def __str__(self):
         return f'{self.user.username}-{self.get_activity_type_display()}'
+
+
 
 
 def classify_files(files):
