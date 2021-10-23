@@ -90,6 +90,9 @@ class Folder(models.Model):
     def __str__(self):
         return f'{self.user.username}-{self.name}'
 
+    def get_absolute_url(self):
+        return f'/uploader/folder/{self.unique_id}'
+
     # This function id to return folder tree as objects [<folder_obj2>, <folder_obj2>, <folder_obj3>]
     def get_folder_tree(self):
         folder_tree = []

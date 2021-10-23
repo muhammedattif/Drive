@@ -207,12 +207,12 @@ def create_folder(request, unique_id):
             # in case there is already another folder in this parent folder with the same name
             if child_folder_name in parent_folder_children_names:
                 messages.error(request, 'A folder with the same name already exists.')
-                return redirect('/uploader/folder/{}'.format(parent_folder_id))
+                return redirect(parent_folder)
             else:
                 # in case there is no folders with the same name in this parent folder then create it
                 Folder.objects.create(user=request.user, name=child_folder_name, parent_folder = parent_folder)
                 messages.success(request, f'{child_folder_name} Created Successfully!.')
-                return redirect('/uploader/folder/{}'.format(parent_folder_id))
+                return redirect(parent_folder)
         else:
             # get all folders names in home directory
             home_folder_set_names = Folder.objects.filter(user=request.user, parent_folder=None).values_list('name', flat=True)
@@ -239,8 +239,7 @@ def delete_folder(request, unique_id):
         # This code is to know to which page the user is going to be redirect
         folder_name = folder.name
         if folder.parent_folder is not None:
-            parent_folder_id = folder.parent_folder.unique_id
-            redirect_path = '/uploader/folder/{}'.format(parent_folder_id)
+            redirect_path = folder.parent_folder.get_absolute_url()
         else:
             redirect_path = '/uploader'
 
@@ -317,7 +316,7 @@ def move_to_trash(request, unique_id):
     except File.DoesNotExist:
         messages.error(request, 'File Does not Exists!')
     if file.parent_folder is not None:
-        return redirect(f'/uploader/folder/{file.parent_folder.unique_id}')
+        return redirect(file.parent_folder)
     return redirect('home')
 
 # Delete file view
