@@ -1,5 +1,5 @@
 from django.contrib import admin
-from accounts.models import Account, DriveSettings
+from accounts.models import Account, DriveSettings, Activity
 # Register your models here.
 class AccountAdmin(admin.ModelAdmin):
     fields = (
@@ -16,3 +16,4 @@ class AccountAdmin(admin.ModelAdmin):
 
 admin.site.register(Account, AccountAdmin)
 admin.site.register(DriveSettings)
+admin.site.register(Activity)

@@ -10,7 +10,7 @@ from accounts.models import Account
 from django.http import FileResponse
 import os, shutil
 from uploader.utils import generate_file_link
-
+from accounts.models import Activity
 # Home Page View
 @login_required(login_url='login')
 def home(request):
@@ -22,7 +22,7 @@ def home(request):
         files = File.objects.filter(uploader=request.user, trash = None, parent_folder = None)
     except Exception:
         files = File.objects.filter(uploader=request.user)
-
+    print(request.user.activities.all())
     # Get folders of home dir if exist
     try:
         folders = Folder.objects.filter(parent_folder=None, user=request.user)
@@ -338,6 +338,7 @@ def recover(request, unique_id):
     try:
         trashed_file = Trash.objects.get(file__unique_id=unique_id, user=request.user)
         trashed_file.delete()
+        trashed_file.file.activities.create(activity_type=Activity.RECOVER_FILE, user=request.user)
         messages.success(request, f'{trashed_file.file.file_name} was recovered')
     except Trash.DoesNotExist:
         messages.error(request, 'File Does not Exists!')

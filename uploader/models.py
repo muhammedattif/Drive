@@ -10,6 +10,9 @@ from django.dispatch import receiver
 
 from django_clamd.validators import validate_file_infection
 
+from django.contrib.contenttypes.fields import GenericRelation
+from accounts.models import Activity
+
 
 # image compression imports
 import sys
@@ -70,6 +73,7 @@ class Folder(models.Model):
     name = models.CharField(default="New Folder", max_length=30)
     parent_folder = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True)
     created_at = models.DateTimeField(verbose_name="Date Created", auto_now_add=True)
+    activities = GenericRelation(Activity)
 
 
     class Meta:
@@ -124,6 +128,18 @@ def create_folder_dir(sender, instance=None, created=False, **kwargs):
         if not os.path.exists(folder_path):
             os.makedirs(folder_path, exist_ok=True)
 
+# This receiver is to record user activity
+@receiver(post_save, sender=Folder)
+def record_activity(sender, instance=None, created=False, **kwargs):
+    if created:
+        instance.activities.create(activity_type=Activity.CREATE_FOLDER, user=instance.user)
+
+# This function is for recording activity of folder
+@receiver(post_delete, sender=Folder)
+def record_activity_on_delete_folder(sender, instance, **kwargs):
+    instance.activities.create(activity_type=Activity.DELETE_FOLDER, user=instance.user)
+
+
 # File Model
 class File(models.Model):
     unique_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
@@ -136,6 +152,7 @@ class File(models.Model):
     uploaded_at = models.DateTimeField(verbose_name="Date Uploaded", auto_now_add=True)
     parent_folder = models.ForeignKey(Folder, on_delete=models.CASCADE, related_name="files", null=True, blank=True)
     link = models.CharField(max_length=255, unique=True)
+    activities = GenericRelation(Activity)
 
 
     class Meta:
@@ -167,6 +184,17 @@ def create_file_privacy(sender, instance=None, created=False, **kwargs):
     if created:
         FilePrivacy.objects.create(file=instance)
 
+# This function is for recording activity of a file
+@receiver(post_save, sender=File)
+def record_activity_on_upload_file(sender, instance=None, created=False, **kwargs):
+    if created:
+        instance.activities.create(activity_type=Activity.UPLOAD_FILE, user=instance.uploader)
+
+# This function is for recording activity of a file
+@receiver(post_delete, sender=File)
+def record_activity_on_delete_file(sender, instance, **kwargs):
+    instance.activities.create(activity_type=Activity.DELETE_FILE, user=instance.uploader)
+
 # This function is for cleaning file name before uploading
 @receiver(post_save, sender=File)
 def add_storage_uploaded(sender, instance=None, created=False, **kwargs):
@@ -177,7 +205,6 @@ def add_storage_uploaded(sender, instance=None, created=False, **kwargs):
 
 @receiver(post_delete, sender=File)
 def subtract_storage_uploaded(sender, instance, **kwargs):
-
     file_size = instance.file_size
     instance.uploader.drive_settings.subtract_storage_uploaded(file_size)
     instance.uploader.drive_settings.save()
