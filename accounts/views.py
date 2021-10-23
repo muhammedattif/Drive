@@ -6,9 +6,11 @@ from accounts.models import Account
 from accounts.forms import CreateUserForm
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.db import transaction
 # Create your views here.
 
 # Registration View
+@transaction.atomic # -> If there is an exception, the queries are rolled back.
 def register_view(request):
     if not request.user.is_authenticated:
         if request.method == 'POST':

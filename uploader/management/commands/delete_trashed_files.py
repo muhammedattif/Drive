@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from uploader.cron import delete_trashed_files
+from django.conf import settings
 
 class Command(BaseCommand):
     help = f'Delete trashed files after {settings.TRASH_DAYS} day'

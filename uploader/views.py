@@ -9,6 +9,8 @@ from uploader.forms import FilePrivacyForm
 from accounts.models import Account
 from django.http import FileResponse
 import os, shutil
+
+
 # Home Page View
 @login_required(login_url='login')
 def home(request):

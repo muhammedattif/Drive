@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from uploader.models import File, Folder
 import json
-
+from django.db import transaction
 
 # Create your views here.
 
@@ -29,24 +29,11 @@ def create_folder_tree_if_not_exist(folder_tree, user):
     for index, folder_name in enumerate(folder_tree):
         # this check is because the home directory does not have a parent folder
         if index == 0:
-            # check if the first folder is in the tree does not exist in the home or base directory then create it
-            if base_folder_name not in home_folders_names:
-                folder = Folder.objects.create(user=user, name=folder_name)
-            else:
-                # if exist then get it
-                folder = Folder.objects.get(user=user, name=folder_name, parent_folder=None)
-            # set current folder as a parent to the next folder
-            parent_folder = folder
+            # in case the first folder is in the tree does not exist in the home or base directory then create it
+            parent_folder , created = Folder.objects.get_or_create(user=user, name=folder_name,parent_folder=None)
         else:
-            # if the child folder not exist in parent children then create new one
-            if folder_name not in parent_folder.folder_set.all().values_list('name', flat=True):
-                folder = Folder.objects.create(user=user, name=folder_name, parent_folder=parent_folder)
-            else:
-                # get folder if exist
-                folder = Folder.objects.get(user=user, name=folder_name, parent_folder=parent_folder)
-
-            # set current folder as a parent to the next folder
-            parent_folder = folder
+            # in case the child folder not exist in parent children then create new one
+            parent_folder , created = Folder.objects.get_or_create(user=user, name=folder_name,parent_folder=parent_folder)
 
     # return end of tree folder id
     return parent_folder
@@ -55,6 +42,7 @@ def create_folder_tree_if_not_exist(folder_tree, user):
 # Upload File API
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@transaction.atomic
 def upload(request, format=None):
     content = {}
     links = []
@@ -182,6 +170,7 @@ def delete(request, unique_id):
 # Create folder tree API
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@transaction.atomic
 def create_folder_tree(request, format=None):
 
     # get the current user
