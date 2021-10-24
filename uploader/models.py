@@ -81,6 +81,9 @@ class Folder(models.Model):
     def get_absolute_url(self):
         return f'/uploader/folder/{self.unique_id}'
 
+    def get_files_count(self):
+        return self.files.filter(trash=None).count()
+
     # This function id to return folder tree as objects [<folder_obj2>, <folder_obj2>, <folder_obj3>]
     # Not Used
     def recursive(self):

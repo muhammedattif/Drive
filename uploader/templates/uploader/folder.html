@@ -70,7 +70,7 @@
                                       </div>
                                       <div class="file-name">
                                           <a title="{{ child_folder.name }}" href="{% url 'uploader:folder' child_folder.unique_id %}"><p class="m-b-5 text-muted">{{ child_folder.name }}</p></a>
-                                          <small>Files: {{child_folder.files.count}} <span class="date text-muted">{{child_folder.created_at}}</span></small>
+                                          <small>Files: {{child_folder.get_files_count}} <span class="date text-muted">{{child_folder.created_at}}</span></small>
                                       </div>
                                   </a>
                               </div>
