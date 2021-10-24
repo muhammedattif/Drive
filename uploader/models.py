@@ -24,8 +24,6 @@ import uuid
 
 User = settings.AUTH_USER_MODEL
 
-
-
 # this function is for initializing file path
 def get_file_path(self, filename):
 
@@ -86,7 +84,8 @@ class Folder(models.Model):
         return f'/uploader/folder/{self.unique_id}'
 
     # This function id to return folder tree as objects [<folder_obj2>, <folder_obj2>, <folder_obj3>]
-    def get_folder_tree(self):
+    # Not Used
+    def recursive(self):
         folder_tree = []
         folder = self
         folder_tree.append(folder)
@@ -98,6 +97,24 @@ class Folder(models.Model):
                 break
         folder_tree.reverse()
         return folder_tree
+
+    # This function id to return folder tree as objects [<folder_obj2>, <folder_obj2>, <folder_obj3>]
+    # Recursion
+    def get_folder_tree(self, folder=None, folder_tree=None):
+
+        if folder_tree is None:
+            folder_tree = []
+            folder = self
+
+        if not folder.parent_folder:
+            folder_tree.append(folder)
+            folder_tree.reverse()
+            return folder_tree
+        else:
+            folder_tree.append(folder)
+            return self.get_folder_tree(folder.parent_folder, folder_tree)
+
+
 
     # This function is to return folder tree in a format like folder1/folder2/folder3
     def get_folder_tree_as_dirs(self):
