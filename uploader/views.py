@@ -166,9 +166,9 @@ def upload(request):
     return redirect('home')
 
 # download file view
-def download(request, unique_id):
+def download(request, file_link):
     try:
-        file = File.objects.get(unique_id=unique_id)
+        file = File.objects.get(privacy__link=file_link)
 
         # Check privacy settings
         if file.is_public() or (file.uploader == request.user) or (request.user in file.privacy.shared_with.all()):

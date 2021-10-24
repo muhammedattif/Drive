@@ -5,7 +5,7 @@ app_name = 'uploader'
 
 urlpatterns = [
     path('', upload, name='upload'),
-    path('<str:unique_id>/download', download, name='download'),
+    # path('<str:unique_id>/download', download, name='download'),
     path('<str:unique_id>/move_to_trash', move_to_trash, name='move_to_trash'),
     path('<str:unique_id>/delete_file', delete_file, name='delete_file'),
     path('category/<str:cat>', filter, name='category'),

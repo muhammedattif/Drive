@@ -19,7 +19,7 @@ from django.conf.urls import url
 from django.conf.urls.static import static
 from django.conf import settings
 from accounts.views import login_view, register_view, logout_view
-from uploader.views import home
+from uploader.views import home, download
 import datetime
 from django.shortcuts import HttpResponse,redirect, render
 
@@ -51,6 +51,9 @@ urlpatterns = [
 
     # Serving Uploaded files
     url(r'^link(?P<path>.*)$', protected_serve),
+
+    # Download file
+    path('link/<str:file_link>/download', download, name='download'),
 
     # Protect Drive path
     url(r'^{}(?P<path>.*)$'.format(settings.MEDIA_URL[1:]), protect_drive_path),
