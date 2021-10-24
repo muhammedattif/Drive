@@ -269,6 +269,7 @@ class Activity(models.Model):
     # Below the mandatory fields for generic relation
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
+    object_name = models.TextField(max_length=50)
     content_object = GenericForeignKey('content_type', 'object_id')
 
     class Meta:

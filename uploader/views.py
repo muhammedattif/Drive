@@ -312,6 +312,11 @@ def move_to_trash(request, unique_id):
     try:
         file = File.objects.get(unique_id=unique_id, uploader=request.user)
         Trash.objects.create(user=file.uploader, file=file)
+        file.activities.create(
+            activity_type=Activity.TRASH_FILE,
+            user=request.user,
+            object_name=file.file_name
+        )
         messages.success(request, f'{file.file_name} moved to trash.')
     except File.DoesNotExist:
         messages.error(request, 'File Does not Exists!')
@@ -336,7 +341,11 @@ def recover(request, unique_id):
     try:
         trashed_file = Trash.objects.get(file__unique_id=unique_id, user=request.user)
         trashed_file.delete()
-        trashed_file.file.activities.create(activity_type=Activity.RECOVER_FILE, user=request.user)
+        trashed_file.file.activities.create(
+            activity_type=Activity.RECOVER_FILE,
+            user=request.user,
+            object_name=trashed_file.file.file_name
+        )
         messages.success(request, f'{trashed_file.file.file_name} was recovered')
     except Trash.DoesNotExist:
         messages.error(request, 'File Does not Exists!')

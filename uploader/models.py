@@ -148,14 +148,22 @@ def create_folder_dir(sender, instance=None, created=False, **kwargs):
 
 # This receiver is to record user activity
 @receiver(post_save, sender=Folder)
-def record_activity(sender, instance=None, created=False, **kwargs):
+def record_activity_on_creating_folder(sender, instance=None, created=False, **kwargs):
     if created:
-        instance.activities.create(activity_type=Activity.CREATE_FOLDER, user=instance.user)
+        instance.activities.create(
+            activity_type=Activity.CREATE_FOLDER,
+            user=instance.user,
+            object_name=instance.name
+        )
 
 # This function is for recording activity of folder
 @receiver(post_delete, sender=Folder)
-def record_activity_on_delete_folder(sender, instance, **kwargs):
-    instance.activities.create(activity_type=Activity.DELETE_FOLDER, user=instance.user)
+def record_activity_on_deleting_folder(sender, instance, **kwargs):
+    instance.activities.create(
+        activity_type=Activity.DELETE_FOLDER,
+        user=instance.user,
+        object_name=instance.name
+    )
 
 
 # File Model
@@ -205,12 +213,20 @@ def create_file_privacy(sender, instance=None, created=False, **kwargs):
 @receiver(post_save, sender=File)
 def record_activity_on_upload_file(sender, instance=None, created=False, **kwargs):
     if created:
-        instance.activities.create(activity_type=Activity.UPLOAD_FILE, user=instance.uploader)
+        instance.activities.create(
+            activity_type=Activity.UPLOAD_FILE,
+            user=instance.uploader,
+            object_name=instance.file_name
+        )
 
 # This function is for recording activity of a file
 @receiver(post_delete, sender=File)
 def record_activity_on_delete_file(sender, instance, **kwargs):
-    instance.activities.create(activity_type=Activity.DELETE_FILE, user=instance.uploader)
+    instance.activities.create(
+        activity_type=Activity.DELETE_FILE,
+        user=instance.uploader,
+        object_name=instance.file_name
+    )
 
 # This function is for cleaning file name before uploading
 @receiver(post_save, sender=File)
