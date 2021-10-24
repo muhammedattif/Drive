@@ -48,7 +48,7 @@ def get_default_profile_image():
 # this class is for overriding default users manager of django user model
 class MyAccountManager(BaseUserManager):
 
-    def create_user(self, email, username, password=None):
+    def create_user(self, email, username, password=None, is_staff=False, is_superuser=False):
         if not email:
             raise ValueError('User must have an email address')
         if not username:
@@ -56,7 +56,9 @@ class MyAccountManager(BaseUserManager):
 
         user = self.model(
                         email=self.normalize_email(email),
-                        username=username
+                        username=username,
+                        is_staff=is_staff,
+                        is_superuser=is_superuser
         )
 
         user.set_password(password)
@@ -64,11 +66,14 @@ class MyAccountManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, username, password):
-        user = self.create_user(email=self.normalize_email(email),password=password,username=username)
-
-        user.is_staff = True
-        user.is_superuser = True
-        user.save(using=self._db)
+        user = self.create_user(
+            email=self.normalize_email(email),
+            password=password,
+            username=username,
+            is_staff = True,
+            is_superuser = True
+        )
+        user.save(using = self._db)
         return user
 
 # Account Model
