@@ -17,6 +17,7 @@ from django.core.files import File
 from django.core.files.base import ContentFile
 from django.db import models
 import os
+from django.db import transaction
 
 # this class is for resizing images
 class ResizeImageMixin:
@@ -65,6 +66,7 @@ class MyAccountManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
+    @transaction.atomic
     def create_superuser(self, email, username, password):
         user = self.create_user(
             email=self.normalize_email(email),
