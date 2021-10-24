@@ -7,12 +7,10 @@ import os
 import shutil
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-
 from django_clamd.validators import validate_file_infection
-
 from django.contrib.contenttypes.fields import GenericRelation
 from accounts.models import Activity
-
+from uploader.utils import generate_file_link
 
 # image compression imports
 import sys
@@ -168,7 +166,6 @@ class File(models.Model):
     file_category = models.CharField(max_length=30)
     uploaded_at = models.DateTimeField(verbose_name="Date Uploaded", auto_now_add=True)
     parent_folder = models.ForeignKey(Folder, on_delete=models.CASCADE, related_name="files", null=True, blank=True)
-    link = models.CharField(max_length=255, unique=True)
     activities = GenericRelation(Activity)
 
 
@@ -179,7 +176,7 @@ class File(models.Model):
         return self.file.name
 
     def get_url(self):
-        return 'http://%s/%s/%s' % (Site.objects.get_current().domain, settings.ALIAS_DRIVE_PATH, self.link)
+        return 'http://%s/%s/%s' % (Site.objects.get_current().domain, settings.ALIAS_DRIVE_PATH, self.privacy.link)
 
     def is_private(self):
         return self.privacy.option == 'private'
@@ -248,12 +245,17 @@ class FilePrivacy(models.Model):
         ('friends', 'Friends'),
         ('private', 'Private'),
     )
-    file = models.OneToOneField(File, on_delete=models.CASCADE, default=1, related_name='privacy')
+    file = models.OneToOneField(File, on_delete=models.CASCADE, related_name='privacy')
     option = models.CharField(max_length=10, choices=PRIVACY_CHOICES, default="private")
     shared_with = models.ManyToManyField(User, blank=True)
+    link = models.CharField(max_length=255, unique=True, null=True)
 
     def __str__(self):
         return f'{self.file.uploader.username}-{self.file.parent_folder}-{self.file.file_name}'
+
+    def save(self, *args, **kwargs):
+        self.link = generate_file_link(self.file.file_name)
+        super().save(*args, **kwargs)
 
 
 

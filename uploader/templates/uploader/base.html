@@ -56,6 +56,12 @@
                           <div class="card-body">
                               <span class="float-end text-primary mb-2">
                                   </span>
+                              {% if user.drive_settings.unlimited_storage %}
+
+                                          <div class="box">
+                                          <h2 class="text-muted">Unlimited</h2>
+                                         </div>
+                              {% endif %}
                               <h5 class=" text-success font-weight-bold"><span class="float-end text-secondary mb-2">
                                   {{ request.user.drive_settings.get_storage_uploaded_in_bytes|filesizeformat }}
                                   {% if not user.drive_settings.unlimited_storage %}
@@ -64,13 +70,9 @@
                                   {% endif %}
                               </span> used
                               </h5>
-                              {% with request.user.drive_settings.get_used_storage_percentage as used_storage_percentage %}
-                              {% if user.drive_settings.unlimited_storage %}
+                              {% if not user.drive_settings.unlimited_storage %}
+                                {% with request.user.drive_settings.get_used_storage_percentage as used_storage_percentage %}
 
-                                          <div class="box">
-                                          <h2>Unlimited</h2>
-                                         </div>
-                              {% else %}
                                 {% if  used_storage_percentage > 0 and  used_storage_percentage < 51  %}
 
                                       <div class="progress mb-3" style="height:20px;">
@@ -86,8 +88,8 @@
                                           <div class="progress-bar progress-bar-striped bg-danger" role="progressbar" style="width: {{ used_storage_percentage }}%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">{{ used_storage_percentage|floatformat:"0" }}%</div>
                                         </div>
                                   {% endif %}
-                              {% endif %}
                               {% endwith %}
+                              {% endif %}
                           <h5 class="mt-2 text-primary font-weight-bold"><span class="float-end text-secondary">{{request.user.files.count}} Files</span> Uploaded</h5>
                           {% with request.user.files.count as total_files_num %}
                   				<div class="progress" style="height:20px;">

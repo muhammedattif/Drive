@@ -40,7 +40,7 @@ def protected_serve(request, path, document_root=None):
         # )
         file_link = path_fields[1]
 
-        file = File.objects.get(link = file_link)
+        file = File.objects.get(privacy__link = file_link)
         # Check privacy settings
         if file.is_public() or (file.uploader == request.user ) or (request.user in file.privacy.shared_with.all()):
             # If allowed to view the file then redirect to the file page
