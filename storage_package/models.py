@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, IntegrityError
 from django.conf import settings
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
@@ -15,6 +15,14 @@ class StoragePackage(models.Model):
 
     @classmethod
     def get_default_package(cls):
-        default_package, created = StoragePackage.objects.get_or_create(
-            name='basic', storage=settings.BASIC_PACKAGE_STORAGE_LIMIT, default=True)
-        return default_package.pk
+        try:
+            default_package, created = StoragePackage.objects.get_or_create(
+                name=settings.BASIC_PACKAGE_NAME, storage=settings.BASIC_PACKAGE_STORAGE_LIMIT, default=True)
+            return default_package.pk
+        except IntegrityError :
+            # in case a default package is exists and the values changed from settings file
+            old_default_package = StoragePackage.objects.get(default=True)
+            old_default_package.name = settings.BASIC_PACKAGE_NAME
+            old_default_package.storage = settings.BASIC_PACKAGE_STORAGE_LIMIT
+            old_default_package.save()
+

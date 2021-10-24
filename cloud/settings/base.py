@@ -160,5 +160,8 @@ os.makedirs(os.path.join(MEDIA_ROOT, DRIVE_PATH), exist_ok=True)
 # Alias for drive path
 ALIAS_DRIVE_PATH = 'link'
 
-# Max storage limit for user
+# Basic Storage Package Variables
+# Once this values have changed, you have to run the following command to apply the new changes:
+# --> python manage.py migrate_to_new_default_storage_package
+BASIC_PACKAGE_NAME = 'Basic'
 BASIC_PACKAGE_STORAGE_LIMIT = 15 # number in GB
