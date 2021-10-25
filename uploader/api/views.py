@@ -42,7 +42,6 @@ def create_folder_tree_if_not_exist(folder_tree, user):
 # Upload File API
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-@transaction.atomic
 def upload(request, format=None):
     content = {}
     links = []

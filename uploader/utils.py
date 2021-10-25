@@ -13,7 +13,7 @@ def rand_link(length, char_set=legals):
 
 def generate_file_link(file_name):
 
-    link = rand_link(120)
+    link = rand_link(40)
     # Add random string to filename
     ext = file_name.rsplit('.', 1)[1]
     link = link + '.' + ext
