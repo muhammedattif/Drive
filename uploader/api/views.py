@@ -20,12 +20,6 @@ def create_folder_tree_if_not_exist(folder_tree, user):
     # remove none or empty values form the list
     folder_tree = list(filter(None, folder_tree))
 
-    # first folder in folder tree
-    base_folder_name = folder_tree[0]
-
-    # get a list of all folders in base directory (Home)
-    home_folders_names = Folder.objects.filter(user=user, parent_folder=None).values_list('name', flat=True)
-
     for index, folder_name in enumerate(folder_tree):
         # this check is because the home directory does not have a parent folder
         if index == 0:
@@ -42,6 +36,7 @@ def create_folder_tree_if_not_exist(folder_tree, user):
 # Upload File API
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@transaction.atomic
 def upload(request, format=None):
     content = {}
     links = []
@@ -66,26 +61,7 @@ def upload(request, format=None):
         # check if the user is allowed to upload files with these size or his limit reached
         if user.drive_settings.is_allowed_to_upload_files(files_size):
 
-            # check request params
-
-            # if folder tree passed then get or create it
-            if folder_tree:
-                parent_folder = create_folder_tree_if_not_exist(folder_tree, user)
-
-            # if directory id passed then upload file to this directory
-            elif directory_id:
-                # check if directory id is valid integer number
-
-
-                try:
-                    # get file upload destination
-                    parent_folder = Folder.objects.get(unique_id=directory_id, user=user)
-                except Folder.DoesNotExist:
-                    content['message'] = 'Directory Not found.'
-                    return Response(content, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                # if no folder tree or directory id then upload to base folder
-                parent_folder = None
+            parent_folder = get_parent_folder(user, directory_id, folder_tree)
 
             # get all files in the request and upload it
             for file in uploaded_files:
@@ -242,6 +218,28 @@ def delete_folder(request, format=None):
 
 
     return Response(content)
+
+def get_parent_folder(user, directory_id, folder_tree):
+
+    parent_folder = None
+
+    # if folder tree passed then get or create it
+    if folder_tree:
+        parent_folder = create_folder_tree_if_not_exist(folder_tree, user)
+
+    # if directory id passed then upload file to this directory
+    elif directory_id:
+        # check if directory id is valid integer number
+        try:
+            # get file upload destination
+            parent_folder = Folder.objects.get(unique_id=directory_id, user=user)
+        except Folder.DoesNotExist:
+            content['message'] = 'Directory Not found.'
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+    return parent_folder
+
+
+
 
 # this function is for getting file category
 def get_file_cat(file):
