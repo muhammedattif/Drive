@@ -10,5 +10,6 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.' + env('DATABASE_ENGINE'),
         'NAME': BASE_DIR / env('DATABASE_NAME'),
+        'ATOMIC_REQUESTS': env("ATOMIC_REQUESTS"),
     }
 }
