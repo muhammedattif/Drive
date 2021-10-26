@@ -1,10 +1,10 @@
 import random
 import string
-from string import digits, ascii_uppercase
+from string import digits, ascii_uppercase, ascii_lowercase
 
 
 # This function is for generating a random combines int and string for file links
-legals = digits + ascii_uppercase
+legals = digits + ascii_lowercase + ascii_uppercase
 def rand_link(length, char_set=legals):
 
     link = ''
