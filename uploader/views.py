@@ -21,7 +21,7 @@ def home(request):
         files = File.objects.filter(uploader=request.user, trash = None, parent_folder = None)
     except Exception:
         files = File.objects.filter(uploader=request.user)
-    print(request.user.activities.all())
+
     # Get folders of home dir if exist
     try:
         folders = Folder.objects.filter(parent_folder=None, user=request.user)
