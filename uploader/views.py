@@ -201,30 +201,27 @@ def create_folder(request, unique_id):
         if parent_folder_id:
             parent_folder = Folder.objects.get(user=request.user, unique_id=parent_folder_id)
 
-            # Get all child folders of this parent folder
-            parent_folder_children_names = parent_folder.folder_set.all().values_list('name', flat=True)
-
-            # in case there is already another folder in this parent folder with the same name
-            if child_folder_name in parent_folder_children_names:
-                messages.error(request, 'A folder with the same name already exists.')
+            # if there is no folders with the same name in this parent folder then create it
+            existing_folder, created = Folder.objects.get_or_create(user=request.user, name=child_folder_name, parent_folder = parent_folder)
+            if created:
+                messages.success(request, f'{child_folder_name} Created Successfully!.')
                 return redirect(parent_folder)
             else:
-                # in case there is no folders with the same name in this parent folder then create it
-                Folder.objects.create(user=request.user, name=child_folder_name, parent_folder = parent_folder)
-                messages.success(request, f'{child_folder_name} Created Successfully!.')
+                # in case there is already another folder in this parent folder with the same name
+                messages.error(request, 'A folder with the same name already exists.')
                 return redirect(parent_folder)
         else:
-            # get all folders names in home directory
-            home_folder_set_names = Folder.objects.filter(user=request.user, parent_folder=None).values_list('name', flat=True)
-            # in case this folder does not have a parent folder then create it in home directory
-            if child_folder_name in home_folder_set_names:
-                messages.error(request, 'A folder with the same name already exists.')
-                return redirect('home')
-            else:
-                # in case there is no folders with the same name in this parent folder then create it
-                Folder.objects.create(user=request.user, name=child_folder_name)
+
+            existing_folder, created = Folder.objects.get_or_create(user=request.user, name=child_folder_name, parent_folder=None)
+
+            if created:
                 messages.success(request, f'{child_folder_name} Created Successfully!.')
                 return redirect('home')
+            else:
+                # in case there is already another folder in this parent folder with the same name
+                messages.error(request, 'A folder with the same name already exists.')
+                return redirect('home')
+
     messages.error(request, 'Something went wrong!.')
     return redirect('home')
 
