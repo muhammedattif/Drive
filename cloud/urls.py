@@ -50,7 +50,7 @@ urlpatterns = [
     # This Urls is for serving urls in production
 
     # Serving Uploaded files
-    url(r'^link(?P<path>.*)$', protected_serve),
+    path('link/<str:path>', protected_serve),
 
     # Download file
     path('link/<str:file_link>/download', download, name='download'),

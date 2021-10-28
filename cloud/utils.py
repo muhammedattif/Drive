@@ -14,7 +14,6 @@ def protected_serve(request, path, document_root=None):
     this function is for serving uploaded files and checking link privacy
     """
     try:
-        path_fields = path.split('/')
         #
         # # Get user
         # file_user = path_fields[1]
@@ -38,7 +37,7 @@ def protected_serve(request, path, document_root=None):
         #     uploaded_at__month=file_uploaded_month,
         #     uploaded_at__year=file_uploaded_year
         # )
-        file_link = path_fields[1]
+        file_link = path
 
         file = File.objects.get(privacy__link = file_link)
         # Check privacy settings

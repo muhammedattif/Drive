@@ -173,6 +173,7 @@ def download(request, file_link):
         # Check privacy settings
         if file.is_public() or (file.uploader == request.user) or (request.user in file.privacy.shared_with.all()):
             response = FileResponse(file.file)
+            response['Content-Disposition'] = f'attachment; filename="{file.file_name}"'
             return response
         else:
             return redirect('error')
