@@ -68,8 +68,8 @@
                       </div>
                         {% endfor %}
                     {% endif %}
-                    {% if files.all %}
-                      {% for file in files.all %}
+                    {% if files %}
+                      {% for file in files %}
                       <div class="col-lg-3 col-md-4 col-sm-12">
                           <div class="card">
                               <div class="file">
@@ -110,7 +110,7 @@
                       {% endfor %}
                     {% endif %}
 
-                    {% if not files.all and not folders.all %}
+                    {% if not files and not folders %}
                       {% include 'no_files_found.html' %}
                     {% endif %}
 
@@ -124,7 +124,7 @@
 </div>
 <div class="drive-wrapper drive-list-view d-none" id="collapse_list">
     <div class="table-responsive drive-items-table-wrapper">
-      {% if files.all %}
+      {% if files %}
 
         <table class="table">
             <thead>
@@ -139,7 +139,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for file in files.all %}
+                {% for file in files %}
                 <tr>
                     <td class="type">
                       {% if file.file_category == 'images' %}
@@ -179,7 +179,7 @@
                   </tr>
               </thead>
               <tbody>
-                  {% for folder in folders.all %}
+                  {% for folder in folders %}
                   <tr>
                       <td class="type">
                         <i class="fa fa-folder text-primary "></i>
@@ -196,7 +196,7 @@
 
 
     </div>
-    {% if not files.all and not folders.all %}
+    {% if not files and not folders %}
       {% include 'no_files_found.html' %}
     {% endif %}
 </div>

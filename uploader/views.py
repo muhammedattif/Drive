@@ -18,9 +18,9 @@ def home(request):
 
     # Get files of home dir if exist
     try:
-        files = File.objects.filter(uploader=request.user, trash = None, parent_folder = None)
+        files = File.objects.filter(uploader=request.user, trash = None, parent_folder = None).all()
     except Exception:
-        files = File.objects.filter(uploader=request.user)
+        files = File.objects.filter(uploader=request.user).all()
 
     # Get folders of home dir if exist
     try:
@@ -46,7 +46,7 @@ def folder(request, unique_id=None):
             folder = Folder.objects.get(unique_id=unique_id, user=request.user)
             context['folder'] = folder
             context['child_folders'] = folder.folder_set.all()
-            context['child_files'] = folder.files.all().filter(trash = None)
+            context['child_files'] = folder.files.all().filter(trash = None).all()
         else:
             context['child_folders'] = Folder.objects.filter(parent_folder=None, user=request.user)
     except Exception:

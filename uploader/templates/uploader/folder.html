@@ -55,8 +55,8 @@
                       {% if not child_files and not child_folders %}
                           {% include 'no_files_found.html' %}
                       {% endif %}
-                    {% if child_folders.all %}
-                        {% for child_folder in child_folders.all %}
+                    {% if child_folders %}
+                        {% for child_folder in child_folders %}
                           <div class="col-lg-3 col-md-4 col-sm-12">
                           <div class="card">
                               <div class="file">
@@ -80,7 +80,7 @@
                         {% endfor %}
                     {% endif %}
                     {% if child_files %}
-                      {% for file in child_files.all %}
+                      {% for file in child_files %}
                       <div class="col-lg-3 col-md-4 col-sm-12">
                           <div class="card">
                               <div class="file">
@@ -186,7 +186,7 @@
                   </tr>
               </thead>
               <tbody>
-                  {% for folder in child_folders.all %}
+                  {% for folder in child_folders %}
                   <tr>
                       <td class="type">
                         <i class="fa fa-folder text-primary "></i>

@@ -21,6 +21,7 @@ from django.conf import settings
 from accounts.views import login_view, register_view, logout_view
 from uploader.views import home, download
 import datetime
+import debug_toolbar
 from django.shortcuts import HttpResponse,redirect, render
 
 from .utils import error, protect_drive_path, protected_serve
@@ -58,6 +59,7 @@ urlpatterns = [
     # Protect Drive path
     url(r'^{}(?P<path>.*)$'.format(settings.MEDIA_URL[1:]), protect_drive_path),
 
+
     # Not Used
     # serving media files
     #url(r'^{}{}(?P<path>.*)$'.format(settings.MEDIA_URL[1:], settings.MEDIA_FILES), media_serve),
@@ -68,3 +70,7 @@ urlpatterns = [
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += [
+    # This for debugging
+    path('__debug__/', include(debug_toolbar.urls)),
+    ]
