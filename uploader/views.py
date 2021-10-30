@@ -54,13 +54,20 @@ def folder(request, unique_id=None):
         if unique_id:
             folder = Folder.objects.get(unique_id=unique_id, user=request.user)
             context['folder'] = folder
-            context['child_folders'] = folder.folder_set.all()
-            context['child_files'] = folder.files.all().filter(trash = None).all()
+            # Child folders
+            context['folders'] = folder.folder_set.all()
+
+            # Child files
+            files = folder.files.all().filter(trash = None).all()
+            paginator = Paginator(files, 10) # Show 25 contacts per page.
+            page_number = request.GET.get('page')
+            files = paginator.get_page(page_number)
+            context['files'] = files
         else:
-            context['child_folders'] = Folder.objects.filter(parent_folder=None, user=request.user)
+            # Child folders
+            context['folders'] = Folder.objects.filter(parent_folder=None, user=request.user)
     except Exception:
         return redirect('error')
-
     return render(request, 'uploader/folder.html', context)
 
 
