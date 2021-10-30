@@ -1,0 +1,23 @@
+{% if files.paginator.page_range %}
+<div class="text-center m-auto fixed">
+  {% if files.has_previous%}
+    <a href="?page=1" class="btn primary-outline mt-4 mb-4">First</a>
+    <a href="?page={{ files.previous_page_number }}" class="btn primary-outline mt-4 mb-4">Previous</a>
+  {% endif %}
+
+  {% if files.paginator.page_range|length > 1 %}
+    {% for num in files.paginator.page_range %}
+      {% if files.number == num %}
+        <a href="?page={{ num }}" class="btn primary mt-4 mb-4">{{ num }}</a>
+      {% elif num > files.number|add:'-3' and num < files.number|add:'3' %}
+        <a href="?page={{ num }}" class="btn primary-outline mt-4 mb-4">{{ num }}</a>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+
+  {% if  files.has_next%}
+    <a href="?page={{ files.next_page_number }}" class="btn primary-outline mt-4 mb-4">Next</a>
+    <a href="?page={{ files.paginator.num_pages }}" class="btn primary-outline mt-4 mb-4">Last</a>
+  {% endif %}
+  </div>
+{% endif %}

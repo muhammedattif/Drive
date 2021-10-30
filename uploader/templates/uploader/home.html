@@ -39,12 +39,13 @@
   </div>
 {% endfor %}
 
-<div class="drive-wrapper drive-grid-view" id="collapse_grid">
+{% if folders %}
+<span class="badge text-muted mb-1 mt-4">Folders</span>
+<div class="drive-wrapper drive-grid-view collapse_grid" id="collapse_grid">
     <div class="grid-items-wrapper">
       <div id="main-content" class="file_manager">
               <div class="container-fluid">
                   <div class="row clearfix">
-                    {% if folders %}
                         {% for folder in folders %}
                           <div class="col-lg-3 col-md-4 col-sm-12">
                           <div class="card">
@@ -67,8 +68,50 @@
                           </div>
                       </div>
                         {% endfor %}
-                    {% endif %}
-                    {% if files %}
+                  </div>
+              </div>
+          </div>
+    </div>
+</div>
+<div class="drive-wrapper drive-list-view d-none collapse_list" id="collapse_list">
+    <div class="table-responsive drive-items-table-wrapper">
+        {% if folders %}
+
+          <table class="table">
+              <thead>
+                  <tr>
+                      <th class="type"></th>
+                      <th class="name truncate">Name</th>
+                      <th class="date">Uploaded</th>
+                      <th class="size">Delete</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  {% for folder in folders %}
+                  <tr>
+                      <td class="type">
+                        <i class="fa fa-folder text-primary "></i>
+                      </td>
+                      <td class="name truncate"><a href="{% url 'uploader:folder' folder.unique_id %}">{{folder.name|truncatechars:35}}</a></td>
+                      <td class="date">{{folder.created_at}}</td>
+                      <td class="center"><a href="{% url 'uploader:delete_folder' folder.unique_id %}" class="delete" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"><i class="lni lni-trash-can delete"></i></a></td>
+                  </tr>
+                  {% endfor %}
+
+              </tbody>
+          </table>
+          {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{% if files %}
+<span class="badge text-muted mb-1 mt-4">Files</span>
+<div class="drive-wrapper drive-grid-view collapse_grid" id="collapse_grid">
+    <div class="grid-items-wrapper">
+      <div id="main-content" class="file_manager">
+              <div class="container-fluid">
+                  <div class="row clearfix">
                       {% for file in files %}
                       <div class="col-lg-3 col-md-4 col-sm-12">
                           <div class="card">
@@ -108,21 +151,14 @@
                           </div>
                       </div>
                       {% endfor %}
-                    {% endif %}
-
-                    {% if not files and not folders %}
-                      {% include 'no_files_found.html' %}
-                    {% endif %}
-
                   </div>
 
               </div>
           </div>
 
     </div>
-
 </div>
-<div class="drive-wrapper drive-list-view d-none" id="collapse_list">
+<div class="drive-wrapper drive-list-view d-none collapse_list" id="collapse_list">
     <div class="table-responsive drive-items-table-wrapper">
       {% if files %}
 
@@ -166,40 +202,26 @@
             </tbody>
         </table>
         {% endif %}
+    </div>
+</div>
+{% endif %}
 
-        {% if folders %}
 
-          <table class="table">
-              <thead>
-                  <tr>
-                      <th class="type"></th>
-                      <th class="name truncate">Name</th>
-                      <th class="date">Uploaded</th>
-                      <th class="size">Delete</th>
-                  </tr>
-              </thead>
-              <tbody>
-                  {% for folder in folders %}
-                  <tr>
-                      <td class="type">
-                        <i class="fa fa-folder text-primary "></i>
-                      </td>
-                      <td class="name truncate"><a href="{% url 'uploader:folder' folder.unique_id %}">{{folder.name|truncatechars:35}}</a></td>
-                      <td class="date">{{folder.created_at}}</td>
-                      <td class="center"><a href="{% url 'uploader:delete_folder' folder.unique_id %}" class="delete" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"><i class="lni lni-trash-can delete"></i></a></td>
-                  </tr>
-                  {% endfor %}
+{% if not files and not folders %}
+<div class="drive-wrapper drive-grid-view collapse_grid" id="collapse_grid">
+    <div class="grid-items-wrapper">
+      <div id="main-content" class="file_manager">
+              <div class="container-fluid">
+                  <div class="row clearfix">
+                      {% include 'no_files_found.html' %}
+                  </div>
 
-              </tbody>
-          </table>
-          {% endif %}
-
+              </div>
+          </div>
 
     </div>
-    {% if not files and not folders %}
-      {% include 'no_files_found.html' %}
-    {% endif %}
 </div>
+{% endif %}
 <script type="text/javascript">
   function CopyFileLink(link, id)  {
       const file_id = document.getElementById(id);
@@ -225,17 +247,17 @@
     const list_toggle = document.getElementById('drive-list-toggle');
 
     grid_toggle.addEventListener('click', (e) => {
-      $("#collapse_list").addClass('d-none');
-      $("#collapse_grid").removeClass("d-none");
+      $(".collapse_list").addClass('d-none');
+      $(".collapse_grid").removeClass("d-none");
       anime({
-        targets: '#collapse_grid',
+        targets: '.collapse_grid',
         translateY: 10,
         direction: 'alternate',
         easing: 'spring(1, 80, 10, 0)'
       })
 
       anime({
-        targets: '#collapse_list',
+        targets: '.collapse_list',
         translateY: 0,
         direction: 'alternate',
         easing: 'spring(1, 80, 10, 0)'
@@ -246,22 +268,26 @@
 
 
     list_toggle.addEventListener('click', (e) => {
-      $("#collapse_grid").addClass("d-none");
-      $("#collapse_list").removeClass("d-none");
+      $(".collapse_grid").addClass("d-none");
+      $(".collapse_list").removeClass("d-none");
 
       anime({
-        targets: '#collapse_grid',
+        targets: '.collapse_grid',
         translateY: 0,
         direction: 'alternate',
         easing: 'spring(1, 80, 10, 0)'
       })
 
       anime({
-        targets: '#collapse_list',
+        targets: '.collapse_list',
         translateY: 10,
         direction: 'alternate',
         easing: 'spring(1, 80, 10, 0)'
       })
     });
 </script>
+
+{% if files %}
+  {% include 'uploader/files_paginator.html' with files=files %}
+{% endif %}
 {% endblock %}

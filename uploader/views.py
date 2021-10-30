@@ -30,7 +30,12 @@ def home(request):
         folders = Folder.objects.filter(parent_folder=None, user=request.user).all()
     except Exception:
          folders = None
-        
+
+
+    paginator = Paginator(files, 10) # Show 25 contacts per page.
+
+    page_number = request.GET.get('page')
+    files = paginator.get_page(page_number)
 
     context = {
     'files':files,
