@@ -9,7 +9,10 @@ from uploader.forms import FilePrivacyForm
 from accounts.models import Account
 from django.http import FileResponse
 import os, shutil
-from accounts.models import Activity
+from activity.models import Activity
+from django.core.paginator import Paginator
+
+
 # Home Page View
 @login_required(login_url='login')
 def home(request):
@@ -24,9 +27,10 @@ def home(request):
 
     # Get folders of home dir if exist
     try:
-        folders = Folder.objects.filter(parent_folder=None, user=request.user)
+        folders = Folder.objects.filter(parent_folder=None, user=request.user).all()
     except Exception:
          folders = None
+        
 
     context = {
     'files':files,

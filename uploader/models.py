@@ -9,7 +9,7 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django_clamd.validators import validate_file_infection
 from django.contrib.contenttypes.fields import GenericRelation
-from accounts.models import Activity
+from activity.models import Activity
 from uploader.utils import generate_file_link
 
 # image compression imports

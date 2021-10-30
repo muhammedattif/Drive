@@ -36,7 +36,6 @@ def create_folder_tree_if_not_exist(folder_tree, user):
 # Upload File API
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-@transaction.atomic
 def upload(request, format=None):
     content = {}
     links = []
@@ -145,7 +144,6 @@ def delete(request, unique_id):
 # Create folder tree API
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-@transaction.atomic
 def create_folder_tree(request, format=None):
 
     # get the current user

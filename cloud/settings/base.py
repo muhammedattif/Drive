@@ -57,7 +57,9 @@ INSTALLED_APPS = [
     # this is for CRONJOBS
     'django_crontab',
 
+    # APPS
     'accounts',
+    'activity',
     'uploader',
     'storage_package'
 ]
