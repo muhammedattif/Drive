@@ -1,6 +1,5 @@
 {% extends 'uploader/home.html' %}
 
-
 {% block title %}
     <title>Trash</title>
 {% endblock %}
@@ -44,7 +43,7 @@
                 </div>
                   <div class="row clearfix">
                     {% if trashed_files %}
-                      {% for trash in trashed_files.all %}
+                      {% for trash in trashed_files %}
                       <div class="col-lg-3 col-md-4 col-sm-12">
                           <div class="card">
                               <div class="file">
@@ -90,7 +89,6 @@
                           </div>
                       </div>
                       {% endfor %}
-
                       {% else %}
 
                         <div class="container">
@@ -100,7 +98,7 @@
                                         <div class="notfound">
                                             <h2>Trash is Empty!</h2>
                                             <p>Trashed files will appear here.</p>
-                                            <a href="{% url 'home' %}"><i class="fas fa-home"></i> Home Page</a></li></a>
+                                            <a href="{% url 'home' %}"><i class="fas fa-home"></i> Home Page</a>
                                         </div>
                                     </div>
                                 </div>
@@ -115,8 +113,10 @@
           </div>
 
     </div>
-
 </div>
+{% if trashed_files %}
+{% include "uploader/files_paginator.html" with files=trashed_files %}
+{% endif %}
 <!-- <div class="drive-wrapper drive-list-view d-none" id="collapse_list">
     <div class="table-responsive drive-items-table-wrapper">
       {% if trashed_files %}

@@ -32,7 +32,7 @@ def home(request):
          folders = None
 
 
-    paginator = Paginator(files, 10) # Show 25 contacts per page.
+    paginator = Paginator(files, 10) # Show 10 files per page.
 
     page_number = request.GET.get('page')
     files = paginator.get_page(page_number)
@@ -59,7 +59,7 @@ def folder(request, unique_id=None):
 
             # Child files
             files = folder.files.all().filter(trash = None).all()
-            paginator = Paginator(files, 10) # Show 25 contacts per page.
+            paginator = Paginator(files, 10) # Show 10 files per page.
             page_number = request.GET.get('page')
             files = paginator.get_page(page_number)
             context['files'] = files
@@ -295,9 +295,9 @@ def filter(request, cat):
     This function is to filter files based on category
     """
     context = {}
+    files = None
     if cat == 'all':
         files = File.objects.filter(uploader=request.user, trash=None, parent_folder = None)
-        context['files'] = files
 
     elif cat == 'folders':
         try:
@@ -307,6 +307,11 @@ def filter(request, cat):
         context['folders'] = folders
     else:
         files = File.objects.filter(uploader=request.user, file_category = cat, trash = None, parent_folder = None)
+
+    if files:
+        paginator = Paginator(files, 10) # Show 10 files per page.
+        page_number = request.GET.get('page')
+        files = paginator.get_page(page_number)
         context['files'] = files
 
     return render(request, 'uploader/home.html', context)
@@ -316,6 +321,9 @@ def filter(request, cat):
 def get_trashed_files(request):
     context = {}
     trashed_files = Trash.objects.filter(user=request.user)
+    paginator = Paginator(trashed_files, 10) # Show 10 files per page.
+    page_number = request.GET.get('page')
+    trashed_files = paginator.get_page(page_number)
     context['trashed_files'] = trashed_files
     return render(request, 'uploader/trashed_files.html', context)
 
