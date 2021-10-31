@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from file.models import File
 from file.utils import get_file_cat
+from folder.utils import get_parent_folder, create_folder_tree_if_not_exist
 
 # Upload File API
 @api_view(['POST'])
@@ -111,3 +112,4 @@ def delete(request, unique_id):
     except File.DoesNotExist:
         content['message'] = 'File Does not Exists!'
     return Response(content)
+
