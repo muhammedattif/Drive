@@ -1,9 +1,11 @@
-from django.shortcuts import HttpResponse,redirect, render
-from uploader.models import File
+from django.shortcuts import HttpResponse, redirect, render
+from file.models import File
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.views.static import serve
 from django.http import FileResponse
+
+
 # Error view
 def error(request):
     return render(request, 'error.html')
@@ -39,9 +41,9 @@ def protected_serve(request, path, document_root=None):
         # )
         file_link = path
 
-        file = File.objects.get(privacy__link = file_link)
+        file = File.objects.get(privacy__link=file_link)
         # Check privacy settings
-        if file.is_public() or (file.uploader == request.user ) or (request.user in file.privacy.shared_with.all()):
+        if file.is_public() or (file.uploader == request.user) or (request.user in file.privacy.shared_with.all()):
             # If allowed to view the file then redirect to the file page
             rendered_file = FileResponse(file.file)
             return rendered_file
@@ -51,6 +53,7 @@ def protected_serve(request, path, document_root=None):
     # If the file is not exist then redirect to error page
     except File.DoesNotExist:
         return redirect('error')
+
 
 @login_required(login_url='login')
 def protect_drive_path(request, path):

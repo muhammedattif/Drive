@@ -2,6 +2,8 @@ from django.db import models
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from accounts.models import Account
+
 
 class Activity(models.Model):
     UPLOAD_FILE = 'UPLOADFILE'
@@ -19,7 +21,7 @@ class Activity(models.Model):
         (DELETE_FOLDER, 'Delete Folder'),
     )
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="activities")
+    user = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="activities")
     activity_type = models.CharField(max_length=30, choices=ACTIVITY_TYPES)
     date = models.DateTimeField(auto_now_add=True)
 

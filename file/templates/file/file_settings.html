@@ -1,0 +1,95 @@
+{% extends "drive/home.html" %}
+{% load bootstrap4 %}
+
+{% block content %}
+
+{% for message in messages %}
+
+  <div class="position-fixed top-10% right-0% p-3" style="z-index: 5; right: 0; top: 0;">
+    <div id="liveToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
+      <div class="toast-header {% if message.tags == 'error' %} bg-danger {% else %} bg-success{% endif %}  " style="color: white;">
+        {% if message.tags == 'success' %}
+          <i class="fas fa-check-circle"></i>
+        {% else %}
+          <i class="fas fa-exclamation-triangle"></i>
+        {% endif %}
+        <strong class="mr-auto ml-2">System</strong>
+        <small>Now</small>
+        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+          <span style="color: white;" aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="toast-body">
+        {{message}}
+      </div>
+    </div>
+  </div>
+{% endfor %}
+
+<div class="container-fluid">
+  <form  method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <h5 class="mb-4">File sharing settings</h5>
+    <div class="row">
+      <div class="col-sm-12 col-lg-6">
+        <div class="input-group mb-3">
+          <input type="text" class="form-control" id="link-{{file.unique_id}}" placeholder="File Link" value="{{file.get_url}}" aria-describedby="basic-addon2" disabled>
+          <div class="input-group-append">
+            <span class="input-group-text btn primary" id="link-{{file.unique_id}}-data" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy link" id="basic-addon2"><i onclick="CopyFileLink('{{file.get_url}}', 'link-{{file.unique_id}}')" class="lni lni-link"></i></span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-12 col-lg-6">
+        <div class="form-group">
+          {% bootstrap_form form %}
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-12 col-lg-6">
+        <div class="form-group">
+          <label for="exampleFormControlTextarea1">Share with</label>
+          <textarea class="form-control" name="users" id="exampleFormControlTextarea1" rows="3">{% with file_settings.shared_with.all as users %}{% for user in  users %}{{user.email}} {% endfor %}{% endwith %}</textarea>
+          <small>Users emails must be in a format like:<br> ahmed@example.com muhammed@example.com. seperated by " "</small>
+        </div>
+      </div>
+    </div>
+    <div class="row justify-content-right text-lg-right text-center">
+      <div class="col-sm-12 col-lg-6">
+        <div class="form-group">
+          <button type="submit" class="btn primary">Save Changes</button>
+        </div>
+
+      </div>
+    </div>
+  </form>
+</div>
+
+
+
+<script type="text/javascript">
+  function CopyFileLink(link, id)  {
+      const file_id = document.getElementById(id);
+      const file_id_data = document.getElementById(id+'-data');
+      const el = document.createElement('textarea');
+      el.value = link;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      file_id_data.style.display = "none";
+      file_id_data.setAttribute('data-original-title', 'Copied!')
+      setTimeout(function(){
+        file_id_data.style.display = "block";
+      }, 0);
+
+      setTimeout(function(){
+        file_id_data.setAttribute('data-original-title', 'Copy Link')
+      }, 500);
+
+    };
+</script>
+{% endblock %}

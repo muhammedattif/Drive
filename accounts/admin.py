@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from accounts.models import Account, DriveSettings
+from accounts.models import Account
+from drive.models import DriveSettings
 
 class DriveSettingsInline(admin.StackedInline):
     model = DriveSettings
@@ -33,4 +34,3 @@ class AccountAdmin(admin.ModelAdmin):
 
 # Register your models here.
 admin.site.register(Account, AccountAdmin)
-admin.site.register(DriveSettings)

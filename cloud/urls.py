@@ -19,14 +19,11 @@ from django.conf.urls import url
 from django.conf.urls.static import static
 from django.conf import settings
 from accounts.views import login_view, register_view, logout_view
-from uploader.views import home, download
-import datetime
+from drive.views import home
+from file.views import download
 import debug_toolbar
-from django.shortcuts import HttpResponse,redirect, render
 
 from .utils import error, protect_drive_path, protected_serve
-
-
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -40,9 +37,18 @@ urlpatterns = [
     path('api/account/', include('accounts.api.urls', 'account_api')),
 
     # Uploader APIs
-    path('api/uploader/', include('uploader.api.urls', 'uploader_api')),
+    # path('api/uploader/', include('uploader.api.urls', 'uploader_api')),
 
-    path('uploader/', include('uploader.urls', namespace='uploader')),
+    path('drive/', include('drive.urls', namespace='drive')),
+
+    path('file/', include('file.urls', namespace='file')),
+    # File APIs
+    path('api/file/', include('file.api.urls', 'file_api')),
+
+    path('folder/', include('folder.urls', namespace='folder')),
+    # Folder APIs
+    path('api/folder/', include('folder.api.urls', 'folder_api')),
+
     path('api-auth/', include('rest_framework.urls')),
 
     # Error url
@@ -59,11 +65,9 @@ urlpatterns = [
     # Protect Drive path
     url(r'^{}(?P<path>.*)$'.format(settings.MEDIA_URL[1:]), protect_drive_path),
 
-
     # Not Used
     # serving media files
-    #url(r'^{}{}(?P<path>.*)$'.format(settings.MEDIA_URL[1:], settings.MEDIA_FILES), media_serve),
-
+    # url(r'^{}{}(?P<path>.*)$'.format(settings.MEDIA_URL[1:], settings.MEDIA_FILES), media_serve),
 
 ]
 
@@ -71,6 +75,6 @@ if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += [
-    # This for debugging
-    path('__debug__/', include(debug_toolbar.urls)),
+        # This for debugging
+        path('__debug__/', include(debug_toolbar.urls)),
     ]

@@ -59,8 +59,10 @@ INSTALLED_APPS = [
 
     # APPS
     'accounts',
+    'drive',
+    'folder',
+    'file',
     'activity',
-    'uploader',
     'storage_package'
 ]
 

@@ -1,0 +1,89 @@
+{% load static %}
+
+<link href="{% static 'filepond/css/filepond.css' %}" rel="stylesheet" />
+<link href="{% static 'filepond/css/filepond-plugin-image-preview.css' %}" rel="stylesheet">
+
+<link href="{% static 'file/css/uploader_page.css' %}" rel="stylesheet" />
+<style media="screen">
+.filepond--credits{
+display: none
+}
+.filepond--drop-label{
+  background-image: url('{% static 'imgs/grain.png' %}');
+  background-repeat: repeat;
+}
+
+</style>
+
+ <div class="upload">
+ <div class="upload-files">
+  <header>
+   <p>
+    <i class="fa fa-cloud-upload" aria-hidden="true"></i>
+    <span class="up">Variiance</span>
+    <span class="load"> Cloud</span>
+   </p>
+  </header>
+ </div>
+</div>
+<input class="filepond" type="file" name="file" multiple>
+
+
+<script src="{% static 'filepond/js/filepond-plugin-image-preview.js' %}"></script>
+
+<script src="{% static 'filepond/js/filepond.js' %}"></script>
+<script>
+    // Get a reference to the file input element
+    const inputElement = document.querySelector('input[type="file"]');
+    const uploadFileBtn = document.getElementById('uploadfile');
+    const uploadFileBrowser = document.getElementById('UploadFileModal');
+
+    // Create a FilePond instance
+    const pond = FilePond.create(inputElement);
+
+    let serverResponse = '';
+    file = FilePond.setOptions({
+     dropOnPage: true,
+     dropOnElement: false,
+      server: {
+          process: {
+              url: '{% url "file:upload" %}',
+              method: "POST",
+              headers: {'X-CSRFToken': '{{csrf_token}}'},
+              ondata: (formData) => {
+              formData.append('folder_id', {% if folder_id %} "{{ folder_id }}" {% else %} '' {% endif %});
+              return formData;
+          },
+          onerror: (response) => {
+              response = JSON.parse(response)
+              serverResponse = response
+          },
+          },
+
+      },
+    labelFileProcessingError: () => {
+        // replaces the error on the FilePond error label
+        return serverResponse.message;
+    },
+     onprocessfiles: () => {
+      setTimeout(function(){
+            location.reload()
+          }, 400);
+     },
+     beforeDropFile: (file) => {
+      console.log('hello')
+     }
+
+    });
+
+  const pondBox = document.getElementsByClassName('filepond--root').item(0);
+
+    FilePond.registerPlugin(
+      FilePondPluginImagePreview,
+
+    );
+
+    pondBox.addEventListener('FilePond:addfile', (e) => {
+     $("#UploadFileModal").modal()
+    });
+</script>
