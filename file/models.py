@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 class File(models.Model):
     unique_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     uploader = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="files")
-    file = models.FileField(upload_to=get_file_path)
+    file = models.FileField(upload_to=get_file_path, max_length=300)
     file_name = models.CharField(max_length=255)
     file_size = models.IntegerField()
     file_type = models.CharField(max_length=255)

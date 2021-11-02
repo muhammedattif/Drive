@@ -10,7 +10,7 @@ from django.http import FileResponse
 from activity.models import Activity
 from django.core.paginator import Paginator
 from file.utils import get_file_cat
-
+from django.core import exceptions
 
 # upload file view
 @login_required(login_url='login')
@@ -59,6 +59,11 @@ def upload(request):
                 except Folder.DoesNotExist:
                     context = {
                         'message': 'Destination Folder Not found!'
+                    }
+                    return JsonResponse(context, status=400, content_type="application/json", safe=False)
+                except exceptions.SuspiciousFileOperation:
+                    context = {
+                        'message': 'File name is too large!'
                     }
                     return JsonResponse(context, status=400, content_type="application/json", safe=False)
 
