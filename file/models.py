@@ -41,10 +41,12 @@ class File(models.Model):
     # this save method is used to hardcode file field
     # if the uploaded file is an image then it will be compressed
     def save(self, *args, **kwargs):
-        if (self.file_type.split('/')[1].lower() == 'jpeg' or self.file_type.split('/')[1].lower() == 'jpg' or
-            self.file_type.split('/')[1].lower() == 'png') and not self.id:
-            self.file = compress_image(self.file, self.file_type)
-            self.file_size = self.file.size
+        if not self.id:
+            print(self.file_name)
+            if (self.file_type.split('/')[1].lower() == 'jpeg' or self.file_type.split('/')[1].lower() == 'jpg' or
+                self.file_type.split('/')[1].lower() == 'png') and not self.id:
+                self.file = compress_image(self.file, self.file_type)
+                self.file_size = self.file.size
         super().save(*args, **kwargs)
 
 

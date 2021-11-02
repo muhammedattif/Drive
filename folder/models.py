@@ -9,7 +9,7 @@ import uuid
 class Folder(models.Model):
     unique_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     user = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="folders")
-    name = models.CharField(default="New Folder", max_length=30)
+    name = models.CharField(default="New Folder", max_length=60)
     parent_folder = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True)
     created_at = models.DateTimeField(verbose_name="Date Created", auto_now_add=True)
     activities = GenericRelation(Activity)
