@@ -25,7 +25,9 @@ def create_folder_dir(sender, instance=None, created=False, **kwargs):
                 instance.name)
 
         if not os.path.exists(folder_path):
-            os.makedirs(folder_path, exist_ok=True)
+            os.makedirs(u'\\\\?\\{}'.format(folder_path), exist_ok=True)
+
+
 
 
 # This receiver is to record user activity

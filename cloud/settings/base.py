@@ -152,6 +152,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Days to delete files in Trash
 TRASH_DAYS = 30
 
+SUB_FOLDERS_LIMIT = 10
 
 # Directory where users uploads are gonna be stored
 PROFILE_IMAGES_URL = 'profile_images'

@@ -9,12 +9,11 @@ from file.utils import generate_file_link, get_file_path, compress_image
 import uuid
 from datetime import datetime, timezone
 
-
 # File Model
 class File(models.Model):
     unique_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     uploader = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="files")
-    file = models.FileField(upload_to=get_file_path, max_length=300)
+    file = models.FileField(upload_to=get_file_path, max_length=500)
     file_name = models.CharField(max_length=255)
     file_size = models.IntegerField()
     file_type = models.CharField(max_length=255)

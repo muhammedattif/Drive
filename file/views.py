@@ -60,12 +60,17 @@ def upload(request):
                     context = {
                         'message': 'Destination Folder Not found!'
                     }
-                    return JsonResponse(context, status=400, content_type="application/json", safe=False)
+                    return JsonResponse(context, status=404, content_type="application/json", safe=False)
                 except exceptions.SuspiciousFileOperation:
                     context = {
                         'message': 'File name is too large!'
                     }
                     return JsonResponse(context, status=400, content_type="application/json", safe=False)
+                except FileNotFoundError:
+                    context = {
+                        'message': 'Folder is corrupted!'
+                    }
+                    return JsonResponse(context, status=500, content_type="application/json", safe=False)
 
                 files_links.append(file.get_url())
 
@@ -78,7 +83,7 @@ def upload(request):
             context = {
                 'message': 'Limit Exceeded!'
             }
-            return JsonResponse(context, status=400, content_type="application/json", safe=False)
+            return JsonResponse(context, status=507, content_type="application/json", safe=False)
 
     return redirect('home')
 

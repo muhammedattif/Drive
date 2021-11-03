@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from file.models import File
 from file.utils import get_file_cat
-from folder.utils import get_parent_folder, create_folder_tree_if_not_exist
+from folder.utils import check_sub_folders_limit, create_folder_tree_if_not_exist
 
 # Upload File API
 @api_view(['POST'])
@@ -33,7 +33,28 @@ def upload(request, format=None):
         # check if the user is allowed to upload files with these size or his limit reached
         if user.drive_settings.is_allowed_to_upload_files(files_size):
 
-            parent_folder = get_parent_folder(user, directory_id, folder_tree)
+            parent_folder = None
+            content = {}
+
+            # if folder tree passed then get or create it
+            if folder_tree:
+
+                # Check sub folders limit
+                limit_exceeded, response = check_sub_folders_limit(folder_tree)
+                if limit_exceeded:
+                    return response
+
+                parent_folder = create_folder_tree_if_not_exist(folder_tree, user)
+
+            # if directory id passed then upload file to this directory
+            elif directory_id:
+                # check if directory id is valid integer number
+                try:
+                    # get file upload destination
+                    parent_folder = Folder.objects.get(unique_id=directory_id, user=user)
+                except Folder.DoesNotExist:
+                    content['message'] = 'Directory Not found.'
+                    return Response(content, status=status.HTTP_404_NOT_FOUND)
 
             # get all files in the request and upload it
             for file in uploaded_files:
@@ -42,7 +63,7 @@ def upload(request, format=None):
 
                 # Don't upload files that doesn't has extension
                 if '.' not in file_name:
-                    content['message'] = 'Invalid File!'
+                    content['error_description'] = 'Invalid File!'
                     return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
                 file_size = uploaded_file.size
@@ -61,8 +82,8 @@ def upload(request, format=None):
                         file.privacy.save()
 
                 except Exception as error:
-                    content['message'] = str(error)
-                    return Response(content, status=status.HTTP_400_BAD_REQUEST)
+                    content['error_description'] = str(error)
+                    return Response(content, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
                 # this check is for returning directory id in the response
                 if not parent_folder:
@@ -85,12 +106,12 @@ def upload(request, format=None):
                 links.append(content)
         else:
             # this error if the user reached his usage limit
-            content['message'] = 'Limit Exceeded!'
-            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+            content['error_description'] = 'Limit Exceeded!'
+            return Response(content, status=status.HTTP_507_INSUFFICIENT_STORAGE)
     else:
         # this error message if the request body has no file object to upload
-        content['message'] = 'No file to upload.'
-        return Response(content, status=status.HTTP_404_NOT_FOUND)
+        content['error_description'] = 'No file to upload.'
+        return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
     if len(links) > 1:
         # return uploaded files data
@@ -108,8 +129,12 @@ def delete(request, unique_id):
     try:
         file = File.objects.get(unique_id=unique_id, uploader=user)
         file.delete()
-        content['message'] = 'File Deleted Successfully!'
+        content['success_message'] = 'File Deleted Successfully!'
+        return Response(content, status=status.HTTP_200_OK)
     except File.DoesNotExist:
-        content['message'] = 'File Does not Exists!'
-    return Response(content)
+        content['error_description'] = 'File Does not Exists!'
+        return Response(content, status=status.HTTP_404_NOT_FOUND)
+    except Exception as error:
+        content['error_description'] = error
+        return Response(content, status=status.HTTP_404_NOT_FOUND)
 
