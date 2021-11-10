@@ -92,7 +92,7 @@ def upload(request):
 @login_required(login_url='login')
 def get_trashed_files(request):
     context = {}
-    trashed_files = Trash.objects.filter(user=request.user)
+    trashed_files = Trash.objects.filter(user=request.user).select_related('file__privacy')
     paginator = Paginator(trashed_files, 10)  # Show 10 files per page.
     page_number = request.GET.get('page')
     trashed_files = paginator.get_page(page_number)

@@ -18,10 +18,10 @@ def folder(request, unique_id=None):
             folder = Folder.objects.get(unique_id=unique_id, user=request.user)
             context['folder'] = folder
             # Child folders
-            context['folders'] = folder.folder_set.all()
+            context['folders'] = folder.folder_set.all().select_related('parent_folder')
 
             # Child files
-            files = folder.files.all().filter(trash=None).all()
+            files = folder.files.filter(trash=None).select_related('privacy')
             paginator = Paginator(files, 10)  # Show 10 files per page.
             page_number = request.GET.get('page')
             files = paginator.get_page(page_number)
