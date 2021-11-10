@@ -14,12 +14,14 @@ from string import digits, ascii_uppercase, ascii_lowercase
 # this function is for image compression
 def compress_image(image, image_type):
     # Open the image and Convert it to RGB color mode
-    image_temporary = Image.open(image).convert(mode='RGB', palette=Image.ADAPTIVE)
+    image_temporary = Image.open(image)
+    image_format = image_temporary.format
+    print(image_format)
 
     # save image to BytesIO object
     output_io_stream = BytesIO()
     # save image to BytesIO object
-    image_temporary.save(output_io_stream, format='JPEG', optimize=True)
+    image_temporary.save(output_io_stream, format=image_format, optimize=True)
     output_io_stream.seek(0)
     image = InMemoryUploadedFile(output_io_stream, 'ImageField',
                                  "{}.{}".format(image.name.split('.')[0:-1], image.name.split('.')[-1]), image_type,
