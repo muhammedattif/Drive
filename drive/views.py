@@ -3,7 +3,7 @@ from file.models import File
 from folder.models import Folder
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-
+from accounts.models import Account
 
 # Home Page View
 @login_required(login_url='login')
@@ -13,14 +13,15 @@ def home(request):
 
     # Get files of home dir if exist
     try:
-        files = File.objects.filter(uploader=request.user, trash=None, parent_folder=None).all()
+        files = File.objects.filter(uploader=request.user, trash=None, parent_folder=None).select_related('privacy')
     except Exception:
-        files = File.objects.filter(uploader=request.user).all()
+        files = File.objects.filter(uploader=request.user).select_related('privacy')
 
     # Get folders of home dir if exist
     try:
-        folders = Folder.objects.filter(parent_folder=None, user=request.user).all()
-    except Exception:
+        folders = Folder.objects.filter(parent_folder=None, user=request.user)
+    except Exception as e:
+        print(e)
         folders = None
 
     paginator = Paginator(files, 10)  # Show 10 files per page.
@@ -45,7 +46,7 @@ def filter(request, cat):
     context = {}
     files = None
     if cat == 'all':
-        files = File.objects.filter(uploader=request.user, trash=None, parent_folder=None)
+        files = File.objects.filter(uploader=request.user, trash=None, parent_folder=None).select_related('privacy')
 
     elif cat == 'folders':
         try:
@@ -54,7 +55,7 @@ def filter(request, cat):
             folders = None
         context['folders'] = folders
     else:
-        files = File.objects.filter(uploader=request.user, file_category=cat, trash=None, parent_folder=None)
+        files = File.objects.filter(uploader=request.user, file_category=cat, trash=None, parent_folder=None).select_related('privacy')
 
     if files:
         paginator = Paginator(files, 10)  # Show 10 files per page.

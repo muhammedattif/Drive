@@ -6,7 +6,7 @@ from django.contrib import messages
 import os, shutil
 from django.core.paginator import Paginator
 from folder.models import Folder
-
+import string
 
 # Folder View
 # This view for a folder to preview its content ( files or child folders )
@@ -18,10 +18,10 @@ def folder(request, unique_id=None):
             folder = Folder.objects.get(unique_id=unique_id, user=request.user)
             context['folder'] = folder
             # Child folders
-            context['folders'] = folder.folder_set.all()
+            context['folders'] = folder.folder_set.all().select_related('parent_folder')
 
             # Child files
-            files = folder.files.all().filter(trash=None).all()
+            files = folder.files.filter(trash=None).select_related('privacy')
             paginator = Paginator(files, 10)  # Show 10 files per page.
             page_number = request.GET.get('page')
             files = paginator.get_page(page_number)
@@ -37,11 +37,13 @@ def folder(request, unique_id=None):
 # create folder view
 @login_required(login_url='login')
 def create_folder(request, unique_id):
+
     if request.method == 'POST':
         parent_folder_id = unique_id
         child_folder_name = request.POST['child_folder_name']
 
-        if not child_folder_name:
+        # check if the folder name is not None
+        if len(child_folder_name.translate({ord(c): None for c in string.whitespace})) == 0 :
             messages.error(request, "Ops, you forget to enter folder's name.")
             return redirect('home')
 
@@ -53,6 +55,10 @@ def create_folder(request, unique_id):
         # in case if this folder has a parent folder
         if parent_folder_id:
             parent_folder = Folder.objects.get(user=request.user, unique_id=parent_folder_id)
+
+            if len(parent_folder.get_folder_tree()) >= settings.SUB_FOLDERS_LIMIT:
+                messages.error(request, f'{child_folder_name} cannot be created, sub folders limit is {settings.SUB_FOLDERS_LIMIT}!.')
+                return redirect(parent_folder)
 
             # if there is no folders with the same name in this parent folder then create it
             existing_folder, created = Folder.objects.get_or_create(user=request.user, name=child_folder_name,

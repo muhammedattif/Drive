@@ -9,12 +9,11 @@ from file.utils import generate_file_link, get_file_path, compress_image
 import uuid
 from datetime import datetime, timezone
 
-
 # File Model
 class File(models.Model):
     unique_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     uploader = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="files")
-    file = models.FileField(upload_to=get_file_path)
+    file = models.FileField(upload_to=get_file_path, max_length=500)
     file_name = models.CharField(max_length=255)
     file_size = models.IntegerField()
     file_type = models.CharField(max_length=255)
@@ -41,7 +40,7 @@ class File(models.Model):
     # this save method is used to hardcode file field
     # if the uploaded file is an image then it will be compressed
     def save(self, *args, **kwargs):
-        if (self.file_type.split('/')[1].lower() == 'jpeg' or self.file_type.split('/')[1].lower() == 'jpg' or
+        if not self.id and (self.file_type.split('/')[1].lower() == 'jpeg' or self.file_type.split('/')[1].lower() == 'jpg' or
             self.file_type.split('/')[1].lower() == 'png') and not self.id:
             self.file = compress_image(self.file, self.file_type)
             self.file_size = self.file.size
