@@ -68,5 +68,5 @@ class Folder(models.Model):
     def get_folder_tree_as_dirs(self):
         folder_tree = self.get_folder_tree()
         folder_tree = [folder.name for folder in folder_tree]
-        folder_tree_dirs = '\\'.join(folder_tree)
+        folder_tree_dirs = '/'.join(folder_tree)
         return folder_tree_dirs
