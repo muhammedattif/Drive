@@ -195,8 +195,6 @@ def file_settings(request, unique_id):
                             file_privacy_settings.shared_with.add(user)
                         except Account.DoesNotExist:
                             invalid_user = True
-
-                file_privacy_settings.save()
             form.save()
 
             if invalid_user:
