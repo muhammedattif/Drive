@@ -20,7 +20,7 @@ class Folder(models.Model):
         ordering = ('-created_at',)
 
     def __str__(self):
-        return f'{self.user.username}-{self.name}'
+        return self.name
 
     def save(self, *args, **kwargs):
         if not self.id:

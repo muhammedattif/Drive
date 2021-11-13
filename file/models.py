@@ -26,7 +26,7 @@ class File(models.Model):
         ordering = ('-uploaded_at',)
 
     def __str__(self):
-        return self.file.name
+        return self.file_name
 
     def get_url(self):
         return 'http://%s/%s/%s' % (Site.objects.get_current().domain, settings.ALIAS_DRIVE_PATH, self.privacy.link)
@@ -58,8 +58,6 @@ class FilePrivacy(models.Model):
     shared_with = models.ManyToManyField(Account, blank=True)
     link = models.CharField(max_length=255, unique=True, null=True)
 
-    def __str__(self):
-        return f'{self.file.uploader.username}-{self.file.parent_folder}-{self.file.file_name}'
 
     def save(self, *args, **kwargs):
         if not self.link:
@@ -71,9 +69,6 @@ class Trash(models.Model):
     user = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="trashed_files")
     file = models.OneToOneField(File, on_delete=models.CASCADE, default=1)
     trashed_at = models.DateTimeField(verbose_name="Date Trashed", auto_now_add=True)
-
-    def __str__(self):
-        return f'{self.user.username}-{self.file.file_name}-Trash'
 
     # this function is built the remaining days for a file to be deleted
     def remaining_days(self):
