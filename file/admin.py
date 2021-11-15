@@ -1,34 +1,31 @@
 from django.contrib import admin
 from file.models import File, FilePrivacy, Trash
+from nested_inline.admin import NestedStackedInline, NestedModelAdmin
 
-class FilePrivacyInline(admin.StackedInline):
+class FilePrivacyInline(NestedStackedInline):
     model = FilePrivacy
     can_delete = False
     verbose_name_plural = 'File Privacy'
     fk_name = 'file'
 
-class FileConfig(admin.ModelAdmin):
+class FileConfig(NestedModelAdmin):
     model = File
 
-    list_filter = ('uploader', 'file_size', 'file_type', 'file_category', 'uploaded_at')
+    list_filter = ('uploader__username', 'file_size', 'file_type', 'file_category', 'uploaded_at')
     list_display = ('uploader', 'file_size', 'file_type', 'file_category', 'uploaded_at')
 
-    inlines = (FilePrivacyInline,)
-
-    def get_inline_instances(self, request, obj=None):
-        if not obj:
-            return list()
-        return super(FileConfig, self).get_inline_instances(request, obj)
+    inlines = [FilePrivacyInline]
 
 class FilePrivacyConfig(admin.ModelAdmin):
     model = FilePrivacy
 
+    list_filter = ('file__uploader__username',)
     list_display = ('file', 'option')
 
 class TrashConfig(admin.ModelAdmin):
     model = Trash
 
-    list_filter = ('user', 'file', 'trashed_at')
+    list_filter = ('user__username', 'file', 'trashed_at')
     list_display = ('user', 'file', 'trashed_at')
 
 

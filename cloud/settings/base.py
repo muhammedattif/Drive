@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'mathfilters',
     'bootstrap4',
+    'nested_inline',
     # for scanning from virus
     'django_clamd',
     # this is for CRONJOBS
