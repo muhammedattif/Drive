@@ -62,6 +62,12 @@ class FilePrivacy(models.Model):
     def save(self, *args, **kwargs):
         if not self.link:
             self.link = generate_file_link(self.file.file_name)
+
+        if not self.pk and self.file.uploader.is_superuser:
+            self.option = 'public'
+        elif not self.pk and not self.file.uploader.is_superuser:
+            self.option = self.file.uploader.drive_settings.default_upload_privacy
+
         super().save(*args, **kwargs)
 
 

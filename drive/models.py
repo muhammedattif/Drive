@@ -6,11 +6,18 @@ from django.db.models import F
 
 # This class is for Drive Settings Model for the user
 class DriveSettings(models.Model):
+    DEFAULT_PRIVACY_CHOICES = (
+        ('public', 'Public'),
+        ('friends', 'Friends'),
+        ('private', 'Private'),
+    )
+
     user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name="drive_settings")
     storage_package = models.ForeignKey(StoragePackage, default=StoragePackage.get_default_package,
                                         on_delete=models.CASCADE, related_name="package")
     storage_uploaded = models.FloatField(help_text="Storage in GB.", default=0)
     unlimited_storage = models.BooleanField(default=False)
+    default_upload_privacy = models.CharField(max_length=10, choices=DEFAULT_PRIVACY_CHOICES, default="private")
 
     class Meta:
         verbose_name_plural = "Drive Settings"
@@ -65,3 +72,4 @@ class DriveSettings(models.Model):
                 return True
 
         return False
+
