@@ -8,25 +8,43 @@
                   <div class="row clearfix">
                         {% for folder in folders %}
                           <div class="col-lg-3 col-md-4 col-sm-12">
-                          <div class="card">
-                              <div class="file">
-                                <div class="show_settings">
-                                  <div class="hover">
-                                    <h4><a href="{% url 'folder:delete_folder' folder.unique_id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete Folder"><i class="lni lni-trash-can delete icons"></i></a></h4>
+                              <div class="card">
+                                  <div class="file">
+                                    <div class="show_settings">
+
+                                      <div class="hover">
+
+                                        <h4><a data-placement="top" title="" data-original-title="Delete Folder" data-toggle="modal" data-toggle="tooltip" data-target="#id{{folder.unique_id}}"><i class="lni lni-trash-can delete icons"></i></a></h4>
+                                      </div>
+                                    </div>
+                                      <a href="{% url 'folder:folder' folder.unique_id %}">
+                                          <div class="icon">
+                                              <i class="fa fa-folder text-primary folder-icon" ></i>
+                                          </div>
+                                          <div class="file-name">
+                                              <a title="{{ folder.name }}" href="{% url 'folder:folder' folder.unique_id %}"><p class="m-b-5 text-muted">{{ folder.name }}</p></a>
+                                              <small>Files: {{folder.get_files_count}} <span class="date text-muted">{{folder.created_at}}</span></small>
+                                          </div>
+                                      </a>
+                                  </div>
+                              </div>
+                            </div>
+                          <!-- Delete Modal -->
+                            <div class="modal fade" id="id{{folder.unique_id}}" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                              <div class="modal-dialog">
+                                <div class="modal-content">
+
+                                  <div class="modal-body">
+                                    Are you sure you want to delete this Folder?
+                                      <div><small class="text-danger">This folder will be deleted permanently. You can't undo this action.</small></div>
+                                  </div>
+                                  <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-dark" data-dismiss="modal">Cancel</button>
+                                    <a href="{% url 'folder:delete_folder' folder.unique_id %}" type="button" class="btn btn-danger">Delete</a>
                                   </div>
                                 </div>
-                                  <a href="{% url 'folder:folder' folder.unique_id %}">
-                                      <div class="icon">
-                                          <i class="fa fa-folder text-primary folder-icon" ></i>
-                                      </div>
-                                      <div class="file-name">
-                                          <a title="{{ folder.name }}" href="{% url 'folder:folder' folder.unique_id %}"><p class="m-b-5 text-muted">{{ folder.name }}</p></a>
-                                          <small>Files: {{folder.get_files_count}} <span class="date text-muted">{{folder.created_at}}</span></small>
-                                      </div>
-                                  </a>
                               </div>
-                          </div>
-                      </div>
+                            </div>
                         {% endfor %}
                   </div>
               </div>
@@ -41,9 +59,8 @@
               <thead>
                   <tr>
                       <th class="type"></th>
-                      <th class="name truncate">Name</th>
-                      <th class="date">Uploaded</th>
-                      <th class="size">Delete</th>
+                      <th class="name truncate text-left">Name</th>
+                      <th class="date text-left">Uploaded</th>
                   </tr>
               </thead>
               <tbody>
@@ -54,7 +71,6 @@
                       </td>
                       <td class="name truncate"><a href="{% url 'folder:folder' folder.unique_id %}">{{folder.name|truncatechars:35}}</a></td>
                       <td class="date">{{folder.created_at}}</td>
-                      <td class="center"><a href="{% url 'folder:delete_folder' folder.unique_id %}" class="delete" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"><i class="lni lni-trash-can delete"></i></a></td>
                   </tr>
                   {% endfor %}
 
@@ -126,12 +142,12 @@
             <thead>
                 <tr>
                     <th class="type"></th>
-                    <th class="name truncate">Name</th>
-                    <th class="date">Uploaded</th>
-                    <th class="size">Size</th>
-                    <th class="size">Copy Link</th>
-                    <th class="size">Download</th>
-                    <th class="size">Trash</th>
+                    <th class="name truncate text-left">Name</th>
+                    <th class="date text-left">Uploaded</th>
+                    <th class="size text-left">Size</th>
+                    <th class="size text-left">Copy Link</th>
+                    <th class="size text-left">Download</th>
+                    <th class="size text-left">Trash</th>
                 </tr>
             </thead>
             <tbody>

@@ -4,6 +4,9 @@ from folder.models import Folder
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from accounts.models import Account
+from .models import DriveSettings
+from .forms import PrivacySettingsForm
+from django.contrib import messages
 
 # Home Page View
 @login_required(login_url='login')
@@ -64,3 +67,30 @@ def filter(request, cat):
         context['files'] = files
 
     return render(request, 'drive/home.html', context)
+
+# privacy settings view
+@login_required(login_url='login')
+def privacy_settings(request):
+
+    try:
+        privacy_settings = DriveSettings.objects.get(user=request.user)
+    except DriveSettings.DoesNotExist:
+        return redirect('error')
+
+    if request.method == 'POST':
+        print(request.POST)
+        form = PrivacySettingsForm(request.POST, instance=privacy_settings)
+
+        if form.is_valid():
+            form.save()
+            messages.success(request,'File permissions updated successfully')
+        else:
+            messages.error(request,
+                            'Something went wrong. Try again later!.')
+
+    context = {
+        'form': PrivacySettingsForm(instance=privacy_settings),
+        'default_upload_privacy': privacy_settings.default_upload_privacy
+    }
+
+    return render(request, 'drive/privacy_settings.html', context)
