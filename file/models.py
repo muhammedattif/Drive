@@ -29,7 +29,7 @@ class File(models.Model):
         return self.file_name
 
     def get_url(self):
-        return 'http://%s/%s/%s' % (Site.objects.get_current().domain, settings.ALIAS_DRIVE_PATH, self.privacy.link)
+        return 'https://%s/%s/%s' % (Site.objects.get_current().domain, settings.ALIAS_DRIVE_PATH, self.privacy.link)
 
     def is_private(self):
         return self.privacy.option == 'private'
