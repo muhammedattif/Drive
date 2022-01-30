@@ -210,3 +210,8 @@ def file_settings(request, unique_id):
     }
 
     return render(request, 'file/file_settings.html', context)
+
+
+
+def stream(request):
+    return render(request, 'file/stream.html')
