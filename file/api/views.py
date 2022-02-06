@@ -155,7 +155,7 @@ range_re = re.compile(r'bytes\s*=\s*(\d+)\s*-\s*(\d*)', re.I)
 class RangeFileWrapper(object):
     def __init__(self, filelike, blksize=8192, offset=0, length=None):
         self.filelike = filelike
-        self.filelike.seek(offset, os.SEEK_SET)
+        self.filelike.seek(offset, 1)
         self.remaining = length
         self.blksize = length
 
@@ -176,6 +176,7 @@ class RangeFileWrapper(object):
         else:
             if self.remaining <= 0:
                 raise StopIteration()
+
             data = self.filelike.read(min(self.remaining, self.blksize))
             if not data:
                 raise StopIteration()
@@ -210,10 +211,11 @@ def stream_video(request, id, token, expiry):
         start, end = range_match.groups()
         start = int(start)
         end = min(start + chunk_size, size - 1)
-
         length = (end - start) + 1
-        resp = StreamingHttpResponse(RangeFileWrapper(open(path, 'rb'), offset=start, length=length), status=206, content_type=content_type)
-        resp['Content-Length'] = str(length)
+
+        resp = StreamingHttpResponse(RangeFileWrapper(open(path, 'rb'), offset=start, length=end), status=206, content_type=content_type)
+        print(int.from_bytes(resp, byteorder='big'))
+        resp['Content-Length'] = length
         resp['Content-Range'] = 'bytes %s-%s/%s' % (start, end, size)
     else:
         return Response({"error_description": 'Invalid Request'}, status=status.HTTP_400_BAD_REQUEST)
