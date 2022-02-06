@@ -43,7 +43,7 @@ urlpatterns = [
 
     path('file/', include('file.urls', namespace='file')),
     # File APIs
-    path('api/file/', include('file.api.urls', 'file_api')),
+    path('api/file/', include('file.api.urls',  namespace='file_api')),
 
     path('folder/', include('folder.urls', namespace='folder')),
     # Folder APIs

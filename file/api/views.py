@@ -5,6 +5,18 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from file.models import File
 from file.utils import get_file_cat
 from folder.utils import check_sub_folders_limit, create_folder_tree_if_not_exist
+from django.http import FileResponse, StreamingHttpResponse, HttpResponse
+from rest_framework.views import APIView
+import array
+######
+import os
+import re
+import mimetypes
+from wsgiref.util import FileWrapper
+
+from django.http.response import StreamingHttpResponse
+from secrets import compare_digest
+
 
 # Upload File API
 @api_view(['POST'])
@@ -138,3 +150,124 @@ def delete(request, unique_id):
         content['error_description'] = error
         return Response(content, status=status.HTTP_404_NOT_FOUND)
 
+range_re = re.compile(r'bytes\s*=\s*(\d+)\s*-\s*(\d*)', re.I)
+
+class RangeFileWrapper(object):
+    def __init__(self, filelike, blksize=8192, offset=0, length=None):
+        self.filelike = filelike
+        self.filelike.seek(offset, 1)
+        self.remaining = length
+        self.blksize = length
+
+    def close(self):
+        if hasattr(self.filelike, 'close'):
+            self.filelike.close()
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.remaining is None:
+            # If remaining is None, we're reading the entire file.
+            data = self.filelike.read(self.blksize)
+            if data:
+                return data
+            raise StopIteration()
+        else:
+            if self.remaining <= 0:
+                raise StopIteration()
+
+            data = self.filelike.read(min(self.remaining, self.blksize))
+            if not data:
+                raise StopIteration()
+            self.remaining -= len(data)
+            return data
+
+@api_view(['GET'])
+@permission_classes([])
+def stream_video(request, id, token, expiry):
+
+    if not check_url(request, id, token, expiry):
+        return Response({"error_description": 'Invalid Request'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+    try:
+        video = File.objects.get(id=id).file
+        path = video.path
+    except File.DoesNotExist:
+        return Response({"error_description": 'Video Does Not exists!'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+    range_header = request.META.get('HTTP_RANGE', '').strip()
+    if not range_header:
+        return Response({"error_description": 'Invalid Request'}, status=status.HTTP_400_BAD_REQUEST)
+
+    range_match = range_re.match(range_header)
+    size = os.path.getsize(path)
+    chunk_size = 1000000  # 1MB
+    content_type = 'application/octet-stream'
+    if range_match:
+
+        start, end = range_match.groups()
+        start = int(start)
+        end = min(start + chunk_size, size - 1)
+        length = (end - start) + 1
+
+        resp = StreamingHttpResponse(RangeFileWrapper(open(path, 'rb'), offset=start, length=end), status=206, content_type=content_type)
+        print(int.from_bytes(resp, byteorder='big'))
+        resp['Content-Length'] = length
+        resp['Content-Range'] = 'bytes %s-%s/%s' % (start, end, size)
+    else:
+        return Response({"error_description": 'Invalid Request'}, status=status.HTTP_400_BAD_REQUEST)
+    resp['Accept-Ranges'] = 'bytes'
+
+    print(f"start {start}")
+    print(f"end {end}")
+    print(f"length {length}")
+    return resp
+
+
+import hashlib
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+
+@api_view(['GET'])
+@permission_classes([])
+def generate_video_link(request, id):
+
+    current_date = datetime.now() + relativedelta(minutes=+360)
+    expiry = datetime.timestamp(current_date)
+
+    ip = get_user_ip_address(request)
+
+    plain_link = ip + str(id) + str(expiry)
+    token = hashlib.md5(plain_link.encode('utf-8'))
+
+
+    return Response({'link': f'api/file/{id}/{token.hexdigest()}/{expiry}'})
+
+def check_url(request, id, token, expiry):
+
+    ip = get_user_ip_address(request)
+    plain_link = ip + str(id) + str(expiry)
+    generated_token = hashlib.md5(plain_link.encode('utf-8'))
+
+    if not compare_digest(token, str(generated_token.hexdigest())):
+        return False
+
+    current_date = datetime.now()
+    current_timestamp = datetime.timestamp(current_date)
+
+    if current_timestamp > float(expiry):
+        return False
+
+    return True
+
+def get_user_ip_address(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+
+    return '10.0.1.49'
