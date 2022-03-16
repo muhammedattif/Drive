@@ -240,7 +240,7 @@ def convert_file_quality(request, unique_id, quality):
 
     from file.tasks import async_convert_video_quality
 
-    async_convert_video_quality(unique_id, quality, request.user.id)
+    async_convert_video_quality.delay(unique_id, quality, request.user.id)
     time.sleep(1)
 
     messages.success(request, 'Video quality is being processed and will be available soon.')

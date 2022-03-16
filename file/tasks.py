@@ -2,6 +2,7 @@ import time
 import subprocess
 from celery import shared_task
 
+@shared_task
 def async_convert_video_quality(original_file_unique_id, quality, user_id):
     from file.utils import convert_video_quality
     from file.models import File, FileQuality
