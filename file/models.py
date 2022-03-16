@@ -88,7 +88,7 @@ class MediaFileProperties(models.Model):
 
     QUALITY_CHOICES = (
         ('144p', '144p'),
-        ('240p', '1240p'),
+        ('240p', '240p'),
         ('480p', '480p'),
         ('720p', '720p'),
         ('1080p', '1080p'),
