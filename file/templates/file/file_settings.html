@@ -67,6 +67,44 @@
       </div>
     </div>
   </form>
+  {% if not file.properties.converted and file_type == 'video' %}
+    <h5 class="mb-4">Video Qualities</h5>
+
+    {% for file_quality in converted_qualities %}
+      <div class="row mt-2">
+        <div class="btn-group">
+          <a href="#" class="btn btn-light" aria-current="page">{{file_quality.quality}}</a>
+          {% if file_quality.status == 'converting' %}
+
+              <a id='{{file_quality.pk}}' href="" class="btn btn-primary">
+                <span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>
+                Converting...
+              </a>
+
+          {% elif file_quality.status == 'converted' %}
+              <a id='{{file_quality.pk}}' href="{% url 'file:delete_converted_file'  unique_id=file.unique_id quality=file_quality.quality %}" class="btn btn-danger">Delete</a>
+
+          {% elif file_quality.status == 'failed' %}
+              <a id='{{file_quality.pk}}' href="{% url 'file:convert_file_quality' unique_id=file.unique_id quality=file_quality.quality %}" class="btn btn-danger">Failed. Try again</a>
+
+          {% endif %}
+
+        </div>
+      </div>
+    {% endfor %}
+
+    {% for file_quality in not_converted_qualities %}
+      <div class="row mt-2">
+        <div class="btn-group">
+          <a href="#" class="btn btn-light" aria-current="page">{{file_quality}}</a>
+          <a href="{% url 'file:convert_file_quality' unique_id=file.unique_id quality=file_quality %}" class="btn primary">Convert</a>
+        </div>
+      </div>
+    {% endfor %}
+
+  {% endif %}
+
+
 </div>
 
 
@@ -92,5 +130,54 @@
       }, 500);
 
     };
+
+
+
+    let response = "";
+    let apiUrl = window.location.origin + "/api/file/{{file.unique_id}}/conversion_status"
+
+    async function check_status(apiUrl) {
+        let response = await fetch(apiUrl);
+        return await response.json()
+    }
+
+
+    let check_interval = setInterval(function(){
+      let num_of_file_processing = 0
+      let previous_response = null
+      let response = check_status(apiUrl).then(response => {
+
+      response.forEach(myFunction);
+
+      function myFunction(item) {
+        if(item.status === 'Converting'){
+          num_of_file_processing++
+        }
+
+
+        if(item.status === 'Converted'){
+          document.getElementById(item.id).innerHTML = 'Delete'
+          document.getElementById(item.id).classList.remove("btn-primary");
+          document.getElementById(item.id).classList.add("btn-danger");
+        }
+        else if (item.status === 'Failed'){
+          document.getElementById(item.id).innerHTML = 'Failed. Try again'
+        }
+        previous_response = response
+      }
+
+      if(num_of_file_processing > 0){
+        console.log('Check again in 5 seconds')
+      }
+      else{
+        console.log('All converted, stop interval')
+        clearInterval(check_interval)
+
+      }
+
+      });
+
+}, 5000);
+
 </script>
 {% endblock %}

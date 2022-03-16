@@ -1,9 +1,9 @@
-from file.models import File, FilePrivacy
+from file.models import File, FilePrivacy, MediaFileProperties
 from activity.models import Activity
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 import os
-
+from file.utils import detect_quality
 
 # This function is for Creating Privacy object for a file
 @receiver(post_save, sender=File)
@@ -11,6 +11,12 @@ def create_file_privacy(sender, instance=None, created=False, **kwargs):
     if created:
         FilePrivacy.objects.create(file=instance)
 
+# This function is for Creating Media file Props
+@receiver(post_save, sender=File)
+def create_media_file_props(sender, instance=None, created=False, **kwargs):
+    if created and instance.file_category == 'media':
+        media_file_quality = detect_quality(instance.file.path)
+        MediaFileProperties.objects.create(media_file=instance, quality=media_file_quality)
 
 # This function is for recording activity of a file
 @receiver(post_save, sender=File)
