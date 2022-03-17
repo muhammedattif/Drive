@@ -155,13 +155,12 @@
         }
 
 
-        if(item.status === 'Converted'){
-          document.getElementById(item.id).innerHTML = 'Delete'
-          document.getElementById(item.id).classList.remove("btn-primary");
-          document.getElementById(item.id).classList.add("btn-danger");
+        else if(item.status === 'Converted'){
+          document.getElementById(item.id).innerHTML = 'Converted'
         }
         else if (item.status === 'Failed'){
           document.getElementById(item.id).innerHTML = 'Failed. Try again'
+          document.getElementById(item.id).classList.add("btn-danger");
         }
         previous_response = response
       }
