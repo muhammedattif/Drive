@@ -14,4 +14,4 @@ class Command(BaseCommand):
             files_props_objs.append(MediaFileProperties(media_file=file, quality=media_file_quality))
 
         MediaFileProperties.objects.bulk_create(files_props_objs)
-        self.stdout.write(self.style.ERROR('Properties created'))
+        self.stdout.write(self.style.SUCCESS(f'{len(files)} rows affected'))
