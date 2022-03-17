@@ -69,7 +69,7 @@ class FileQuality(models.Model):
     original_file = models.ForeignKey(File, on_delete=models.CASCADE, related_name='qualities')
     quality = models.CharField(max_length=100, choices=QUALITY_CHOICES, default='144p')
     converted_file = models.ForeignKey(File, on_delete=models.CASCADE, null=True)
-    status = models.CharField(max_length=100, choices=STATUS_CHOICES, default='processing')
+    status = models.CharField(max_length=100, choices=STATUS_CHOICES, default='converting')
 
     class Meta:
         verbose_name_plural = 'File Qualities'
