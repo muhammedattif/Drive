@@ -197,4 +197,4 @@ ALIAS_DRIVE_PATH = 'link'
 BASIC_PACKAGE_NAME = 'Basic'
 BASIC_PACKAGE_STORAGE_LIMIT = 15 # number in GB
 
-CELERY_BROKER_URL = f'redis://{env("REDIS_HOST")}:{env("REDIS_PORT")}'
+CELERY_BROKER_URL = f'redis://{env("REDIS_HOST")}:{int(env("REDIS_PORT"))}'
