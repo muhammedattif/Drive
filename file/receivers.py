@@ -53,7 +53,7 @@ def subtract_storage_uploaded(sender, instance, **kwargs):
 @receiver(post_save, sender=File)
 def clean_file_name(sender, instance=None, created=False, **kwargs):
     if created:
-        instance.file_name = os.path.basename(instance.file.url)
+        instance.file_name = os.path.basename(instance.file.path)
         instance.save()
 
 
