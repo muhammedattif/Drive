@@ -141,6 +141,9 @@ def detect_quality(path):
 def get_supported_qualities(quality):
 
     qualities = ['144p', '240p', '360p', '480p', '720p', '1080p']
+    if quality not in qualities:
+        return []
+
     quality_index = qualities.index(quality)
     supported_qualities = qualities[:quality_index]
     return supported_qualities

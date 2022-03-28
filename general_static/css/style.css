@@ -753,6 +753,15 @@ body{
     z-index: 2;
 }
 
+.file_manager .file .uuid_link {
+    position: absolute;
+    left: 10px;
+    top: 45px;
+    display: block;
+    transition: all 0.2s ease-in-out;
+    z-index: 2;
+}
+
 .file_manager .file a:hover .hover {
     transition: all 0.2s ease-in-out
 }

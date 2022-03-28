@@ -225,7 +225,6 @@ def file_settings(request, unique_id):
     if file_type == 'video' and not file_privacy_settings.file.properties.converted:
 
         video_quality = file_privacy_settings.file.properties.quality
-
         supported_qualities = get_supported_qualities(video_quality)
         file_converted_qualities = file_privacy_settings.file.qualities.values_list('quality', flat=True)
         not_converted_qualities = list(set(supported_qualities) - set(file_converted_qualities))
