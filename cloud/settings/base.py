@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'django_crontab',
     # CORS
     'corsheaders',
+    'django_ffmpeg',
 
     # APPS
     'accounts',
@@ -72,7 +73,6 @@ INSTALLED_APPS = [
 SITE_ID = 1
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -156,7 +156,7 @@ USE_TZ = True
 
 # schedule tasks
 CRONJOBS = [
-    ('* * * * *', 'uploader.cron.delete_trashed_files')
+    ('* * * * *', 'file.cron.convert')
 ]
 
 # Static files (CSS, JavaScript, Images)
@@ -196,3 +196,5 @@ ALIAS_DRIVE_PATH = 'link'
 # --> python manage.py migrate_to_new_default_storage_package
 BASIC_PACKAGE_NAME = 'Basic'
 BASIC_PACKAGE_STORAGE_LIMIT = 15 # number in GB
+
+CELERY_BROKER_URL = f'redis://{env("REDIS_HOST")}:6379'

@@ -5,9 +5,12 @@ from folder.models import Folder
 from activity.models import Activity
 from django.contrib.sites.models import Site
 from django.contrib.contenttypes.fields import GenericRelation
-from file.utils import generate_file_link, get_file_path, compress_image
+from file.utils import generate_file_link, get_file_path, get_video_cover_path, get_video_subtitle_path, compress_image
 import uuid
 from datetime import datetime, timezone
+from model_utils import Choices
+from django.core.exceptions import ValidationError
+
 
 # File Model
 class File(models.Model):
@@ -45,6 +48,73 @@ class File(models.Model):
     #         self.file = compress_image(self.file, self.file_type)
     #         self.file_size = self.file.size
     #     super().save(*args, **kwargs)
+
+class FileQuality(models.Model):
+
+    QUALITY_CHOICES = (
+        ('144p', '144p'),
+        ('240p', '240p'),
+        ('360p', '360p'),
+        ('480p', '480p'),
+        ('720p', '720p'),
+        ('1080p', '1080p'),
+    )
+
+    STATUS_CHOICES = (
+        ('converting', 'Converting'),
+        ('converted', 'Converted'),
+        ('failed', 'Failed'),
+    )
+
+    original_file = models.ForeignKey(File, on_delete=models.CASCADE, related_name='qualities')
+    quality = models.CharField(max_length=100, choices=QUALITY_CHOICES, default='144p')
+    converted_file = models.ForeignKey(File, on_delete=models.CASCADE, null=True)
+    status = models.CharField(max_length=100, choices=STATUS_CHOICES, default='converting')
+
+    class Meta:
+        verbose_name_plural = 'File Qualities'
+        unique_together = ['original_file', 'quality']
+
+    def __str__(self):
+        return f'{self.original_file.file_name}->{self.quality}'
+
+    # def clean(self):
+    #     if self.original_file == self.converted_file:
+    #         raise ValidationError('Original File and the Converted file cannot be the same.')
+    #     super(FileQuality, self).clean()
+
+
+class MediaFileProperties(models.Model):
+
+    QUALITY_CHOICES = (
+        ('144p', '144p'),
+        ('240p', '240p'),
+        ('480p', '480p'),
+        ('720p', '720p'),
+        ('1080p', '1080p'),
+    )
+
+    media_file = models.OneToOneField(File, on_delete=models.CASCADE, related_name='properties')
+    cover = models.FileField(upload_to=get_video_cover_path, max_length=500, blank=True)
+    quality = models.CharField(max_length=100, choices=QUALITY_CHOICES, default='144p')
+    converted = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f'{self.media_file.file_name}->{self.converted}'
+
+class VideoSubtitle(models.Model):
+
+    LANGUAGE_CHOICES = (
+        ('en', 'English'),
+        ('ar', 'Arabic')
+    )
+
+    media_file = models.ForeignKey(MediaFileProperties, on_delete=models.CASCADE, related_name='subtitles')
+    language = models.CharField(max_length=100, choices=LANGUAGE_CHOICES, default='en')
+    subtitle_file = models.FileField(upload_to=get_video_subtitle_path, max_length=500)
+
+    def __str__(self):
+        return f'{self.media_file.media_file.file_name}->{self.language}'
 
 
 class FilePrivacy(models.Model):

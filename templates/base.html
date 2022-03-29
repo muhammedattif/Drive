@@ -22,6 +22,8 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 <!-- font awesome lib -->
 <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" rel="stylesheet" />
+
 <!-- for media bar on the left -->
 <link href="https://cdn.jsdelivr.net/npm/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
 <link rel="stylesheet" href="{% static 'css/style.css' %}">
@@ -103,7 +105,7 @@
                           {% endwith %}
                   				<div class="mt-3"></div>
                   				<div class="d-flex align-items-center">
-                  					<div class="fm-file-box bg-light-primary text-primary"><i class="bx bx-image"></i>
+                  					<div class="fm-file-box bg-light-primary text-primary"><i class="fa-solid fa-image"></i>
                   					</div>
                   					<div class="flex-grow-1 ms-2">
                   						<h6 class="mb-0"> <a href="{% url 'drive:category' 'images' %}">Images</a> </h6>
@@ -112,7 +114,7 @@
                   					<h6 class="text-primary mb-0">{{classified_files.images.size|filesizeformat}}</h6>
                   				</div>
                   				<div class="d-flex align-items-center mt-3">
-                  					<div class="fm-file-box bg-light-success text-success"><i class="bx bxs-file-doc"></i>
+                  					<div class="fm-file-box bg-light-success text-success"><i class="fa-solid fa-file-lines"></i>
                   					</div>
                   					<div class="flex-grow-1 ms-2">
                   						<h6 class="mb-0"> <a href="{% url 'drive:category' 'docs' %}">Documents</a> </h6>
@@ -121,7 +123,7 @@
                   					<h6 class="text-primary mb-0">{{classified_files.docs.size|filesizeformat}}</h6>
                   				</div>
                   				<div class="d-flex align-items-center mt-3">
-                  					<div class="fm-file-box bg-light-danger text-danger"><i class="bx bx-video"></i>
+                  					<div class="fm-file-box bg-light-danger text-danger"><i class="fa-solid fa-clapperboard"></i>
                   					</div>
                   					<div class="flex-grow-1 ms-2">
                   						<h6 class="mb-0"> <a href="{% url 'drive:category' 'media' %}">Media Files</a> </h6>
@@ -130,7 +132,7 @@
                   					<h6 class="text-primary mb-0">{{classified_files.audio.size|add:classified_files.videos.size|filesizeformat}}</h6>
                   				</div>
                   				<div class="d-flex align-items-center mt-3">
-                  					<div class="fm-file-box bg-light-warning text-warning"><i class="bx bxs-file-blank"></i>
+                  					<div class="fm-file-box bg-light-warning text-warning"><i class="fa-solid fa-file"></i>
                   					</div>
                   					<div class="flex-grow-1 ms-2">
                   						<h6 class="mb-0"><a href="{% url 'drive:category' 'other' %}">Other Files</a></h6>

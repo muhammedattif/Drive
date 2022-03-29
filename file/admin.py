@@ -1,5 +1,5 @@
 from django.contrib import admin
-from file.models import File, FilePrivacy, Trash
+from file.models import File, FileQuality, MediaFileProperties, VideoSubtitle, FilePrivacy, Trash
 from nested_inline.admin import NestedStackedInline, NestedModelAdmin
 
 class FilePrivacyInline(NestedStackedInline):
@@ -31,4 +31,7 @@ class TrashConfig(admin.ModelAdmin):
 
 admin.site.register(File, FileConfig)
 admin.site.register(FilePrivacy, FilePrivacyConfig)
+admin.site.register(FileQuality)
+admin.site.register(MediaFileProperties)
+admin.site.register(VideoSubtitle)
 admin.site.register(Trash, TrashConfig)

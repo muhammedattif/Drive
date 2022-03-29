@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, reverse
-from file.models import File, Trash, FilePrivacy
+from file.models import File, Trash, FilePrivacy, FileQuality
 from folder.models import Folder
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib import messages
 from file.forms import FilePrivacyForm
 from accounts.models import Account
@@ -11,6 +11,9 @@ from activity.models import Activity
 from django.core.paginator import Paginator
 from file.utils import get_file_cat
 from django.core import exceptions
+import cv2
+from .utils import get_supported_qualities, detect_quality
+import time
 
 # upload file view
 @login_required(login_url='login')
@@ -122,13 +125,20 @@ def move_to_trash(request, unique_id):
 
 # Delete file view
 @login_required(login_url='login')
-def delete_file(request, unique_id):
+def delete_file(request, unique_id, quality=None):
     try:
         file = File.objects.get(unique_id=unique_id, uploader=request.user)
+        if quality:
+            converted_file = file.qualities.get(quality=quality).converted_file
+            file = File.objects.get(unique_id=converted_file.unique_id)
+
         file.delete()
         messages.success(request, f'{file.file_name} was permanently deleted.')
     except File.DoesNotExist:
         messages.error(request, 'File Does not Exists!')
+    if quality:
+        return HttpResponseRedirect(reverse('file:file_settings', kwargs={'unique_id': unique_id}))
+
     return redirect('/file/trash')
 
 
@@ -203,15 +213,38 @@ def file_settings(request, unique_id):
             else:
                 messages.success(request,
                                  f'{file_privacy_settings.file.file_name} sharing settings updated successfully!')
+
+    file_type = file_privacy_settings.file.file_type.split('/')[0]
+
     context = {
         'form': FilePrivacyForm(instance=file_privacy_settings),
         'file': file_privacy_settings.file,
+        'file_type': file_type,
         'file_settings': file_privacy_settings
     }
+    if file_type == 'video' and not file_privacy_settings.file.properties.converted:
+
+        video_quality = file_privacy_settings.file.properties.quality
+        supported_qualities = get_supported_qualities(video_quality)
+        file_converted_qualities = file_privacy_settings.file.qualities.values_list('quality', flat=True)
+        not_converted_qualities = list(set(supported_qualities) - set(file_converted_qualities))
+
+        context['supported_qualities'] =  supported_qualities
+        context['not_converted_qualities'] = not_converted_qualities
+        context['converted_qualities'] = file_privacy_settings.file.qualities.all()
 
     return render(request, 'file/file_settings.html', context)
 
+def convert_file_quality(request, unique_id, quality):
 
+    from file.tasks import async_convert_video_quality
+
+    async_convert_video_quality.delay(unique_id, quality, request.user.id)
+    time.sleep(1)
+
+    messages.success(request, 'Video quality is being processed and will be available soon.')
+
+    return HttpResponseRedirect(reverse('file:file_settings', kwargs={'unique_id': unique_id}))
 
 def stream(request):
     return render(request, 'file/stream.html')

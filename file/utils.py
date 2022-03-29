@@ -5,11 +5,14 @@ from PIL import Image
 from io import BytesIO
 import sys
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.core.files import File
 
 # imports for generating random link
 import random
 from string import digits, ascii_uppercase, ascii_lowercase
-
+import subprocess
+from pathlib import Path
+import cv2
 
 # this function is for image compression
 def compress_image(image, image_type):
@@ -49,24 +52,33 @@ def generate_file_link(file_name):
 
 # this function is for initializing file path
 def get_file_path(self, filename):
-    # # Get current date
-    # date = datetime.now()
-    # year = str(date.strftime('%Y'))
-    # month = str(date.strftime('%m'))
-    # day = str(date.strftime('%d'))
-
-    # # Add random string to filename
-    # name = filename.rsplit('.', 1)[0]
-    # ext = filename.rsplit('.', 1)[1]
-    # random_text = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
-    # filename = name + '_' + random_text + '.' + ext
-
     # Get folder tree to save
     if self.parent_folder:
         folder_tree = self.parent_folder.get_folder_tree_as_dirs()
         return f'{settings.DRIVE_PATH}/{str(self.uploader.unique_id)}/{folder_tree}/{filename}'
 
     return f'{settings.DRIVE_PATH}/{str(self.uploader.unique_id)}/{filename}'
+
+def get_video_cover_path(self, filename):
+
+    media_file_path = Path(self.media_file.file.url)
+    media_file_name = media_file_path.stem
+    cover_extension = Path(filename).suffix
+    folder_tree = Path(settings.DRIVE_PATH).joinpath(str(self.media_file.uploader.unique_id)).joinpath(self.media_file.parent_folder.get_folder_tree_as_dirs())
+    video_cover_path = folder_tree.joinpath(f'{media_file_name}_cover{cover_extension}')
+
+    return video_cover_path
+
+
+def get_video_subtitle_path(self, filename):
+    media_file_path = Path(self.media_file.media_file.file.url)
+    media_file_name = media_file_path.stem
+    subtitle_extension = Path(filename).suffix
+    folder_tree = Path(settings.DRIVE_PATH).joinpath(str(self.media_file.media_file.uploader.unique_id)).joinpath(
+        self.media_file.media_file.parent_folder.get_folder_tree_as_dirs())
+    video_cover_path = folder_tree.joinpath(f'{media_file_name}_{self.language}_subtitle{subtitle_extension}')
+
+    return video_cover_path
 
 
 # Function for categorising files
@@ -83,3 +95,55 @@ def get_file_cat(file):
             return 'other'
     except Exception as e:
         return 'other'
+
+def convert_video_quality(video_path, quality):
+    found, width, height = get_resolution(quality)
+    if not found:
+        return None, None, False
+
+    video_name = Path(video_path)
+    new_video_path = Path(video_path).parent.joinpath(f'{video_name.stem}_{quality}{video_name.suffix}')
+
+    subprocess.call(
+        f"ffmpeg -y -i {video_path} -filter_complex [0]scale=-1:width={width}:height={height}[s0] -map [s0] -map 0:a -c:a copy {new_video_path} ",
+        shell=True
+    )
+
+    new_video = File(open(new_video_path, 'rb'))
+    new_video_path = shorten_path(new_video_path)
+    return new_video, new_video_path, True
+
+
+def shorten_path(file_path):
+    return Path(*Path(file_path).parts[5:])
+
+def get_resolution(quality):
+    if quality == '144p':
+        return True, 176, 144
+    elif quality == '240p':
+        return True,426, 240
+    elif quality == '360p':
+        return True,480, 360
+    elif quality == '480p':
+        return True,640, 480
+    elif quality == '720p':
+        return True,1280, 720
+    elif quality == '1080p':
+        return True,1920, 1080
+    return False, 0, 0
+
+def detect_quality(path):
+    vid = cv2.VideoCapture(path)
+    height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)
+    return str(int(height)) + 'p'
+
+def get_supported_qualities(quality):
+
+    qualities = ['144p', '240p', '360p', '480p', '720p', '1080p']
+    if quality not in qualities:
+        return []
+
+    quality_index = qualities.index(quality)
+    supported_qualities = qualities[:quality_index]
+    return supported_qualities

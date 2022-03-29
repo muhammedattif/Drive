@@ -8,6 +8,9 @@ from .models import DriveSettings
 from .forms import PrivacySettingsForm
 from django.contrib import messages
 
+import subprocess
+
+
 # Home Page View
 @login_required(login_url='login')
 def home(request):
@@ -28,7 +31,6 @@ def home(request):
         folders = None
 
     paginator = Paginator(files, 10)  # Show 10 files per page.
-
     page_number = request.GET.get('page')
     files = paginator.get_page(page_number)
 

@@ -96,6 +96,10 @@
                                   <div class="file_settings">
                                     <h4><a href="{% url 'file:file_settings' file.unique_id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Sharing Settings"><i class="lni lni-users share icons"></i></a></h4>
                                   </div>
+                                  <div class="uuid_link">
+                                    <h4><a id="{{file.unique_id}}" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy UUID"><i onclick="CopyFileLink('{{ file.unique_id }}', '{{file.unique_id}}')" class="lni lni-share-alt-1"></i></a></h4>
+                                  </div>
+
                                   <div class="hover">
                                     <h4><a id="link-{{file.unique_id}}" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ file.get_url }}', 'link-{{file.unique_id}}')" class="lni lni-link copy icons"></i></a></h4>
                                     <h4><a href="{% url 'download' file.privacy.link %}" download data-toggle="tooltip" data-placement="top" title="" data-original-title="Download"><i class="lni lni-arrow-down-circle download icons"></i></a></h4>
@@ -104,17 +108,18 @@
                                 </div>
                                   <a href="{{file.get_url}}" target="_blank">
 
+
                                       <div class="icon">
-                                           {% if file.file_category == 'images' %}
-                                            <i class="fa fa-file-image-o text-primary"></i>
+                                          {% if file.file_category == 'images' %}
+                                            <i class="fa-solid fa-image text-primary"></i>
                                           {% elif file.file_category == 'docs' %}
                                             <i class="fa fa-file-text-o text-success"></i>
                                           {% elif file.file_category == 'media' %}
-                                            <i class="fa fa-file-video-o text-danger"></i>
+                                            <i class="fa-solid fa-clapperboard text-danger"></i>
                                           {% elif file.file_category == 'zip' %}
                                             <i class="fa fa-file-archive-o text-warning"></i>
                                           {% else %}
-                                            <i class="fa fa-file text-info"></i>
+                                            <i class="fa fa-file"></i>
                                           {% endif %}
 
                                       </div>
@@ -206,19 +211,21 @@
   function CopyFileLink(link, id)  {
       const file_id = document.getElementById(id);
       const el = document.createElement('textarea');
+      const tooltip_text = file_id.getAttribute('data-original-title')
       el.value = link;
       document.body.appendChild(el);
       el.select();
       document.execCommand('copy');
       document.body.removeChild(el);
       file_id.style.display = "none";
+
       file_id.setAttribute('data-original-title', 'Copied!')
       setTimeout(function(){
         file_id.style.display = "block";
-      }, 0);
+      }, 100);
 
       setTimeout(function(){
-        file_id.setAttribute('data-original-title', 'Copy Link')
+        file_id.setAttribute('data-original-title', tooltip_text)
       }, 500);
 
     };

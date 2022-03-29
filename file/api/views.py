@@ -2,7 +2,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from file.models import File
+from file.models import File, FileQuality
 from file.utils import get_file_cat
 from folder.utils import check_sub_folders_limit, create_folder_tree_if_not_exist
 from django.http import FileResponse, StreamingHttpResponse, HttpResponse
@@ -16,7 +16,12 @@ from wsgiref.util import FileWrapper
 
 from django.http.response import StreamingHttpResponse
 from secrets import compare_digest
-
+import hashlib
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+from django.urls import reverse
+from file.utils import detect_quality
+from .serializers import SubtitlesSerializer, CoverSerializer, QualitySerializer, OriginalQualitySerializer, FileQualitySerilizer
 
 # Upload File API
 @api_view(['POST'])
@@ -185,14 +190,14 @@ class RangeFileWrapper(object):
 
 @api_view(['GET'])
 @permission_classes([])
-def stream_video(request, id, token, expiry):
+def stream_video(request, uuid, token, expiry, quality):
 
-    if not check_url(request, id, token, expiry):
+    if not check_url(request, uuid, token, expiry, quality):
         return Response({"error_description": 'Invalid Request'}, status=status.HTTP_400_BAD_REQUEST)
 
 
     try:
-        video = File.objects.get(id=id).file
+        video = File.objects.get(unique_id=uuid).file
         path = video.path
     except File.DoesNotExist:
         return Response({"error_description": 'Video Does Not exists!'}, status=status.HTTP_400_BAD_REQUEST)
@@ -227,29 +232,34 @@ def stream_video(request, id, token, expiry):
     return resp
 
 
-import hashlib
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
-
 @api_view(['GET'])
-@permission_classes([])
-def generate_video_link(request, id):
+def generate_video_links(request, uuid):
 
-    current_date = datetime.now() + relativedelta(minutes=+360)
-    expiry = datetime.timestamp(current_date)
+    original_file_uuid = uuid
+
+    original_file = File.objects.get(unique_id=original_file_uuid)
+    file_qualities = original_file.qualities.filter(status='converted')
+    subtitles = original_file.properties.subtitles.all()
+
+    qualities_serializer = QualitySerializer(file_qualities, many=True, context={'request': request})
+    original_file_quality_serializer = OriginalQualitySerializer(original_file, many=False, context={'request': request})
+
+    subtitle_serializer = SubtitlesSerializer(subtitles, many=True, context={'request': request})
+    properties_serializer = CoverSerializer(original_file.properties, many=False, context={'request': request})
+    encrypted_urls = qualities_serializer.data
+    encrypted_urls.append(original_file_quality_serializer.data)
+    media_file_response = {
+        'properties': properties_serializer.data,
+        'subtitles': subtitle_serializer.data,
+        'encrypted_urls': encrypted_urls
+    }
+
+    return Response(media_file_response)
+
+def check_url(request, uuid, token, expiry, quality):
 
     ip = get_user_ip_address(request)
-
-    plain_link = ip + str(id) + str(expiry)
-    token = hashlib.md5(plain_link.encode('utf-8'))
-
-
-    return Response({'link': f'api/file/{id}/{token.hexdigest()}/{expiry}'})
-
-def check_url(request, id, token, expiry):
-
-    ip = get_user_ip_address(request)
-    plain_link = ip + str(id) + str(expiry)
+    plain_link = str(uuid) + str(expiry) + quality
     generated_token = hashlib.md5(plain_link.encode('utf-8'))
 
     if not compare_digest(token, str(generated_token.hexdigest())):
@@ -270,4 +280,16 @@ def get_user_ip_address(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
 
-    return '10.0.1.49'
+    return ip
+
+
+
+# Delete file API ( it is not used yet! )
+@api_view(['GET'])
+@permission_classes([])
+def get_conversion_status(request, uuid):
+
+    files = FileQuality.objects.filter(original_file__unique_id=uuid)
+    serializer = FileQualitySerilizer(files, many=True)
+
+    return Response(serializer.data)
