@@ -34,3 +34,10 @@ Run this command in the project's main directory
 ```
 celery -A cloud worker -l info
 ```
+
+## Important commands for streaming merging
+
+Run this command in the project's main directory
+```
+python manage.py create_files_properties
+```
