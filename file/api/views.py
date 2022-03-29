@@ -22,6 +22,8 @@ from dateutil.relativedelta import relativedelta
 from django.urls import reverse
 from file.utils import detect_quality
 from .serializers import SubtitlesSerializer, CoverSerializer, QualitySerializer, OriginalQualitySerializer, FileQualitySerilizer
+from django.conf import settings
+from django.core.exceptions import ValidationError
 
 # Upload File API
 @api_view(['POST'])
@@ -192,8 +194,7 @@ class RangeFileWrapper(object):
 def stream_video(request, uuid, token, expiry, quality):
 
     if not check_url(request, uuid, token, expiry, quality):
-        return Response({"error_description": 'Invalid Request'}, status=status.HTTP_400_BAD_REQUEST)
-
+        return Response({"error_description": 'Invalid URL'}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
         video = File.objects.get(unique_id=uuid).file
@@ -228,11 +229,18 @@ def stream_video(request, uuid, token, expiry, quality):
 
 
 @api_view(['GET'])
+@permission_classes([])
 def generate_video_links(request, uuid):
 
     original_file_uuid = uuid
 
-    original_file = File.objects.get(unique_id=original_file_uuid)
+    try:
+        original_file = File.objects.get(unique_id=original_file_uuid)
+    except File.DoesNotExist:
+        return Response({"error_description": 'Video Does Not exists!'}, status=status.HTTP_404_NOT_FOUND)
+    except ValidationError:
+        return Response({"error_description": 'Invalid video UUID!'}, status=status.HTTP_400_BAD_REQUEST)
+
     file_qualities = original_file.qualities.filter(status='converted')
     subtitles = original_file.properties.subtitles.all()
 
@@ -254,7 +262,7 @@ def generate_video_links(request, uuid):
 def check_url(request, uuid, token, expiry, quality):
 
     ip = get_user_ip_address(request)
-    plain_link = str(uuid) + str(expiry) + quality
+    plain_link = str(settings.ENCRYPTION_SECRET_KEY) + str(uuid) + str(expiry) + quality
     generated_token = hashlib.md5(plain_link.encode('utf-8'))
 
     if not compare_digest(token, str(generated_token.hexdigest())):

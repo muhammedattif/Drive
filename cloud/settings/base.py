@@ -32,6 +32,8 @@ AUTHENTICATION_BACKENDS = (
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('SECRET_KEY')
 
+ENCRYPTION_SECRET_KEY = env('ENCRYPTION_SECRET_KEY')
+
 # Allowed hosts
 ALLOWED_HOSTS = [env('ALLOWED_HOST')]
 

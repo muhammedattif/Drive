@@ -4,6 +4,7 @@ from dateutil.relativedelta import relativedelta
 from django.urls import reverse
 import hashlib
 from file.models import FileQuality
+from django.conf import settings
 
 class QualitySerializer(serializers.Serializer):
     quality = serializers.CharField()
@@ -13,7 +14,7 @@ class QualitySerializer(serializers.Serializer):
         request = self.context.get('request')
         current_date = datetime.now() + relativedelta(minutes=+360)
         expiry = datetime.timestamp(current_date)
-        plain_link = str(file.converted_file.unique_id) + str(expiry) + file.quality
+        plain_link = str(settings.ENCRYPTION_SECRET_KEY) + str(file.converted_file.unique_id) + str(expiry) + file.quality
         token = hashlib.md5(plain_link.encode('utf-8'))
 
         url = request.build_absolute_uri(reverse('file_api:stream', kwargs={
@@ -35,7 +36,7 @@ class OriginalQualitySerializer(serializers.Serializer):
         request = self.context.get('request')
         current_date = datetime.now() + relativedelta(minutes=+360)
         expiry = datetime.timestamp(current_date)
-        plain_link = str(file.unique_id) + str(expiry) + file.properties.quality
+        plain_link = str(settings.ENCRYPTION_SECRET_KEY) + str(file.unique_id) + str(expiry) + file.properties.quality
         token = hashlib.md5(plain_link.encode('utf-8'))
 
         url = request.build_absolute_uri(reverse('file_api:stream', kwargs={
