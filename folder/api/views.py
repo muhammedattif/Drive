@@ -53,35 +53,37 @@ def delete_folder(request, format=None):
     base_folder_name = folder_tree[0]
 
     # check if the first folder in the tree exist in the home or base directory
-    if base_folder_name in home_folders_names:
-        # if the first folder exist in home directory then get it
-        parent_folder = Folder.objects.get(user=user, name=base_folder_name)
-        # if folder tree is more than one folder then the user want to delete a child folder
-        if len(folder_tree) > 1:
-
-            folder = None
-            # check every folder in the folder tree if it exists until arrive at the last one to delete it
-            for index, folder_name in enumerate(folder_tree[1:]):
-                try:
-                    folder = Folder.objects.get(user=user, name=folder_name, parent_folder=parent_folder)
-                    parent_folder = folder
-                # if at least one folder in the folder tree does not exist then raise an exception error
-                except Folder.DoesNotExist:
-                    content['message'] = 'Folder does not exist.'
-                    return Response(content, status=status.HTTP_404_NOT_FOUND)
-            # if no exceptions then it means that all folders are exist
-            # then delete this folder
-            folder.delete()
-            content['message'] = 'Folder Removed Successfully!'
-            return Response(content, status=status.HTTP_200_OK)
-
-        # if folder tree has only one folder, then delete this folder
-        else:
-            parent_folder.delete()
-            content['message'] = 'Folder Removed Successfully!'
-            return Response(content, status=status.HTTP_200_OK)
-
-    # return an error message if the folder is not exist
-    else:
+    if base_folder_name not in home_folders_names:
+        # return an error message if the folder is not exist
         content['message'] = 'Folder does not exist.'
-    return Response(content, status=status.HTTP_404_NOT_FOUND)
+        return Response(content, status=status.HTTP_404_NOT_FOUND)
+
+    # if the first folder exist in home directory then get it
+    parent_folder = Folder.objects.get(user=user, name=base_folder_name)
+    # if folder tree is more than one folder then the user want to delete a child folder
+
+    # TODO: we can enhance this code by getting the last folder in the tree and the compare its tree with the desired tree
+
+    if len(folder_tree) > 1:
+
+        folder = None
+        # check every folder in the folder tree if it exists until arrive at the last one to delete it
+        for index, folder_name in enumerate(folder_tree[1:]):
+            try:
+                folder = Folder.objects.get(user=user, name=folder_name, parent_folder=parent_folder)
+                parent_folder = folder
+            # if at least one folder in the folder tree does not exist then raise an exception error
+            except Folder.DoesNotExist:
+                content['message'] = 'Folder does not exist.'
+                return Response(content, status=status.HTTP_404_NOT_FOUND)
+        # if no exceptions then it means that all folders are exist
+        # then delete this folder
+        folder.delete()
+        content['message'] = 'Folder Removed Successfully!'
+        return Response(content, status=status.HTTP_200_OK)
+
+    # if folder tree has only one folder, then delete this folder
+    else:
+        parent_folder.delete()
+        content['message'] = 'Folder Removed Successfully!'
+        return Response(content, status=status.HTTP_200_OK)

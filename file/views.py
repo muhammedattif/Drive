@@ -18,77 +18,78 @@ import time
 # upload file view
 @login_required(login_url='login')
 def upload(request):
-    if request.method == 'POST':
+    if not request.method == 'POST':
+        return redirect('home')
 
-        # get current user
-        user = request.user
-        # get uploaded files
-        uploaded_files = request.FILES.getlist('file')
+    # get current user
+    user = request.user
+    # get uploaded files
+    uploaded_files = request.FILES.getlist('file')
 
-        # Get parent folder ID
-        folder_id = request.POST['folder_id']
+    # Get parent folder ID
+    folder_id = request.POST['folder_id']
 
-        files_links = []
-        files_size = 0
+    files_links = []
+    files_size = 0
 
-        # sum all the uploaded files sizes
-        for file in uploaded_files:
-            files_size += file.size
+    # sum all the uploaded files sizes
+    for file in uploaded_files:
+        files_size += file.size
 
-        # check if the user does not reached his upload limit
-        if user.drive_settings.is_allowed_to_upload_files(files_size):
-            for file in uploaded_files:
-                file_name = file.name
-
-                # Don't upload files that doesn't has extension
-                if '.' not in file_name:
-                    context = {
-                        'message': 'Invalid File!'
-                    }
-                    return JsonResponse(context, status=400, content_type="application/json", safe=False)
-
-                file_size = file.size
-                file_category = get_file_cat(file)
-                file_type = file.content_type
-
-                try:
-                    if folder_id:
-                        parent_folder = Folder.objects.get(unique_id=folder_id)
-                    else:
-                        parent_folder = None
-                    file = File.objects.create(uploader=user, file_name=file_name, file_size=file_size,
-                                               file_type=file_type,
-                                               file_category=file_category, file=file, parent_folder=parent_folder)
-                except Folder.DoesNotExist:
-                    context = {
-                        'message': 'Destination Folder Not found!'
-                    }
-                    return JsonResponse(context, status=404, content_type="application/json", safe=False)
-                except exceptions.SuspiciousFileOperation:
-                    context = {
-                        'message': 'File name is too large!'
-                    }
-                    return JsonResponse(context, status=400, content_type="application/json", safe=False)
-                except FileNotFoundError:
-                    context = {
-                        'message': 'Folder is corrupted!'
-                    }
-                    return JsonResponse(context, status=500, content_type="application/json", safe=False)
-
-                files_links.append(file.get_url())
-
-            context = {
-                'files_links': files_links
-            }
-            return JsonResponse(context, content_type="application/json", safe=False)
+    # check if the user does not reached his upload limit
+    if user.drive_settings.is_allowed_to_upload_files(files_size):
         # An error will be raised if the used reached upload limit
-        else:
-            context = {
-                'message': 'Limit Exceeded!'
-            }
-            return JsonResponse(context, status=507, content_type="application/json", safe=False)
+        context = {
+            'message': 'Limit Exceeded!'
+        }
+        return JsonResponse(context, status=507, content_type="application/json", safe=False)
 
-    return redirect('home')
+    for file in uploaded_files:
+        file_name = file.name
+
+        # Don't upload files that doesn't has extension
+        if '.' not in file_name:
+            context = {
+                'message': 'Invalid File!'
+            }
+            return JsonResponse(context, status=400, content_type="application/json", safe=False)
+
+        file_size = file.size
+        file_category = get_file_cat(file)
+        file_type = file.content_type
+
+        try:
+            if folder_id:
+                parent_folder = Folder.objects.get(unique_id=folder_id)
+            else:
+                parent_folder = None
+            file = File.objects.create(uploader=user, file_name=file_name, file_size=file_size,
+                                       file_type=file_type,
+                                       file_category=file_category, file=file, parent_folder=parent_folder)
+        except Folder.DoesNotExist:
+            context = {
+                'message': 'Destination Folder Not found!'
+            }
+            return JsonResponse(context, status=404, content_type="application/json", safe=False)
+        except exceptions.SuspiciousFileOperation:
+            context = {
+                'message': 'File name is too large!'
+            }
+            return JsonResponse(context, status=400, content_type="application/json", safe=False)
+        except FileNotFoundError:
+            context = {
+                'message': 'Folder is corrupted!'
+            }
+            return JsonResponse(context, status=500, content_type="application/json", safe=False)
+
+        files_links.append(file.get_url())
+
+    context = {
+        'files_links': files_links
+    }
+    return JsonResponse(context, content_type="application/json", safe=False)
+
+
 
 
 # Trashed files view

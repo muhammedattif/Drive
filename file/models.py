@@ -11,6 +11,14 @@ from datetime import datetime, timezone
 from model_utils import Choices
 from django.core.exceptions import ValidationError
 
+QUALITY_CHOICES = (
+        ('144p', '144p'),
+        ('240p', '240p'),
+        ('360p', '360p'),
+        ('480p', '480p'),
+        ('720p', '720p'),
+        ('1080p', '1080p'),
+    )
 
 # File Model
 class File(models.Model):
@@ -51,15 +59,6 @@ class File(models.Model):
 
 class FileQuality(models.Model):
 
-    QUALITY_CHOICES = (
-        ('144p', '144p'),
-        ('240p', '240p'),
-        ('360p', '360p'),
-        ('480p', '480p'),
-        ('720p', '720p'),
-        ('1080p', '1080p'),
-    )
-
     STATUS_CHOICES = (
         ('converting', 'Converting'),
         ('converted', 'Converted'),
@@ -85,14 +84,6 @@ class FileQuality(models.Model):
 
 
 class MediaFileProperties(models.Model):
-
-    QUALITY_CHOICES = (
-        ('144p', '144p'),
-        ('240p', '240p'),
-        ('480p', '480p'),
-        ('720p', '720p'),
-        ('1080p', '1080p'),
-    )
 
     media_file = models.OneToOneField(File, on_delete=models.CASCADE, related_name='properties')
     cover = models.FileField(upload_to=get_video_cover_path, max_length=500, blank=True)
