@@ -78,3 +78,8 @@ if settings.DEBUG:
         # This for debugging
         path('__debug__/', include(debug_toolbar.urls)),
     ]
+
+
+admin.site.index_title = settings.SITE_INDEX_TITLE
+admin.site.site_title = settings.SITE_TITLE
+admin.site.site_header = settings.SITE_HEADER

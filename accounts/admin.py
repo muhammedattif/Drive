@@ -1,7 +1,9 @@
 from django.contrib import admin
 from nested_inline.admin import NestedStackedInline, NestedModelAdmin
 from django.contrib.auth.admin import UserAdmin
-
+from django.contrib.auth.forms import (
+    AdminPasswordChangeForm
+)
 from accounts.models import Account
 from drive.models import DriveSettings
 
@@ -13,6 +15,7 @@ class DriveSettingsInline(NestedStackedInline):
 
 class AccountAdmin(UserAdmin, NestedModelAdmin):
     model = Account
+    change_password_form = AdminPasswordChangeForm
 
     list_filter = ('email', 'username', 'is_active', 'is_staff')
     ordering = ('-date_joined',)
@@ -22,7 +25,7 @@ class AccountAdmin(UserAdmin, NestedModelAdmin):
     inlines = [DriveSettingsInline]
 
     fieldsets = (
-        ("User Information", {'fields': ('email', 'username', 'job_title', 'image')}),
+        ("User Information", {'fields': ('email', 'username', 'password', 'job_title', 'image')}),
         ('Permissions', {'fields': ('is_staff', 'is_active', 'is_superuser', 'groups', 'user_permissions')}),
     )
 

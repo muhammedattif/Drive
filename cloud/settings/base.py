@@ -41,6 +41,7 @@ ALLOWED_HOSTS = [env('ALLOWED_HOST')]
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -200,3 +201,8 @@ BASIC_PACKAGE_NAME = 'Basic'
 BASIC_PACKAGE_STORAGE_LIMIT = 15 # number in GB
 
 CELERY_BROKER_URL = f'redis://{env("REDIS_HOST")}:6379'
+
+# Django Admin
+SITE_INDEX_TITLE = 'VCloud'
+SITE_TITLE = 'Administration'
+SITE_HEADER = 'VCloud'
