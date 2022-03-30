@@ -37,7 +37,7 @@ def upload(request):
         files_size += file.size
 
     # check if the user does not reached his upload limit
-    if user.drive_settings.is_allowed_to_upload_files(files_size):
+    if not user.drive_settings.is_allowed_to_upload_files(files_size):
         # An error will be raised if the used reached upload limit
         context = {
             'message': 'Limit Exceeded!'

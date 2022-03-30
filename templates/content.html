@@ -110,14 +110,18 @@
 
 
                                       <div class="icon">
-                                          {% if file.file_category == 'images' %}
+                                          {% if file.file_type == 'image/gif' %}
+                                            <i class="fa-solid fa-photo-film text-danger"></i>
+                                          {% elif file.file_category == 'images' %}
                                             <i class="fa-solid fa-image text-primary"></i>
+                                          {% elif file.file_type == 'application/pdf' %}
+                                            <i class="fa-solid fa-file-pdf text-success"></i>
                                           {% elif file.file_category == 'docs' %}
-                                            <i class="fa fa-file-text-o text-success"></i>
+                                            <i class="fa-solid fa-file-word text-success"></i>
                                           {% elif file.file_category == 'media' %}
                                             <i class="fa-solid fa-clapperboard text-danger"></i>
-                                          {% elif file.file_category == 'zip' %}
-                                            <i class="fa fa-file-archive-o text-warning"></i>
+                                          {% elif file.file_category == 'zip' or file.file_type == 'application/octet-stream' %}
+                                            <i class="fa-solid fa-file-zipper text-warning"></i>
                                           {% else %}
                                             <i class="fa fa-file"></i>
                                           {% endif %}
