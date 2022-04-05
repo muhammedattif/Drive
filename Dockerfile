@@ -8,6 +8,7 @@ WORKDIR /opt/app-root/src
 # install psycopg2 dependencies
 RUN apt update
 RUN apt install ffmpeg libsm6 libxext6  -y
+RUN apt install nano 
 
 # install dependencies
 RUN pip install --upgrade pip
@@ -19,4 +20,6 @@ RUN sed -i 's/\r$//g' /opt/app-root/src/entrypoint.sh
 RUN chmod +x /opt/app-root/src/entrypoint.sh
 COPY ./env.test ./.env
 #CMD [ "python", "./manage.py" ]
-ENTRYPOINT ["/opt/app-root/src/entrypoint.sh"]
+#CMD ['celery', '-A', 'cloud', 'worker', '-l', 'INFO']
+RUN celery -A cloud worker -l info -D
+ENTRYPOINT ["./entrypoint.sh"]
