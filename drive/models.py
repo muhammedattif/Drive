@@ -73,3 +73,16 @@ class DriveSettings(models.Model):
 
         return False
 
+
+class CompressedFile(models.Model):
+
+    user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name="compressed_files")
+    zip = models.FileField(max_length=500)
+    is_compressed = models.BooleanField(default=False)
+    is_downloaded = models.BooleanField(default=False)
+    compressed_at = models.DateTimeField(verbose_name="Date Compressed", auto_now_add=True)
+
+    class Meta:
+        ordering = ['-compressed_at']
+    def __str__(self):
+        return self.user.username

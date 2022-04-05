@@ -4,12 +4,11 @@ from folder.models import Folder
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from accounts.models import Account
-from .models import DriveSettings
+from .models import DriveSettings, CompressedFile
 from .forms import PrivacySettingsForm
 from django.contrib import messages
-
-import subprocess
-
+from django.http import HttpResponse, FileResponse
+import time
 
 # Home Page View
 @login_required(login_url='login')
@@ -96,3 +95,29 @@ def privacy_settings(request):
     }
 
     return render(request, 'drive/privacy_settings.html', context)
+
+@login_required(login_url='login')
+def compress_user_files(request):
+
+    from .tasks import async_compress_user_files
+    compressed_data, created = CompressedFile.objects.get_or_create(user=request.user)
+    if not created:
+        compressed_data.is_downloaded = False
+        compressed_data.save(update_fields=['is_downloaded'])
+    async_compress_user_files.delay(request.user.id, compressed_data.id)
+    time.sleep(1)
+
+    messages.success(request, 'Your data is being compressed now, and will be available soon.')
+
+    return redirect('home')
+
+@login_required(login_url='login')
+def download_compressed_data(request):
+
+    compressed_data = CompressedFile.objects.get(user=request.user)
+    if compressed_data:
+        compressed_data.is_downloaded = True
+        compressed_data.save(update_fields=['is_downloaded'])
+        response = FileResponse(compressed_data.zip, as_attachment=True)
+        response['Content-Disposition'] = 'attachment; filename={}'.format(request.user.username + '.zip')
+        return response

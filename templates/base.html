@@ -31,6 +31,7 @@
 <div class="container-fluid">
 
     <div class="view-account">
+
         <section class="module">
             <div class="module-inner">
                 <div class="side-bar">
@@ -168,6 +169,12 @@
                     </nav> -->
                 </div>
                 <div class="content-panel">
+                    {% if request.user.compressed_files %}
+                        {% if request.user.compressed_files.is_compressed and not request.user.compressed_files.is_downloaded %}
+                            {% include "drive/compressed_data_notification.html" %}
+                        {% endif %}
+                    {% endif %}
+
                     <div id="dropfile" class="toast align-items-center text-white primary_bg border-0 text-center position-absolute" role="alert" data-autohide="false" aria-live="assertive">
                         <div class="d-flex">
                             <div class="toast-body">
@@ -240,6 +247,11 @@
                             <div class="btn-group" role="group">
                                 <button type="button" id="refresh" class="btn primary" data-toggle="tooltip" data-placement="top" title="" data-original-title="Refresh"><i class="fas fa-sync-alt"></i></button>
                                 <button type="button" class="btn primary" data-toggle="tooltip" data-placement="top" title="" data-original-title="Trash"><a class="primary"href="{% url 'file:trash' %}"><i class="fas fa-trash "></i></a></button>
+                            </div>
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'drive:compress_user_files' %}">
+                                    <button type="button" class="btn primary" data-toggle="tooltip" data-placement="top" title="" data-original-title="Compress all your data"><i class="fa-solid fa-file-zipper"></i></button>
+                                </a>
                             </div>
                         </div>
                     </div>

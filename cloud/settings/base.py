@@ -191,6 +191,11 @@ PROFILE_IMAGES_URL = 'profile_images'
 # Directory where other uploaded files are gonna be stored
 DRIVE_PATH = 'drive'
 os.makedirs(os.path.join(MEDIA_ROOT, DRIVE_PATH), exist_ok=True)
+
+# Directory where compresses files are gonna be stored
+COMPRESS_PATH = 'compressed'
+os.makedirs(os.path.join(MEDIA_ROOT, COMPRESS_PATH), exist_ok=True)
+
 # Alias for drive path
 ALIAS_DRIVE_PATH = 'link'
 

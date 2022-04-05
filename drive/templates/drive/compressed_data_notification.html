@@ -1,0 +1,40 @@
+
+
+<style>
+.notification-card{
+    position: absolute;
+    width: 350px;
+    border: none;
+    border-radius: 20px;
+    background-color: rgb(238, 133, 29)
+}
+
+h6 {
+    color: white
+}
+
+.text {
+    color: white
+}
+.bell{
+  color: white;
+  font-size: 25px;
+  padding: 20px;
+}
+.text-color{
+  color: #2b4764;
+}
+</style>
+
+  <div class="container d-flex justify-content-center">
+<!--    color #597AFD-->
+    <div class="notification-card mt-5 p-3">
+        <div class="media">
+            <i class="fa-solid fa-download bell"></i>
+            <div class="media-body">
+              <h6 class="mt-2 mb-0">Your data has been compressed and ready to <a class="text-color" href="{% url 'drive:download_compressed_data' %}">download</a>.</h6> <small class="text">{{request.user.compressed_files.compressed_at}}</small>
+            </div>
+        </div>
+    </div>
+</div>
+
