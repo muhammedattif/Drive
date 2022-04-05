@@ -63,6 +63,8 @@ INSTALLED_APPS = [
     # CORS
     'corsheaders',
     'django_ffmpeg',
+    #Celery
+    'django_celery_beat',
 
     # APPS
     'accounts',
@@ -207,6 +209,12 @@ BASIC_PACKAGE_STORAGE_LIMIT = 15 # number in GB
 
 CELERY_BROKER_URL = f'redis://{env("REDIS_HOST")}:6379'
 
+CELERY_BEAT_SCHEDULE = {
+    "RemoveTrashedFiles": {
+        'task': 'file.cron.delete_trashed_files',
+        'schedule': 3600 # Run every hour
+    }
+}
 # Django Admin
 SITE_INDEX_TITLE = 'VCloud'
 SITE_TITLE = 'Administration'
