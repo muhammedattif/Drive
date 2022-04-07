@@ -211,7 +211,7 @@ def stream_video(request, uuid, token, expiry, quality):
     range_match = range_re.match(range_header)
     size = os.path.getsize(path)
     chunk_size = 1000000  # 1MB
-    content_type = 'application/octet-stream'
+    content_type = 'video/mp4'
     if range_match:
 
         start, end = range_match.groups()
