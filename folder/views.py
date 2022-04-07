@@ -123,9 +123,94 @@ def delete_folder(request, unique_id):
 
         # Delete folder from db
         folder.delete()
-
         messages.success(request, f'{folder_name} deleted successfully!.')
         return redirect(redirect_path)
 
     except Exception:
         return redirect('error')
+
+# Rename folder View
+@login_required(login_url='login')
+def rename_folder(request, unique_id):
+    print(request.method)
+    if request.method != 'POST':
+        return redirect('error')
+
+    folder_new_name = request.POST['folder_new_name']
+    user = request.user
+
+    try:
+        current_folder = Folder.objects.get(user=user, unique_id=unique_id)
+        folder_old_name = current_folder.name
+
+        # This code is to know to which page the user is going to be redirect
+        if current_folder.parent_folder is not None:
+            redirect_path = current_folder.parent_folder.get_absolute_url()
+        else:
+            redirect_path = '/'
+
+        # delete folder dir from physical storage
+
+        if current_folder.parent_folder:
+
+            folder_old_path = os.path.join(
+                settings.MEDIA_ROOT,
+                settings.DRIVE_PATH,
+                str(user.unique_id),
+                current_folder.parent_folder.get_folder_tree_as_dirs(),
+                current_folder.name)
+
+            folder_new_path = os.path.join(
+                settings.MEDIA_ROOT,
+                settings.DRIVE_PATH,
+                str(user.unique_id),
+                current_folder.parent_folder.get_folder_tree_as_dirs(),
+                folder_new_name)
+
+        else:
+            folder_old_path = os.path.join(
+                settings.MEDIA_ROOT,
+                settings.DRIVE_PATH,
+                str(user.unique_id),
+                current_folder.name)
+
+            folder_new_path = os.path.join(
+                settings.MEDIA_ROOT,
+                settings.DRIVE_PATH,
+                str(user.unique_id),
+                folder_new_name)
+
+        # Query the DB to check if there is a folder with the new name
+        is_folder_exists_in_db = Folder.objects.filter(user=user, name=folder_new_name, parent_folder=current_folder.parent_folder).exists()
+
+        if os.path.exists(folder_new_path) or is_folder_exists_in_db:
+            messages.error(request, 'Folder with this name is already exists.')
+            return redirect(redirect_path)
+
+        if not os.path.exists(folder_old_path):
+            messages.error(request, 'Folder does not exist.!')
+            return redirect(redirect_path)
+
+        # Rename folder on the physical disk
+        try:
+            os.rename(folder_old_path, folder_new_path)
+        except:
+            messages.error(request, 'Cannot rename folder on the physical storage!')
+            return redirect(redirect_path)
+
+        try:
+            # Rename folder in DB
+            current_folder.name = folder_new_name
+            current_folder.save(update_fields=['name'])
+        except:
+            os.rename(folder_new_path, folder_old_path)
+            messages.error(request, 'Cannot rename the folder!')
+            return redirect(redirect_path)
+
+
+        messages.success(request, f'{folder_old_name} renamed successfully to {current_folder.name}.')
+        return redirect(redirect_path)
+
+    except Exception:
+        return redirect('error')
+
