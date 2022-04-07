@@ -195,14 +195,40 @@
                               <a class="dropdown-item" href="#"><i class="fas fa-user text-secondary"></i> Profile Info</a>
                               <h6 class="dropdown-header">Drive Settings</h6>
                               <a class="dropdown-item" href="{% url 'drive:privacy' %}"><i class="fas fa-user-secret text-secondary"></i> Privacy</a>
+
+                              <a class="dropdown-item" href="" data-toggle="modal" data-target="#EraseData" ><i class="lni lni-warning"></i> Erase Data</a>
                               <div class="dropdown-divider"></div>
                               <a class="dropdown-item" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt text-secondary"></i> Log out</a>
                             </div>
+
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
+
+                    <!-- Erase Account Data Modal -->
+                    <div class="modal fade" id="EraseData" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                      <div class="modal-dialog">
+                        <div class="modal-content">
+
+                          <div class="modal-body">
+                            Are you sure you want to erase all account data?
+                              <div><small class="text-danger">Your data will be deleted permanently. You can't undo this action.</small></div>
+                          </div>
+                          <div class="modal-footer">
+                              <form method="POST" action="{% url 'drive:erase_account_data' %}">
+                                {%csrf_token%}
+
+                                <button type="button" class="btn btn-outline-dark" data-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-danger">Permanently delete my data</button>
+
+                            </form>
+
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                     {% block navbar %}
 
                     {% endblock %}
@@ -253,6 +279,7 @@
                                     <button type="button" class="btn primary" data-toggle="tooltip" data-placement="top" title="" data-original-title="Compress all your data"><i class="fa-solid fa-file-zipper"></i></button>
                                 </a>
                             </div>
+
                         </div>
                     </div>
                     {% block content %}

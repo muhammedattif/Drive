@@ -121,3 +121,14 @@ def download_compressed_data(request):
         response = FileResponse(compressed_data.zip, as_attachment=True)
         response['Content-Disposition'] = 'attachment; filename={}'.format(request.user.username + '.zip')
         return response
+
+@login_required(login_url='login')
+def erase_account_data(request):
+
+    if request.method == 'POST':
+        print(1)
+        request.user.files.all().delete()
+        request.user.folders.all().delete()
+        messages.error(request, 'Account data has been erased.')
+
+    return redirect('home')
