@@ -18,7 +18,10 @@
                                             <h4><a data-toggle="modal" data-target="#id{{folder.unique_id}}"><i data-placement="top" title="" data-original-title="Delete Folder" data-toggle="tooltip" class="lni lni-trash-can delete icons"></i></a></h4>
                                           {% endif %}
                                           {% if perms.folder.can_rename_folder %}
-                                            <h4><a data-toggle="modal" data-target="#id{{folder.unique_id}}rename"><i data-placement="top" title="" data-original-title="Rename Folder"  data-toggle="tooltip" class="lni lni-eraser copy"></i></a></h4>
+                                            <h4><a data-toggle="modal" data-target="#id{{folder.unique_id}}rename"><i data-placement="top" title="" data-original-title="Rename Folder"  data-toggle="tooltip" class="lni lni-brush-alt copy"></i></a></h4>
+                                          {% endif %}
+                                          {% if perms.folder.can_download_folder %}
+                                            <h4><a href="{% url 'folder:download' folder.unique_id %}"><i data-placement="top" title="" data-original-title="Download Folder"  data-toggle="tooltip" class="lni lni-arrow-down-circle download icons"></i></a></h4>
                                           {% endif %}
                                       </div>
                                     </div>

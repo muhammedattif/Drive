@@ -130,6 +130,40 @@ def delete_folder(request, unique_id):
     except Exception:
         return redirect('error')
 
+from pathlib import Path
+from zipfile import ZIP_DEFLATED, ZipFile
+from django.http import FileResponse, HttpResponse
+import os
+
+# Download folder View
+@login_required(login_url='login')
+@permission_required('folder.can_download_folder', raise_exception=True)
+def download_folder(request, unique_id):
+
+    folder = Folder.objects.get(user=request.user, unique_id=unique_id)
+    folder_tree = folder.get_folder_tree_as_dirs()
+
+    user = request.user
+    folder_to_compress = Path(os.path.join(settings.MEDIA_ROOT, settings.DRIVE_PATH, str(user.unique_id), folder_tree))
+
+    path_to_archive_in_os = Path(
+        os.path.join(settings.MEDIA_ROOT, settings.COMPRESS_PATH, f"{str(folder.name)}{'.zip'}"))
+
+    with ZipFile(
+            path_to_archive_in_os,
+            mode="w",
+            compression=ZIP_DEFLATED
+    ) as zip:
+        for file in folder_to_compress.rglob("*"):
+            relative_path = file.relative_to(folder_to_compress)
+            print(f"Packing {file} as {relative_path}")
+            zip.write(file, arcname=relative_path)
+
+    response = FileResponse(open(path_to_archive_in_os, 'rb'), as_attachment=True)
+    response['Content-Disposition'] = 'attachment; filename={}'.format(folder.name + '.zip')
+    return response
+
+
 # Rename folder View
 @login_required(login_url='login')
 @permission_required('folder.can_rename_folder', raise_exception=True)
