@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, reverse
 from file.models import File, Trash, FilePrivacy, FileQuality
 from folder.models import Folder
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib import messages
 from file.forms import FilePrivacyForm
@@ -94,6 +94,7 @@ def upload(request):
 
 # Trashed files view
 @login_required(login_url='login')
+@permission_required('file.can_add_files_to_trash', raise_exception=True)
 def get_trashed_files(request):
     context = {}
     trashed_files = Trash.objects.filter(user=request.user).select_related('file__privacy')
@@ -106,6 +107,7 @@ def get_trashed_files(request):
 
 # Move file to trash view
 @login_required(login_url='login')
+@permission_required('file.can_add_files_to_trash', raise_exception=True)
 def move_to_trash(request, unique_id):
     file = None
     try:
@@ -126,6 +128,7 @@ def move_to_trash(request, unique_id):
 
 # Delete file view
 @login_required(login_url='login')
+@permission_required('file.delete_file', raise_exception=True)
 def delete_file(request, unique_id, quality=None):
     try:
         file = File.objects.get(unique_id=unique_id, uploader=request.user)
@@ -145,6 +148,7 @@ def delete_file(request, unique_id, quality=None):
 
 # Recover file view
 @login_required(login_url='login')
+@permission_required('file.delete_file', raise_exception=True)
 def recover(request, unique_id):
     try:
         trashed_file = Trash.objects.get(file__unique_id=unique_id, user=request.user)
@@ -162,6 +166,8 @@ def recover(request, unique_id):
 
 
 # download file view
+@login_required(login_url='login')
+@permission_required('file.can_download_file', raise_exception=True)
 def download(request, file_link):
     try:
         file = File.objects.get(privacy__link=file_link)
@@ -236,6 +242,8 @@ def file_settings(request, unique_id):
 
     return render(request, 'file/file_settings.html', context)
 
+@login_required(login_url='login')
+@permission_required('file.can_convert_media_files', raise_exception=True)
 def convert_file_quality(request, unique_id, quality):
 
     from file.tasks import async_convert_video_quality
@@ -246,6 +254,3 @@ def convert_file_quality(request, unique_id, quality):
     messages.success(request, 'Video quality is being processed and will be available soon.')
 
     return HttpResponseRedirect(reverse('file:file_settings', kwargs={'unique_id': unique_id}))
-
-def stream(request):
-    return render(request, 'file/stream.html')

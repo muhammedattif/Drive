@@ -2,6 +2,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from django.contrib.auth.decorators import permission_required
 from file.models import File, FileQuality
 from file.utils import get_file_cat
 from folder.utils import check_sub_folders_limit, create_folder_tree_if_not_exist
@@ -191,6 +192,7 @@ class RangeFileWrapper(object):
 
 @api_view(['GET'])
 @permission_classes([])
+@permission_required('file.can_stream_media_files', raise_exception=True)
 def stream_video(request, uuid, token, expiry, quality):
 
     if not check_url(request, uuid, token, expiry, quality):
@@ -230,6 +232,7 @@ def stream_video(request, uuid, token, expiry, quality):
 
 @api_view(['GET'])
 @permission_classes([])
+@permission_required('file.can_stream_media_files', raise_exception=True)
 def generate_video_links(request, uuid):
 
     original_file_uuid = uuid

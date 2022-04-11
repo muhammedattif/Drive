@@ -21,6 +21,10 @@ class DriveSettings(models.Model):
 
     class Meta:
         verbose_name_plural = "Drive Settings"
+        permissions = (
+            ("can_erase_account_data", "Can Erase Account Data"),
+            ("can_compress_account_data", "Can Compress Account Data"),
+        )
 
     def __str__(self):
         return self.user.username

@@ -1,4 +1,5 @@
 from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.decorators import permission_required
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -35,6 +36,7 @@ def create_folder_tree(request, format=None):
 # Delete Folder API
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@permission_required('folder.delete_folder', raise_exception=True)
 def delete_folder(request, format=None):
     content = {}
 

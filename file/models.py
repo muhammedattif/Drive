@@ -35,6 +35,10 @@ class File(models.Model):
 
     class Meta:
         ordering = ('-uploaded_at',)
+        permissions = (
+            ("can_download_file", "Can Download File"),
+            ("can_stream_media_files", "Can Stream Media Files"),
+        )
 
     def __str__(self):
         return self.file_name
@@ -73,6 +77,9 @@ class FileQuality(models.Model):
     class Meta:
         verbose_name_plural = 'File Qualities'
         unique_together = ['original_file', 'quality']
+        permissions = (
+            ("can_convert_media_files", "Can Convert Media Files"),
+        )
 
     def __str__(self):
         return f'{self.original_file.file_name}->{self.quality}'
@@ -134,6 +141,11 @@ class Trash(models.Model):
     user = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="trashed_files")
     file = models.OneToOneField(File, on_delete=models.CASCADE, default=1)
     trashed_at = models.DateTimeField(verbose_name="Date Trashed", auto_now_add=True)
+
+    class Meta:
+        permissions = (
+            ("can_add_files_to_trash", "Can add Files to Trash"),
+            )
 
     # this function is built the remaining days for a file to be deleted
     def remaining_days(self):

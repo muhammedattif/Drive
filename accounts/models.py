@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, BaseUserManager, PermissionsMixin
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.conf import settings
 from django.db.models.signals import post_save, pre_save
@@ -13,7 +14,6 @@ from PIL import Image
 from io import BytesIO
 from django.core.files import File
 from django.core.files.base import ContentFile
-from django.db import models
 import os
 from django.db import transaction
 
@@ -76,6 +76,10 @@ class MyAccountManager(BaseUserManager):
         user.save(using = self._db)
         return user
 
+class ActionsType(models.TextChoices):
+    ALLOW_ALL = ("allow_all", "Allow all")
+    RESTRICTED = ("restricted", "Restricted")
+
 # Account Model
 class Account(AbstractBaseUser, PermissionsMixin, ResizeImageMixin):
     unique_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
@@ -87,6 +91,12 @@ class Account(AbstractBaseUser, PermissionsMixin, ResizeImageMixin):
     image = models.ImageField(upload_to=get_profile_image_path, blank=True, null=True)
     is_active = models.BooleanField('Active status', default=True)
     is_staff = models.BooleanField('Staff status', default=False)
+    actions_type = models.CharField(
+        max_length=15,
+        choices=ActionsType.choices,
+        default=ActionsType.RESTRICTED,
+        help_text="This option limits the user actions of the views."
+    )
 
     objects = MyAccountManager()
 
@@ -99,10 +109,8 @@ class Account(AbstractBaseUser, PermissionsMixin, ResizeImageMixin):
 
     # resize profile image before saving
     def save(self, created=None, *args, **kwargs):
-        if self.pk:
-            if self.image:
-                self.resize(self.image, (315, 315))
-
+        if self.pk and self.image:
+            self.resize(self.image, (315, 315))
         super().save(*args, **kwargs)
 
     def used_storage(self):

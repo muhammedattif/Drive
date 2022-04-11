@@ -26,7 +26,7 @@ class AccountAdmin(UserAdmin, NestedModelAdmin):
 
     fieldsets = (
         ("User Information", {'fields': ('email', 'username', 'password', 'job_title', 'image')}),
-        ('Permissions', {'fields': ('is_staff', 'is_active', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Permissions', {'fields': ('is_staff', 'is_active', 'is_superuser', 'actions_type', 'groups', 'user_permissions')}),
     )
 
 

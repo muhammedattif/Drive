@@ -13,8 +13,13 @@
                                     <div class="show_settings">
 
                                       <div class="hover">
-                                        <h4><a data-toggle="modal" data-target="#id{{folder.unique_id}}"><i data-placement="top" title="" data-original-title="Delete Folder" data-toggle="tooltip" class="lni lni-trash-can delete icons"></i></a></h4>
-                                        <h4><a data-toggle="modal" data-target="#id{{folder.unique_id}}rename"><i data-placement="top" title="" data-original-title="Rename Folder"  data-toggle="tooltip" class="lni lni-eraser copy"></i></a></h4>
+
+                                          {% if perms.folder.delete_folder %}
+                                            <h4><a data-toggle="modal" data-target="#id{{folder.unique_id}}"><i data-placement="top" title="" data-original-title="Delete Folder" data-toggle="tooltip" class="lni lni-trash-can delete icons"></i></a></h4>
+                                          {% endif %}
+                                          {% if perms.folder.can_rename_folder %}
+                                            <h4><a data-toggle="modal" data-target="#id{{folder.unique_id}}rename"><i data-placement="top" title="" data-original-title="Rename Folder"  data-toggle="tooltip" class="lni lni-eraser copy"></i></a></h4>
+                                          {% endif %}
                                       </div>
                                     </div>
                                       <a href="{% url 'folder:folder' folder.unique_id %}">
@@ -29,6 +34,8 @@
                                   </div>
                               </div>
                             </div>
+
+                        {% if perms.folder.can_rename_folder %}
                           <!-- Delete Modal -->
                             <div class="modal fade" id="id{{folder.unique_id}}" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
                               <div class="modal-dialog">
@@ -45,8 +52,10 @@
                                 </div>
                               </div>
                             </div>
+                      {% endif %}
 
-                          <!-- Rename Folder Modal -->
+                      {% if perms.folder.can_rename_folder %}
+                      <!-- Rename Folder Modal -->
                           <div class="modal fade " id="id{{folder.unique_id}}rename" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                               <div class="modal-dialog modal-dialog-centered">
                                 <div class="modal-content">
@@ -76,6 +85,8 @@
                                 </div>
                               </div>
                             </div>
+                      {% endif %}
+
 
                         {% endfor %}
                   </div>
@@ -134,8 +145,13 @@
 
                                   <div class="hover">
                                     <h4><a id="link-{{file.unique_id}}" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ file.get_url }}', 'link-{{file.unique_id}}')" class="lni lni-link copy icons"></i></a></h4>
-                                    <h4><a href="{% url 'download' file.privacy.link %}" download data-toggle="tooltip" data-placement="top" title="" data-original-title="Download"><i class="lni lni-arrow-down-circle download icons"></i></a></h4>
-                                    <h4><a href="{% url 'file:move_to_trash' file.unique_id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Move To Trash"><i class="lni lni-trash-can delete icons"></i></a></h4>
+                                    {% if perms.file.can_download_file %}
+                                        <h4><a href="{% url 'download' file.privacy.link %}" download data-toggle="tooltip" data-placement="top" title="" data-original-title="Download"><i class="lni lni-arrow-down-circle download icons"></i></a></h4>
+                                    {% endif %}
+
+                                    {% if perms.file.can_add_files_to_trash %}
+                                        <h4><a href="{% url 'file:move_to_trash' file.unique_id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Move To Trash"><i class="lni lni-trash-can delete icons"></i></a></h4>
+                                    {% endif %}
                                   </div>
                                 </div>
                                   <a href="{{file.get_url}}" target="_blank">
@@ -187,32 +203,46 @@
                     <th class="date text-left">Uploaded</th>
                     <th class="size text-left">Size</th>
                     <th class="size text-left">Copy Link</th>
-                    <th class="size text-left">Download</th>
-                    <th class="size text-left">Trash</th>
+                    {% if perms.file.can_download_file %}
+                        <th class="size text-left">Download</th>
+                    {% endif %}
+
+                    {% if perms.file.can_add_files_to_trash %}
+                        <th class="size text-left">Trash</th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody>
                 {% for file in files %}
                 <tr>
                     <td class="type">
-                      {% if file.file_category == 'images' %}
-                        <i class="fa fa-file-image-o text-primary"></i>
+                      {% if file.file_type == 'image/gif' %}
+                        <i class="fa-solid fa-photo-film text-danger"></i>
+                      {% elif file.file_category == 'images' %}
+                        <i class="fa-solid fa-image text-primary"></i>
+                      {% elif file.file_type == 'application/pdf' %}
+                        <i class="fa-solid fa-file-pdf text-success"></i>
                       {% elif file.file_category == 'docs' %}
-                        <i class="fa fa-file-text-o text-success"></i>
+                        <i class="fa-solid fa-file-word text-success"></i>
                       {% elif file.file_category == 'media' %}
-                        <i class="fa fa-file-video-o text-danger"></i>
-                      {% elif file.file_category == 'zip' %}
-                        <i class="fa fa-file-archive-o text-warning"></i>
+                        <i class="fa-solid fa-clapperboard text-danger"></i>
+                      {% elif file.file_category == 'zip' or file.file_type == 'application/octet-stream' %}
+                        <i class="fa-solid fa-file-zipper text-warning"></i>
                       {% else %}
-                        <i class="fa fa-file text-info"></i>
+                        <i class="fa fa-file"></i>
                       {% endif %}
                     </td>
                     <td class="name truncate"><a title="{{ file.file_name }}" href="{{file.get_url}}" target="_blank">{{file.file_name|truncatechars:35}}</a></td>
                     <td class="date">{{file.uploaded_at}}</td>
                     <td class="size">{{file.file_size|filesizeformat}}</td>
                     <td class="center"><a id="link-{{file.unique_id}}" class="copy" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ file.get_url }}', 'link-{{file.unique_id}}')" class="lni lni-link"></i></a></td>
-                    <td class="center"><a href="{% url 'download' file.privacy.link %}" class="download" data-toggle="tooltip" data-placement="top" title="" data-original-title="Download" download><i class="lni lni-arrow-down-circle download"></i></a></td>
-                    <td class="center"><a href="{% url 'file:move_to_trash' file.unique_id %}" class="delete" data-toggle="tooltip" data-placement="top" title="" data-original-title="Move To Trash"><i class="lni lni-trash-can delete"></i></a></td>
+                    {% if perms.file.can_download_file %}
+                        <td class="center"><a href="{% url 'download' file.privacy.link %}" class="download" data-toggle="tooltip" data-placement="top" title="" data-original-title="Download" download><i class="lni lni-arrow-down-circle download"></i></a></td>
+                    {% endif %}
+
+                    {% if perms.file.can_add_files_to_trash %}
+                        <td class="center"><a href="{% url 'file:move_to_trash' file.unique_id %}" class="delete" data-toggle="tooltip" data-placement="top" title="" data-original-title="Move To Trash"><i class="lni lni-trash-can delete"></i></a></td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
 

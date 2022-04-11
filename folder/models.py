@@ -18,6 +18,10 @@ class Folder(models.Model):
 
     class Meta:
         ordering = ('-created_at',)
+        permissions = (
+            ("can_download_folder", "Can Download Folder"),
+            ("can_rename_folder", "Can Rename Folder"),
+        )
 
     def __str__(self):
         return self.name

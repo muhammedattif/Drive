@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, reverse
 from folder.models import Folder
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.conf import settings
 from django.contrib import messages
 import os, shutil
@@ -89,6 +89,7 @@ def create_folder(request, unique_id):
 
 # delete folder View
 @login_required(login_url='login')
+@permission_required('folder.delete_folder', raise_exception=True)
 def delete_folder(request, unique_id):
     user = request.user
     try:
@@ -131,8 +132,8 @@ def delete_folder(request, unique_id):
 
 # Rename folder View
 @login_required(login_url='login')
+@permission_required('folder.can_rename_folder', raise_exception=True)
 def rename_folder(request, unique_id):
-    print(request.method)
     if request.method != 'POST':
         return redirect('error')
 
@@ -187,16 +188,14 @@ def rename_folder(request, unique_id):
             messages.error(request, 'Folder with this name is already exists.')
             return redirect(redirect_path)
 
-        if not os.path.exists(folder_old_path):
-            messages.error(request, 'Folder does not exist.!')
-            return redirect(redirect_path)
+        if os.path.exists(folder_old_path):
 
-        # Rename folder on the physical disk
-        try:
-            os.rename(folder_old_path, folder_new_path)
-        except:
-            messages.error(request, 'Cannot rename folder on the physical storage!')
-            return redirect(redirect_path)
+            # Rename folder on the physical disk
+            try:
+                os.rename(folder_old_path, folder_new_path)
+            except:
+                messages.error(request, 'Cannot rename folder on the physical storage!')
+                return redirect(redirect_path)
 
         try:
             # Rename folder in DB

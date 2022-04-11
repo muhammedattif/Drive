@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, reverse
 from file.models import File
 from folder.models import Folder
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.core.paginator import Paginator
 from accounts.models import Account
 from .models import DriveSettings, CompressedFile
@@ -97,6 +97,7 @@ def privacy_settings(request):
     return render(request, 'drive/privacy_settings.html', context)
 
 @login_required(login_url='login')
+@permission_required('drive.can_compress_account_data', raise_exception=True)
 def compress_user_files(request):
 
     from .tasks import async_compress_user_files
@@ -112,6 +113,7 @@ def compress_user_files(request):
     return redirect('home')
 
 @login_required(login_url='login')
+@permission_required('drive.can_compress_account_data', raise_exception=True)
 def download_compressed_data(request):
 
     compressed_data = CompressedFile.objects.get(user=request.user)
@@ -123,10 +125,9 @@ def download_compressed_data(request):
         return response
 
 @login_required(login_url='login')
+@permission_required('drive.can_erase_account_data', raise_exception=True)
 def erase_account_data(request):
-
     if request.method == 'POST':
-        print(1)
         request.user.files.all().delete()
         request.user.folders.all().delete()
         messages.error(request, 'Account data has been erased.')
