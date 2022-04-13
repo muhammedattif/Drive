@@ -5,6 +5,9 @@ from django.urls import reverse
 import hashlib
 from file.models import FileQuality
 from django.conf import settings
+from file.models import SharedFile, SharedFilePermission
+from drf_writable_nested.serializers import WritableNestedModelSerializer
+from django.contrib.auth import get_user_model
 
 class QualitySerializer(serializers.Serializer):
     quality = serializers.CharField()
@@ -83,3 +86,17 @@ class FileQualitySerilizer(serializers.ModelSerializer):
 
     def get_status(self, obj):
         return obj.get_status_display()
+
+class SharedFilePermissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SharedFilePermission
+        fields = ('pk', 'can_view', 'can_rename', 'can_download', 'can_delete')
+
+
+class SharedFileSerializer(WritableNestedModelSerializer):
+    shared_with_user = serializers.CharField()
+    permissions = SharedFilePermissionSerializer(many=False)
+
+    class Meta:
+        model = SharedFile
+        fields = ('pk', 'file', 'shared_with_user', 'permissions')

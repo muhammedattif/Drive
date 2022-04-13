@@ -124,6 +124,9 @@ class Account(AbstractBaseUser, PermissionsMixin, ResizeImageMixin):
     def get_classified_files(self):
         return classify_files(self.files.all())
 
+    def can_share_with(self, user):
+        return user not in self.file_sharing_block_list.users.all() and self not in user.file_sharing_block_list.users.all()
+
 
 
 

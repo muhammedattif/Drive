@@ -173,7 +173,7 @@ def download(request, file_link):
         file = File.objects.get(privacy__link=file_link)
 
         # Check privacy settings
-        if file.is_public() or (file.uploader == request.user) or (request.user in file.privacy.shared_with.all()):
+        if file.is_public() or (file.uploader == request.user) or (request.user in file.privacy.accessed_by.all()):
             response = FileResponse(file.file, as_attachment=True)
             response['Content-Disposition'] = f'attachment; filename="{file.file_name}"'
             return response
@@ -194,22 +194,22 @@ def file_settings(request, unique_id):
 
     if request.method == 'POST':
 
-        shared_with_users = request.POST['users']
-        shared_with_users = shared_with_users.replace('\r\n', ' ')
-        shared_with_users = shared_with_users.split(' ')
+        accessed_by_users = request.POST['users']
+        accessed_by_users = accessed_by_users.replace('\r\n', ' ')
+        accessed_by_users = accessed_by_users.split(' ')
 
         form = FilePrivacyForm(request.POST, instance=file_privacy_settings)
 
         if form.is_valid():
             form = form.save(commit=False)
-            if len(shared_with_users) > 0:
+            if len(accessed_by_users) > 0:
                 invalid_user = False
-                file_privacy_settings.shared_with.clear()
-                for user in shared_with_users:
+                file_privacy_settings.accessed_by.clear()
+                for user in accessed_by_users:
                     if user:
                         try:
                             user = Account.objects.get(email=user)
-                            file_privacy_settings.shared_with.add(user)
+                            file_privacy_settings.accessed_by.add(user)
                         except Account.DoesNotExist:
                             invalid_user = True
             form.save()

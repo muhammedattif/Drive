@@ -1,8 +1,8 @@
 from django.db import models
 from django.conf import settings
-from accounts.models import Account
 from folder.models import Folder
 from activity.models import Activity
+from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
 from django.contrib.contenttypes.fields import GenericRelation
 from file.utils import generate_file_link, get_file_path, get_video_cover_path, get_video_subtitle_path, compress_image
@@ -10,6 +10,8 @@ import uuid
 from datetime import datetime, timezone
 from model_utils import Choices
 from django.core.exceptions import ValidationError
+
+User = get_user_model()
 
 QUALITY_CHOICES = (
         ('144p', '144p'),
@@ -23,7 +25,7 @@ QUALITY_CHOICES = (
 # File Model
 class File(models.Model):
     unique_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
-    uploader = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="files")
+    uploader = models.ForeignKey(User, on_delete=models.CASCADE, related_name="files")
     file = models.FileField(upload_to=get_file_path, max_length=500)
     file_name = models.CharField(max_length=255)
     file_size = models.IntegerField()
@@ -41,7 +43,7 @@ class File(models.Model):
         )
 
     def __str__(self):
-        return self.file_name
+        return self.file_name[:20]
 
     def get_url(self):
         return 'https://%s/%s/%s' % (Site.objects.get_current().domain, settings.ALIAS_DRIVE_PATH, self.privacy.link)
@@ -123,7 +125,7 @@ class FilePrivacy(models.Model):
     )
     file = models.OneToOneField(File, on_delete=models.CASCADE, related_name='privacy')
     option = models.CharField(max_length=10, choices=PRIVACY_CHOICES, default="private")
-    shared_with = models.ManyToManyField(Account, blank=True)
+    accessed_by = models.ManyToManyField(User, blank=True, help_text="List of users that can access this file with the sharable link.")
     link = models.CharField(max_length=255, unique=True, null=True)
 
 
@@ -138,7 +140,7 @@ class FilePrivacy(models.Model):
 
 
 class Trash(models.Model):
-    user = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="trashed_files")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="trashed_files")
     file = models.OneToOneField(File, on_delete=models.CASCADE, default=1)
     trashed_at = models.DateTimeField(verbose_name="Date Trashed", auto_now_add=True)
 
@@ -164,3 +166,30 @@ class Trash(models.Model):
         if remaining_days <= 0:
             return True
         return False
+
+class SharedFile(models.Model):
+    file = models.ForeignKey(File, on_delete=models.CASCADE, related_name='shared_with')
+    shared_with_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="shared_with_me")
+
+    class Meta:
+        unique_together = ['file', 'shared_with_user']
+
+    def __str__(self):
+        return f'{self.file.file_name}-{self.shared_with_user.username}'
+
+class SharedFilePermission(models.Model):
+    file = models.OneToOneField(SharedFile, on_delete=models.CASCADE, related_name='permissions')
+    can_view = models.BooleanField(default=True)
+    can_rename = models.BooleanField(default=False)
+    can_download = models.BooleanField(default=False)
+    can_delete = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f'{self.file.id}'
+
+class FileSharingBlockList(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='file_sharing_block_list')
+    users = models.ManyToManyField(User, blank=True)
+
+    def __str__(self):
+        return self.user.email

@@ -1,9 +1,18 @@
-from file.models import File, FilePrivacy, MediaFileProperties
+from file.models import File, FilePrivacy, MediaFileProperties, SharedFile, SharedFilePermission
 from activity.models import Activity
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 import os
 from file.utils import detect_quality
+from django.db import transaction
+
+# This function is used as a decorator for the signals
+# to ensure that all data has been committed within
+# the transaction for Transactions
+def on_transaction_commit(func):
+    def inner(*args, **kwargs):
+        transaction.on_commit(lambda: func(*args, **kwargs))
+    return inner
 
 # This function is for Creating Privacy object for a file
 @receiver(post_save, sender=File)
@@ -71,3 +80,11 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
     """
     if instance.file and os.path.isfile(instance.file.path):
         os.remove(instance.file.path)
+
+
+# This function is for setting Shares File Default Permissions if not created by the user
+@receiver(post_save, sender=SharedFile)
+@on_transaction_commit
+def create_shared_file_permissions(sender, instance=None, created=False, **kwargs):
+    if created and not hasattr(instance, 'permissions'):
+        SharedFilePermission.objects.create(file=instance)

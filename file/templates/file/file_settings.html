@@ -53,7 +53,7 @@
       <div class="col-sm-12 col-lg-6">
         <div class="form-group">
           <label for="exampleFormControlTextarea1">Share with</label>
-          <textarea class="form-control" name="users" id="exampleFormControlTextarea1" rows="3">{% with file_settings.shared_with.all as users %}{% for user in  users %}{{user.email}} {% endfor %}{% endwith %}</textarea>
+          <textarea class="form-control" name="users" id="exampleFormControlTextarea1" rows="3">{% with file_settings.accessed_by.all as users %}{% for user in  users %}{{user.email}} {% endfor %}{% endwith %}</textarea>
           <small>Users emails must be in a format like:<br> ahmed@example.com muhammed@example.com. seperated by " "</small>
         </div>
       </div>
