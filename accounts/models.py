@@ -19,8 +19,8 @@ from django.db import transaction
 
 # this class is for resizing images
 class ResizeImageMixin:
-    def resize(self, imageField: models.ImageField, size:tuple):
-        im = Image.open(imageField)  # Catch original
+    def resize(self, image_field: models.ImageField, size:tuple):
+        im = Image.open(image_field)  # Catch original
         source_image = im.convert('RGB')
 
         source_image.thumbnail(size)  # Resize to size
@@ -32,7 +32,7 @@ class ResizeImageMixin:
         file = File(content_file)
 
         random_name = f'{uuid.uuid4()}.jpeg'
-        imageField.save(random_name, file, save=False)
+        image_field.save(random_name, file, save=False)
 
 
 # this function is for initializing profile image file path
@@ -117,7 +117,7 @@ class Account(AbstractBaseUser, PermissionsMixin, ResizeImageMixin):
         storage = 0
         files = self.files.all()
         for file in files:
-            storage += file.file_size
+            storage += file.size
 
         return storage
 
@@ -125,7 +125,7 @@ class Account(AbstractBaseUser, PermissionsMixin, ResizeImageMixin):
         return classify_files(self.files.all())
 
     def can_share_with(self, user):
-        return user not in self.file_sharing_block_list.users.all() and self not in user.file_sharing_block_list.users.all()
+        return (user not in self.file_sharing_block_list.users.all()) and (self not in user.file_sharing_block_list.users.all())
 
 
 
@@ -172,10 +172,9 @@ def rename_username_dir(sender, instance=None, created=False, **kwargs):
 # this receiver is to toggle unlimited storage based on user's role
 # @receiver(pre_save, sender=settings.AUTH_USER_MODEL)
 def on_any_change(sender, instance=None, created=False, **kwargs):
-    if instance.id is not None:
-        if instance.is_superuser:
-            instance.drive_settings.unlimited_storage = True
-            instance.drive_settings.save()
+    if instance.id is not None and instance.is_superuser:
+        instance.drive_settings.unlimited_storage = True
+        instance.drive_settings.save()
 
 
 def classify_files(files):
@@ -194,26 +193,26 @@ def classify_files(files):
     }
 
     for file in files:
-        if file.file_type.split('/')[0] == 'image':
+        if file.type.split('/')[0] == 'image':
             classified_files['images']['count'] += 1
-            classified_files['images']['size'] += file.file_size
+            classified_files['images']['size'] += file.size
 
-        elif file.file_type.split('/')[0] == 'audio':
+        elif file.type.split('/')[0] == 'audio':
             classified_files['audio']['count'] += 1
-            classified_files['audio']['size'] += file.file_size
+            classified_files['audio']['size'] += file.size
 
 
-        elif file.file_type.split('/')[0] == 'video':
+        elif file.type.split('/')[0] == 'video':
             classified_files['videos']['count'] += 1
-            classified_files['videos']['size'] += file.file_size
+            classified_files['videos']['size'] += file.size
 
 
-        elif file.file_name.split('.')[-1] in docs_ext or file.file_type.split('/')[0] == 'text':
+        elif file.name.split('.')[-1] in docs_ext or file.type.split('/')[0] == 'text':
             classified_files['docs']['count'] += 1
-            classified_files['docs']['size'] += file.file_size
+            classified_files['docs']['size'] += file.size
 
 
         else:
             classified_files['others']['count'] += 1
-            classified_files['others']['size'] += file.file_size
+            classified_files['others']['size'] += file.size
     return classified_files

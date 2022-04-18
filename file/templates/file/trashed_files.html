@@ -61,13 +61,13 @@
                                   <a href="javascript:void(0);">
 
                                       <div class="icon">
-                                        {% if trash.file.file_category == 'images' %}
+                                        {% if trash.file.category == 'images' %}
                                          <i class="fa fa-file-image-o text-primary"></i>
-                                       {% elif trash.file.file_category == 'docs' %}
+                                       {% elif trash.file.category == 'docs' %}
                                          <i class="fa fa-file-text-o text-success"></i>
-                                       {% elif trash.file.file_category == 'media' %}
+                                       {% elif trash.file.category == 'media' %}
                                          <i class="fa fa-file-video-o text-danger"></i>
-                                       {% elif trash.file.file_category == 'zip' %}
+                                       {% elif trash.file.category == 'zip' %}
                                          <i class="fa fa-file-archive-o text-warning"></i>
                                        {% else %}
                                          <i class="fa fa-file text-info"></i>
@@ -80,8 +80,8 @@
 
 
                                       <div class="file-name">
-                                          <a title="{{ trash.file.file_name }}" href="{{trash.file.get_url}}" target="_blank"><p class="text-muted">{{trash.file.file_name|truncatechars:35}}</p></a>
-                                          <small>Size: {{trash.file.file_size|filesizeformat}} <span class="date text-muted">Trash date: {{trash.trashed_at}}</span></small>
+                                          <a title="{{ trash.file.name }}" href="{{trash.file.get_url}}" target="_blank"><p class="text-muted">{{trash.file.name|truncatechars:35}}</p></a>
+                                          <small>Size: {{trash.file.size|filesizeformat}} <span class="date text-muted">Trash date: {{trash.trashed_at}}</span></small>
                                           <small><span class="date text-muted"></span></small>
                                       </div>
                                   </a>
@@ -134,21 +134,21 @@
                 {% for trash in trashed_files.all %}
                 <tr>
                     <td class="type">
-                      {% if trash.file.file_category == 'images' %}
+                      {% if trash.file.category == 'images' %}
                         <i class="fa fa-file-image-o text-primary">
-                      {% elif trash.file.file_category == 'docs' %}
+                      {% elif trash.file.category == 'docs' %}
                         <i class="fa fa-file-text-o text-success">
-                      {% elif trash.file.file_category == 'media' %}
+                      {% elif trash.file.category == 'media' %}
                         <i class="fa fa-file-video-o text-danger">
-                      {% elif trash.file.file_category == 'zip' %}
+                      {% elif trash.file.category == 'zip' %}
                         <i class="fa fa-file-archive-o text-warning">
                       {% else %}
                         <i class="fa fa-file-o text-info">
                       {% endif %}
                     </i></td>
-                    <td class="name truncate"><a href="{{file.file.url}}" target="_blank">{{trash.file.file_name|truncatechars:35}}</a></td>
+                    <td class="name truncate"><a href="{{file.file.url}}" target="_blank">{{trash.file.name|truncatechars:35}}</a></td>
                     <td class="date">{{trash.file.trashed_at}}</td>
-                    <td class="size">{{trash.file.file_size|filesizeformat}}</td>
+                    <td class="size">{{trash.file.size|filesizeformat}}</td>
                     <td><button type="button" class="btn btn-success">Recover</button></td>
                 </tr>
                 {% endfor %}

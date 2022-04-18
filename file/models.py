@@ -5,11 +5,14 @@ from activity.models import Activity
 from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
 from django.contrib.contenttypes.fields import GenericRelation
+from django.core.exceptions import ValidationError
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from file.utils import generate_file_link, get_file_path, get_video_cover_path, get_video_subtitle_path, compress_image
 import uuid
 from datetime import datetime, timezone
 from model_utils import Choices
-from django.core.exceptions import ValidationError
+from .validators import validation_message
 
 User = get_user_model()
 
@@ -22,18 +25,76 @@ QUALITY_CHOICES = (
         ('1080p', '1080p'),
     )
 
+
+class SharedObject(models.Model):
+    shared_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="shared_files")
+
+    object_choices = models.Q(app_label = 'file', model = 'file') | models.Q(app_label = 'folder', model = 'folder')
+
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, limit_choices_to=object_choices, related_name='shared_with')
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    shared_with = models.ForeignKey(User, on_delete=models.CASCADE, related_name="shared_with_me")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at',]
+        unique_together = ['shared_by', 'content_type', 'object_id', 'shared_with']
+
+    def clean(self):
+        if self.shared_by != self.content_object.user:
+            raise validation_message('not_file_owner')
+
+        if not self.shared_by.can_share_with(self.shared_with):
+            raise validation_message('in_block_list')
+
+        super(SharedObject, self).clean()
+
+    def __str__(self):
+        return f'{self.shared_by.username}-{self.content_object.name}-{self.shared_with.username}'
+
+class SharedObjectPermission(models.Model):
+    file = models.OneToOneField(SharedObject, on_delete=models.CASCADE, related_name='permissions')
+    can_view = models.BooleanField(default=True)
+    can_rename = models.BooleanField(default=False)
+    can_download = models.BooleanField(default=False)
+    can_delete = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f'{self.file.id}'
+
+    def clean(self):
+
+        if self.can_rename and not self.file.content_object.user.has_perm('folder.can_rename_folder'):
+            raise validation_message('rename_folder_permission_denied')
+
+        if self.can_download and not self.file.content_object.user.has_perm('folder.can_download_folder'):
+            raise validation_message('download_folder_permission_denied')
+
+        super(SharedObjectPermission, self).clean()
+
+class FileSharingBlockList(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='file_sharing_block_list')
+    users = models.ManyToManyField(User, blank=True)
+
+    def __str__(self):
+        return self.user.email
+
+
 # File Model
 class File(models.Model):
     unique_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
-    uploader = models.ForeignKey(User, on_delete=models.CASCADE, related_name="files")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="files")
     file = models.FileField(upload_to=get_file_path, max_length=500)
-    file_name = models.CharField(max_length=255)
-    file_size = models.IntegerField()
-    file_type = models.CharField(max_length=255)
-    file_category = models.CharField(max_length=30)
+    name = models.CharField(max_length=255)
+    size = models.IntegerField()
+    type = models.CharField(max_length=255)
+    category = models.CharField(max_length=30)
     uploaded_at = models.DateTimeField(verbose_name="Date Uploaded", auto_now_add=True)
     parent_folder = models.ForeignKey(Folder, on_delete=models.CASCADE, related_name="files", null=True, blank=True)
     activities = GenericRelation(Activity)
+    shared_with = GenericRelation(SharedObject)
 
     class Meta:
         ordering = ('-uploaded_at',)
@@ -43,7 +104,7 @@ class File(models.Model):
         )
 
     def __str__(self):
-        return self.file_name[:20]
+        return self.name[:20]
 
     def get_url(self):
         return 'https://%s/%s/%s' % (Site.objects.get_current().domain, settings.ALIAS_DRIVE_PATH, self.privacy.link)
@@ -57,10 +118,10 @@ class File(models.Model):
     # this save method is used to hardcode file field
     # if the uploaded file is an image then it will be compressed
     # def save(self, *args, **kwargs):
-    #     if not self.id and (self.file_type.split('/')[1].lower() == 'jpeg' or self.file_type.split('/')[1].lower() == 'jpg' or
-    #         self.file_type.split('/')[1].lower() == 'png') and not self.id:
-    #         self.file = compress_image(self.file, self.file_type)
-    #         self.file_size = self.file.size
+    #     if not self.id and (self.type.split('/')[1].lower() == 'jpeg' or self.type.split('/')[1].lower() == 'jpg' or
+    #         self.type.split('/')[1].lower() == 'png') and not self.id:
+    #         self.file = compress_image(self.file, self.type)
+    #         self.size = self.file.size
     #     super().save(*args, **kwargs)
 
 class FileQuality(models.Model):
@@ -84,12 +145,7 @@ class FileQuality(models.Model):
         )
 
     def __str__(self):
-        return f'{self.original_file.file_name}->{self.quality}'
-
-    # def clean(self):
-    #     if self.original_file == self.converted_file:
-    #         raise ValidationError('Original File and the Converted file cannot be the same.')
-    #     super(FileQuality, self).clean()
+        return f'{self.original_file.name}->{self.quality}'
 
 
 class MediaFileProperties(models.Model):
@@ -100,7 +156,7 @@ class MediaFileProperties(models.Model):
     converted = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'{self.media_file.file_name}->{self.converted}'
+        return f'{self.media_file.name}->{self.converted}'
 
 class VideoSubtitle(models.Model):
 
@@ -114,7 +170,7 @@ class VideoSubtitle(models.Model):
     subtitle_file = models.FileField(upload_to=get_video_subtitle_path, max_length=500)
 
     def __str__(self):
-        return f'{self.media_file.media_file.file_name}->{self.language}'
+        return f'{self.media_file.media_file.name}->{self.language}'
 
 
 class FilePrivacy(models.Model):
@@ -131,10 +187,10 @@ class FilePrivacy(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.link:
-            self.link = generate_file_link(self.file.file_name)
+            self.link = generate_file_link(self.file.name)
 
         if not self.pk:
-            self.option = self.file.uploader.drive_settings.default_upload_privacy
+            self.option = self.file.user.drive_settings.default_upload_privacy
 
         super().save(*args, **kwargs)
 
@@ -166,30 +222,3 @@ class Trash(models.Model):
         if remaining_days <= 0:
             return True
         return False
-
-class SharedFile(models.Model):
-    file = models.ForeignKey(File, on_delete=models.CASCADE, related_name='shared_with')
-    shared_with_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="shared_with_me")
-
-    class Meta:
-        unique_together = ['file', 'shared_with_user']
-
-    def __str__(self):
-        return f'{self.file.file_name}-{self.shared_with_user.username}'
-
-class SharedFilePermission(models.Model):
-    file = models.OneToOneField(SharedFile, on_delete=models.CASCADE, related_name='permissions')
-    can_view = models.BooleanField(default=True)
-    can_rename = models.BooleanField(default=False)
-    can_download = models.BooleanField(default=False)
-    can_delete = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f'{self.file.id}'
-
-class FileSharingBlockList(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='file_sharing_block_list')
-    users = models.ManyToManyField(User, blank=True)
-
-    def __str__(self):
-        return self.user.email

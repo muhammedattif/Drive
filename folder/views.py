@@ -7,6 +7,10 @@ import os, shutil
 from django.core.paginator import Paginator
 from folder.models import Folder
 import string
+from pathlib import Path
+from zipfile import ZIP_DEFLATED, ZipFile
+from django.http import FileResponse, HttpResponse
+
 
 # Folder View
 # This view for a folder to preview its content ( files or child folders )
@@ -130,11 +134,6 @@ def delete_folder(request, unique_id):
     except Exception:
         return redirect('error')
 
-from pathlib import Path
-from zipfile import ZIP_DEFLATED, ZipFile
-from django.http import FileResponse, HttpResponse
-import os
-
 # Download folder View
 @login_required(login_url='login')
 @permission_required('folder.can_download_folder', raise_exception=True)
@@ -246,4 +245,3 @@ def rename_folder(request, unique_id):
 
     except Exception:
         return redirect('error')
-

@@ -1,4 +1,4 @@
-from file.models import File, FilePrivacy, MediaFileProperties, SharedFile, SharedFilePermission
+from file.models import File, FilePrivacy, MediaFileProperties, SharedObject, SharedObjectPermission
 from activity.models import Activity
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
@@ -23,7 +23,7 @@ def create_file_privacy(sender, instance=None, created=False, **kwargs):
 # This function is for Creating Media file Props
 @receiver(post_save, sender=File)
 def create_media_file_props(sender, instance=None, created=False, **kwargs):
-    if created and instance.file_category == 'media':
+    if created and instance.category == 'media':
         media_file_quality = detect_quality(instance.file.path)
         MediaFileProperties.objects.create(media_file=instance, quality=media_file_quality)
 
@@ -33,8 +33,8 @@ def record_activity_on_upload_file(sender, instance=None, created=False, **kwarg
     if created:
         instance.activities.create(
             activity_type=Activity.UPLOAD_FILE,
-            user=instance.uploader,
-            object_name=instance.file_name
+            user=instance.user,
+            object_name=instance.name
         )
 
 
@@ -43,8 +43,8 @@ def record_activity_on_upload_file(sender, instance=None, created=False, **kwarg
 def record_activity_on_delete_file(sender, instance, **kwargs):
     instance.activities.create(
         activity_type=Activity.DELETE_FILE,
-        user=instance.uploader,
-        object_name=instance.file_name
+        user=instance.user,
+        object_name=instance.name
     )
 
 
@@ -52,23 +52,23 @@ def record_activity_on_delete_file(sender, instance, **kwargs):
 @receiver(post_save, sender=File)
 def add_storage_uploaded(sender, instance=None, created=False, **kwargs):
     if created:
-        file_size = instance.file_size
-        instance.uploader.drive_settings.add_storage_uploaded(file_size)
-        instance.uploader.drive_settings.save()
+        file_size = instance.size
+        instance.user.drive_settings.add_storage_uploaded(file_size)
+        instance.user.drive_settings.save()
 
 
 @receiver(post_delete, sender=File)
 def subtract_storage_uploaded(sender, instance, **kwargs):
-    file_size = instance.file_size
-    instance.uploader.drive_settings.subtract_storage_uploaded(file_size)
-    instance.uploader.drive_settings.save()
+    file_size = instance.size
+    instance.user.drive_settings.subtract_storage_uploaded(file_size)
+    instance.user.drive_settings.save()
 
 
 # This function is for cleaning file name before uploading
 @receiver(post_save, sender=File)
 def clean_file_name(sender, instance=None, created=False, **kwargs):
     if created:
-        instance.file_name = os.path.basename(instance.file.path)
+        instance.name = os.path.basename(instance.file.path)
         instance.save()
 
 
@@ -83,8 +83,8 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
 
 
 # This function is for setting Shares File Default Permissions if not created by the user
-@receiver(post_save, sender=SharedFile)
+@receiver(post_save, sender=SharedObject)
 @on_transaction_commit
 def create_shared_file_permissions(sender, instance=None, created=False, **kwargs):
     if created and not hasattr(instance, 'permissions'):
-        SharedFilePermission.objects.create(file=instance)
+        SharedObjectPermission.objects.create(file=instance)

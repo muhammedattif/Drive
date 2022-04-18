@@ -7,7 +7,7 @@ class Command(BaseCommand):
     help = 'Create Properties for each media file'
 
     def handle(self, *args, **kwargs):
-        files = File.objects.filter(file_category='media', file_type__contains='video', properties=None)
+        files = File.objects.filter(category='media', type__contains='video', properties=None)
         files_props_objs = []
         for file in files:
             media_file_quality = detect_quality(file.file.path)

@@ -54,18 +54,18 @@ def upload(request):
             }
             return JsonResponse(context, status=400, content_type="application/json", safe=False)
 
-        file_size = file.size
-        file_category = get_file_cat(file)
-        file_type = file.content_type
+        size = file.size
+        category = get_file_cat(file)
+        type = file.content_type
 
         try:
             if folder_id:
                 parent_folder = Folder.objects.get(unique_id=folder_id)
             else:
                 parent_folder = None
-            file = File.objects.create(uploader=user, file_name=file_name, file_size=file_size,
-                                       file_type=file_type,
-                                       file_category=file_category, file=file, parent_folder=parent_folder)
+            file = File.objects.create(user=user, name=file_name, size=size,
+                                       type=type,
+                                       category=category, file=file, parent_folder=parent_folder)
         except Folder.DoesNotExist:
             context = {
                 'message': 'Destination Folder Not found!'
@@ -111,14 +111,14 @@ def get_trashed_files(request):
 def move_to_trash(request, unique_id):
     file = None
     try:
-        file = File.objects.get(unique_id=unique_id, uploader=request.user)
-        Trash.objects.create(user=file.uploader, file=file)
+        file = File.objects.get(unique_id=unique_id, user=request.user)
+        Trash.objects.create(user=file.user, file=file)
         file.activities.create(
             activity_type=Activity.TRASH_FILE,
             user=request.user,
-            object_name=file.file_name
+            object_name=file.name
         )
-        messages.success(request, f'{file.file_name} moved to trash.')
+        messages.success(request, f'{file.name} moved to trash.')
     except File.DoesNotExist:
         messages.error(request, 'File Does not Exists!')
     if file.parent_folder is not None:
@@ -131,13 +131,13 @@ def move_to_trash(request, unique_id):
 @permission_required('file.delete_file', raise_exception=True)
 def delete_file(request, unique_id, quality=None):
     try:
-        file = File.objects.get(unique_id=unique_id, uploader=request.user)
+        file = File.objects.get(unique_id=unique_id, user=request.user)
         if quality:
             converted_file = file.qualities.get(quality=quality).converted_file
             file = File.objects.get(unique_id=converted_file.unique_id)
 
         file.delete()
-        messages.success(request, f'{file.file_name} was permanently deleted.')
+        messages.success(request, f'{file.name} was permanently deleted.')
     except File.DoesNotExist:
         messages.error(request, 'File Does not Exists!')
     if quality:
@@ -156,9 +156,9 @@ def recover(request, unique_id):
         trashed_file.file.activities.create(
             activity_type=Activity.RECOVER_FILE,
             user=request.user,
-            object_name=trashed_file.file.file_name
+            object_name=trashed_file.file.name
         )
-        messages.success(request, f'{trashed_file.file.file_name} was recovered')
+        messages.success(request, f'{trashed_file.file.name} was recovered')
     except Trash.DoesNotExist:
         messages.error(request, 'File Does not Exists!')
         return redirect('/file/trash')
@@ -173,9 +173,9 @@ def download(request, file_link):
         file = File.objects.get(privacy__link=file_link)
 
         # Check privacy settings
-        if file.is_public() or (file.uploader == request.user) or (request.user in file.privacy.accessed_by.all()):
+        if file.is_public() or (file.user == request.user) or (request.user in file.privacy.accessed_by.all()):
             response = FileResponse(file.file, as_attachment=True)
-            response['Content-Disposition'] = f'attachment; filename="{file.file_name}"'
+            response['Content-Disposition'] = f'attachment; filename="{file.name}"'
             return response
         else:
             return redirect('error')
@@ -188,7 +188,7 @@ def download(request, file_link):
 @login_required(login_url='login')
 def file_settings(request, unique_id):
     try:
-        file_privacy_settings = FilePrivacy.objects.get(file__unique_id=unique_id, file__uploader=request.user)
+        file_privacy_settings = FilePrivacy.objects.get(file__unique_id=unique_id, file__user=request.user)
     except FilePrivacy.DoesNotExist:
         return redirect('error')
 
@@ -219,9 +219,9 @@ def file_settings(request, unique_id):
                                'Saved!, But It seems that you shared this file with an email address that is not associated with any user.')
             else:
                 messages.success(request,
-                                 f'{file_privacy_settings.file.file_name} sharing settings updated successfully!')
+                                 f'{file_privacy_settings.file.name} sharing settings updated successfully!')
 
-    file_type = file_privacy_settings.file.file_type.split('/')[0]
+    file_type = file_privacy_settings.file.type.split('/')[0]
 
     context = {
         'form': FilePrivacyForm(instance=file_privacy_settings),

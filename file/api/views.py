@@ -4,12 +4,12 @@ from rest_framework import status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth import get_user_model
-from file.models import File, FileQuality, SharedFile, SharedFilePermission
+from django.db.models import Q, F
+from file.models import File, FileQuality, SharedObject, SharedObjectPermission
 from file.utils import get_file_cat
 from folder.utils import check_sub_folders_limit, create_folder_tree_if_not_exist
 from django.http import FileResponse, StreamingHttpResponse, HttpResponse
 from rest_framework.views import APIView
-from django.db import transaction
 import os
 import re
 from wsgiref.util import FileWrapper
@@ -20,7 +20,7 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from django.urls import reverse
 from file.utils import detect_quality
-from .serializers import SubtitlesSerializer, CoverSerializer, QualitySerializer, OriginalQualitySerializer, FileQualitySerilizer, SharedFileSerializer
+from .serializers import SubtitlesSerializer, CoverSerializer, QualitySerializer, OriginalQualitySerializer, FileQualitySerilizer, SharedObjectSerializer
 from django.conf import settings
 from django.core.exceptions import ValidationError
 import cloud.messages as response_messages
@@ -93,14 +93,14 @@ def upload(request, format=None):
             content['error_description'] = 'Invalid File!'
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
-        file_size = uploaded_file.size
-        file_category = get_file_cat(uploaded_file)
-        file_type = uploaded_file.content_type
+        size = uploaded_file.size
+        category = get_file_cat(uploaded_file)
+        type = uploaded_file.content_type
         try:
             file = File.objects.create(
-                 uploader=user, file_name=file_name,
-                 file_size=file_size, file_type=file_type,
-                 file_category=file_category,
+                 user=user, name=file_name,
+                 size=file_size, type=file_type,
+                 category=file_category,
                  file=uploaded_file, parent_folder=parent_folder
             )
             # if privacy parameter passed then set it, if not then the default is 'private'
@@ -119,13 +119,13 @@ def upload(request, format=None):
             directory_id = parent_folder.unique_id
 
         content = {
-            'uploader': file.uploader.email,
-            'file_name': file.file_name,
+            'user': file.user.email,
+            'file_name': file.name,
             'file_id': file.pk,
             'file_link': file.get_url(),
-            'file_size': file.file_size,
-            'file_type': file.file_type,
-            'file_category': file.file_category,
+            'file_size': file.size,
+            'file_type': file.type,
+            'file_category': file.category,
             'uploaded_at': file.uploaded_at,
             'directory_id': directory_id
         }
@@ -148,7 +148,7 @@ def delete(request, unique_id):
     content = {}
     user = request.user
     try:
-        file = File.objects.get(unique_id=unique_id, uploader=user)
+        file = File.objects.get(unique_id=unique_id, user=user)
         file.delete()
         content['success_message'] = 'File Deleted Successfully!'
         return Response(content, status=status.HTTP_200_OK)
@@ -214,7 +214,7 @@ def stream_video(request, uuid, token, expiry, quality):
     range_match = range_re.match(range_header)
     size = os.path.getsize(path)
     chunk_size = 1000000  # 1MB
-    content_type = 'video/mp4'
+    content_type = 'application/octet-stream'
     if range_match:
 
         start, end = range_match.groups()
@@ -302,60 +302,21 @@ def get_conversion_status(request, uuid):
     return Response(serializer.data)
 
 
-class SharedFileListCreateView(APIView):
+class SharedWithListView(APIView):
 
     def get(self, request, uuid):
 
-        file = File.objects.filter(uploader=request.user, unique_id=uuid).first()
+        file = File.objects.filter(user=request.user, unique_id=uuid).first()
+
+        blocked_users = request.user.file_sharing_block_list.users.values_list('id')
+        file_shared_with = SharedObject.objects.prefetch_related('shared_by', 'shared_with', 'permissions', 'content_type', 'content_object').filter(
+        Q(shared_by=request.user),
+        Q(object_id=file.id),
+        ~Q(shared_with__file_sharing_block_list__users__in=[request.user]),
+        ~Q(shared_by__in=blocked_users),
+        ~Q(shared_with__in=blocked_users)
+        )
         if not file:
             return Response(response_messages.error('file_not_found'), status=status.HTTP_404_NOT_FOUND)
-
-        serializer = SharedFileSerializer(file.shared_with.all(), many=True, read_only=True)
+        serializer = SharedObjectSerializer(file_shared_with, many=True, read_only=True, context={'request': request})
         return Response(serializer.data)
-
-
-    @transaction.atomic
-    def post(self, request, uuid):
-
-        shared_with_user = User.objects.filter(email=request.data['shared_with_user']).first()
-        if not shared_with_user:
-            return Response(response_messages.error('user_not_found'), status=status.HTTP_404_NOT_FOUND)
-
-        if not self.request.user.can_share_with(shared_with_user):
-            return Response(response_messages.error('share_files_denied'), status=status.HTTP_403_FORBIDDEN)
-
-        file = File.objects.filter(uploader=request.user, unique_id=uuid).first()
-
-        shared_file, created = SharedFile.objects.get_or_create(file=file, shared_with_user=shared_with_user)
-        if created:
-            SharedFilePermission.objects.create(file=shared_file, **request.data['permissions'])
-
-        serializer = SharedFileSerializer(shared_file, many=False, read_only=True)
-        return Response(serializer.data)
-
-    def put(self, request, uuid):
-
-        shared_with_user = request.data['shared_with_user']
-        shared_file = SharedFile.objects.filter(file__unique_id=uuid, shared_with_user__email=shared_with_user).first()
-        if not shared_file:
-            return Response(response_messages.error('file_not_shared_yet'), status=status.HTTP_404_NOT_FOUND)
-
-        shared_file.permissions.can_view = request.data['permissions']['can_view']
-        shared_file.permissions.can_rename = request.data['permissions']['can_rename']
-        shared_file.permissions.can_download = request.data['permissions']['can_download']
-        shared_file.permissions.can_delete = request.data['permissions']['can_delete']
-        shared_file.permissions.save(update_fields=['can_view', 'can_rename', 'can_download', 'can_delete'])
-
-        serializer = SharedFileSerializer(shared_file, many=False, read_only=True)
-        return Response(serializer.data)
-
-class SharedFileDestroyView(APIView):
-
-    def delete(self, request, uuid, id):
-
-        shared_file = SharedFile.objects.filter(id=id, file__unique_id=uuid, file__uploader=request.user).first()
-        if not shared_file:
-            return Response(response_messages.error('file_not_found'), status=status.HTTP_404_NOT_FOUND)
-
-
-        return Response(response_messages.error('deleted_successfully'), status=status.HTTP_404_NOT_FOUND)

@@ -161,17 +161,17 @@
 
 
                                       <div class="icon">
-                                          {% if file.file_type == 'image/gif' %}
+                                          {% if file.type == 'image/gif' %}
                                             <i class="fa-solid fa-photo-film text-danger"></i>
-                                          {% elif file.file_category == 'images' %}
+                                          {% elif file.category == 'images' %}
                                             <i class="fa-solid fa-image text-primary"></i>
-                                          {% elif file.file_type == 'application/pdf' %}
+                                          {% elif file.type == 'application/pdf' %}
                                             <i class="fa-solid fa-file-pdf text-success"></i>
-                                          {% elif file.file_category == 'docs' %}
+                                          {% elif file.category == 'docs' %}
                                             <i class="fa-solid fa-file-word text-success"></i>
-                                          {% elif file.file_category == 'media' %}
+                                          {% elif file.category == 'media' %}
                                             <i class="fa-solid fa-clapperboard text-danger"></i>
-                                          {% elif file.file_category == 'zip' or file.file_type == 'application/octet-stream' %}
+                                          {% elif file.category == 'zip' or file.type == 'application/octet-stream' %}
                                             <i class="fa-solid fa-file-zipper text-warning"></i>
                                           {% else %}
                                             <i class="fa fa-file"></i>
@@ -179,8 +179,8 @@
 
                                       </div>
                                       <div class="file-name">
-                                          <a title="{{ file.file_name }}" href="{{file.get_url}}" target="_blank"><p class="m-b-5 text-muted">{{file.file_name|truncatechars:35}}</p></a>
-                                          <small>Size: {{file.file_size|filesizeformat}} <span class="date text-muted">{{file.uploaded_at}}</span></small>
+                                          <a title="{{ file.name }}" href="{{file.get_url}}" target="_blank"><p class="m-b-5 text-muted">{{file.name|truncatechars:35}}</p></a>
+                                          <small>Size: {{file.size|filesizeformat}} <span class="date text-muted">{{file.uploaded_at}}</span></small>
                                       </div>
                                   </a>
                               </div>
@@ -219,25 +219,25 @@
                 {% for file in files %}
                 <tr>
                     <td class="type">
-                      {% if file.file_type == 'image/gif' %}
+                      {% if file.type == 'image/gif' %}
                         <i class="fa-solid fa-photo-film text-danger"></i>
-                      {% elif file.file_category == 'images' %}
+                      {% elif file.category == 'images' %}
                         <i class="fa-solid fa-image text-primary"></i>
-                      {% elif file.file_type == 'application/pdf' %}
+                      {% elif file.type == 'application/pdf' %}
                         <i class="fa-solid fa-file-pdf text-success"></i>
-                      {% elif file.file_category == 'docs' %}
+                      {% elif file.category == 'docs' %}
                         <i class="fa-solid fa-file-word text-success"></i>
-                      {% elif file.file_category == 'media' %}
+                      {% elif file.category == 'media' %}
                         <i class="fa-solid fa-clapperboard text-danger"></i>
-                      {% elif file.file_category == 'zip' or file.file_type == 'application/octet-stream' %}
+                      {% elif file.category == 'zip' or file.type == 'application/octet-stream' %}
                         <i class="fa-solid fa-file-zipper text-warning"></i>
                       {% else %}
                         <i class="fa fa-file"></i>
                       {% endif %}
                     </td>
-                    <td class="name truncate"><a title="{{ file.file_name }}" href="{{file.get_url}}" target="_blank">{{file.file_name|truncatechars:35}}</a></td>
+                    <td class="name truncate"><a title="{{ file.name }}" href="{{file.get_url}}" target="_blank">{{file.name|truncatechars:35}}</a></td>
                     <td class="date">{{file.uploaded_at}}</td>
-                    <td class="size">{{file.file_size|filesizeformat}}</td>
+                    <td class="size">{{file.size|filesizeformat}}</td>
                     <td class="center"><a id="link-{{file.unique_id}}" class="copy" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ file.get_url }}', 'link-{{file.unique_id}}')" class="lni lni-link"></i></a></td>
                     {% if perms.file.can_download_file %}
                         <td class="center"><a href="{% url 'download' file.privacy.link %}" class="download" data-toggle="tooltip" data-placement="top" title="" data-original-title="Download" download><i class="lni lni-arrow-down-circle download"></i></a></td>

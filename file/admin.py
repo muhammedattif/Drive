@@ -1,5 +1,5 @@
 from django.contrib import admin
-from file.models import File, FileQuality, MediaFileProperties, VideoSubtitle, FilePrivacy, Trash, SharedFile, SharedFilePermission, FileSharingBlockList
+from file.models import File, FileQuality, MediaFileProperties, VideoSubtitle, FilePrivacy, Trash, SharedObject, SharedObjectPermission, FileSharingBlockList
 from nested_inline.admin import NestedStackedInline, NestedModelAdmin
 
 class FilePrivacyInline(NestedStackedInline):
@@ -11,15 +11,15 @@ class FilePrivacyInline(NestedStackedInline):
 class FileConfig(NestedModelAdmin):
     model = File
 
-    list_filter = ('uploader__username', 'file_size', 'file_type', 'file_category', 'uploaded_at')
-    list_display = ('uploader', 'file_size', 'file_type', 'file_category', 'uploaded_at')
+    list_filter = ('user__username', 'size', 'type', 'category', 'uploaded_at')
+    list_display = ('user', 'size', 'type', 'category', 'uploaded_at')
 
     inlines = [FilePrivacyInline]
 
 class FilePrivacyConfig(admin.ModelAdmin):
     model = FilePrivacy
 
-    list_filter = ('file__uploader__username',)
+    list_filter = ('file__user__username',)
     list_display = ('file', 'option')
 
 class TrashConfig(admin.ModelAdmin):
@@ -36,21 +36,21 @@ admin.site.register(MediaFileProperties)
 admin.site.register(VideoSubtitle)
 admin.site.register(Trash, TrashConfig)
 
-class SharedFilePermissionInline(NestedStackedInline):
-    model = SharedFilePermission
+class SharedObjectPermissionInline(NestedStackedInline):
+    model = SharedObjectPermission
     can_delete = False
     verbose_name_plural = 'Permissions'
     fk_name = 'file'
 
-class SharedFileConfig(NestedModelAdmin):
-    model = SharedFile
+class SharedObjectConfig(NestedModelAdmin):
+    model = SharedObject
 
-    list_filter = ('file', 'permissions__can_view', 'permissions__can_delete', 'permissions__can_download', 'permissions__can_rename')
-    list_display = ('file', 'shared_with_user')
+    list_filter = ('permissions__can_view', 'permissions__can_delete', 'permissions__can_download', 'permissions__can_rename')
+    list_display = ('shared_by', 'shared_with')
 
-    inlines = [SharedFilePermissionInline]
+    inlines = [SharedObjectPermissionInline]
 
-admin.site.register(SharedFile, SharedFileConfig)
-admin.site.register(SharedFilePermission)
+admin.site.register(SharedObject, SharedObjectConfig)
+admin.site.register(SharedObjectPermission)
 
 admin.site.register(FileSharingBlockList)

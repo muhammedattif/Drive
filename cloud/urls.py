@@ -36,9 +36,6 @@ urlpatterns = [
     # Account APIs
     path('api/account/', include('accounts.api.urls', 'account_api')),
 
-    # Uploader APIs
-    # path('api/uploader/', include('uploader.api.urls', 'uploader_api')),
-
     path('drive/', include('drive.urls', namespace='drive')),
 
     path('file/', include('file.urls', namespace='file')),

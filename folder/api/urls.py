@@ -1,7 +1,7 @@
 from django.urls import path
 from folder.api.views import create_folder_tree, delete_folder
 
-app_name = 'uploader'
+app_name = 'folder'
 
 urlpatterns = [
     path('create_folder', create_folder_tree, name='create_folder'),

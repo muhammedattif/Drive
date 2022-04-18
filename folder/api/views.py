@@ -2,6 +2,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.decorators import permission_required
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.views import APIView
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from file.models import File
 from folder.models import Folder

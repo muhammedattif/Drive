@@ -5,9 +5,11 @@ from django.urls import reverse
 import hashlib
 from file.models import FileQuality
 from django.conf import settings
-from file.models import SharedFile, SharedFilePermission
+from file.models import File, SharedObject, SharedObjectPermission
 from drf_writable_nested.serializers import WritableNestedModelSerializer
 from django.contrib.auth import get_user_model
+from accounts.api.serializers import BasicUserInfoSerializer
+from folder.api.serializers import FolderSerializer
 
 class QualitySerializer(serializers.Serializer):
     quality = serializers.CharField()
@@ -87,16 +89,32 @@ class FileQualitySerilizer(serializers.ModelSerializer):
     def get_status(self, obj):
         return obj.get_status_display()
 
-class SharedFilePermissionSerializer(serializers.ModelSerializer):
+class FileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = SharedFilePermission
+        model = File
+        fields = '__all__'
+
+class SharedObjectPermissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SharedObjectPermission
         fields = ('pk', 'can_view', 'can_rename', 'can_download', 'can_delete')
 
 
-class SharedFileSerializer(WritableNestedModelSerializer):
-    shared_with_user = serializers.CharField()
-    permissions = SharedFilePermissionSerializer(many=False)
+class SharedObjectSerializer(serializers.ModelSerializer):
+    permissions = SharedObjectPermissionSerializer(many=False)
+    shared_by = BasicUserInfoSerializer(many=False, read_only=True)
+    shared_with = BasicUserInfoSerializer(many=False, read_only=True)
+    content_object = serializers.SerializerMethodField()
+    content_type = serializers.SerializerMethodField()
 
     class Meta:
-        model = SharedFile
-        fields = ('pk', 'file', 'shared_with_user', 'permissions')
+        model = SharedObject
+        fields = ('pk', 'content_object', 'content_type', 'shared_by', 'shared_with', 'permissions')
+
+    def get_content_object(self, shared_object):
+        if self.get_content_type(shared_object) == 'file':
+            return FileSerializer(shared_object.content_object, many=False, read_only=True, context=self.context).data
+        return FolderSerializer(shared_object.content_object, many=False, read_only=True).data
+
+    def get_content_type(self, shared_object):
+        return shared_object.content_type.model

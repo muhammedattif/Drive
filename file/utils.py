@@ -55,16 +55,16 @@ def get_file_path(self, filename):
     # Get folder tree to save
     if self.parent_folder:
         folder_tree = self.parent_folder.get_folder_tree_as_dirs()
-        return f'{settings.DRIVE_PATH}/{str(self.uploader.unique_id)}/{folder_tree}/{filename}'
+        return f'{settings.DRIVE_PATH}/{str(self.user.unique_id)}/{folder_tree}/{filename}'
 
-    return f'{settings.DRIVE_PATH}/{str(self.uploader.unique_id)}/{filename}'
+    return f'{settings.DRIVE_PATH}/{str(self.user.unique_id)}/{filename}'
 
 def get_video_cover_path(self, filename):
 
     media_file_path = Path(self.media_file.file.url)
     media_file_name = media_file_path.stem
     cover_extension = Path(filename).suffix
-    folder_tree = Path(settings.DRIVE_PATH).joinpath(str(self.media_file.uploader.unique_id)).joinpath(self.media_file.parent_folder.get_folder_tree_as_dirs())
+    folder_tree = Path(settings.DRIVE_PATH).joinpath(str(self.media_file.user.unique_id)).joinpath(self.media_file.parent_folder.get_folder_tree_as_dirs())
     video_cover_path = folder_tree.joinpath(f'{media_file_name}_cover{cover_extension}')
 
     return video_cover_path
@@ -74,7 +74,7 @@ def get_video_subtitle_path(self, filename):
     media_file_path = Path(self.media_file.media_file.file.url)
     media_file_name = media_file_path.stem
     subtitle_extension = Path(filename).suffix
-    folder_tree = Path(settings.DRIVE_PATH).joinpath(str(self.media_file.media_file.uploader.unique_id)).joinpath(
+    folder_tree = Path(settings.DRIVE_PATH).joinpath(str(self.media_file.media_file.user.unique_id)).joinpath(
         self.media_file.media_file.parent_folder.get_folder_tree_as_dirs())
     video_cover_path = folder_tree.joinpath(f'{media_file_name}_{self.language}_subtitle{subtitle_extension}')
 

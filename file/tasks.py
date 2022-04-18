@@ -23,9 +23,9 @@ def async_convert_video_quality(original_file_unique_id, quality, user_id):
     file_name = converted_video.name
     file_size = converted_video.size
 
-    converted_video = File.objects.create(uploader=user, file_name=file_name, file_size=file_size,
-                                          file_type=original_file.file_type,
-                                          file_category=original_file.file_category, file=str(converted_video_path),
+    converted_video = File.objects.create(user=user, name=file_name, size=file_size,
+                                          type=original_file.type,
+                                          category=original_file.category, file=str(converted_video_path),
                                           parent_folder=original_file.parent_folder
                                           )
     converted_video.properties.converted = True
@@ -34,4 +34,3 @@ def async_convert_video_quality(original_file_unique_id, quality, user_id):
     file_quality.converted_file = converted_video
     file_quality.status = 'converted'
     file_quality.save(update_fields=['status', 'converted_file'])
-

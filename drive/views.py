@@ -18,9 +18,9 @@ def home(request):
 
     # Get files of home dir if exist
     try:
-        files = File.objects.filter(uploader=request.user, trash=None, parent_folder=None).select_related('privacy')
+        files = File.objects.filter(user=request.user, trash=None, parent_folder=None).select_related('privacy')
     except Exception:
-        files = File.objects.filter(uploader=request.user).select_related('privacy')
+        files = File.objects.filter(user=request.user).select_related('privacy')
 
     # Get folders of home dir if exist
     try:
@@ -50,7 +50,7 @@ def filter(request, cat):
     context = {}
     files = None
     if cat == 'all':
-        files = File.objects.filter(uploader=request.user, trash=None, parent_folder=None).select_related('privacy')
+        files = File.objects.filter(user=request.user, trash=None, parent_folder=None).select_related('privacy')
 
     elif cat == 'folders':
         try:
@@ -59,7 +59,7 @@ def filter(request, cat):
             folders = None
         context['folders'] = folders
     else:
-        files = File.objects.filter(uploader=request.user, file_category=cat, trash=None, parent_folder=None).select_related('privacy')
+        files = File.objects.filter(user=request.user, category=cat, trash=None, parent_folder=None).select_related('privacy')
 
     if files:
         paginator = Paginator(files, 10)  # Show 10 files per page.
