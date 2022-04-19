@@ -254,3 +254,7 @@ def convert_file_quality(request, unique_id, quality):
     messages.success(request, 'Video quality is being processed and will be available soon.')
 
     return HttpResponseRedirect(reverse('file:file_settings', kwargs={'unique_id': unique_id}))
+
+
+def stream(request):
+    return render(request, 'file/stream.html')
