@@ -3,6 +3,8 @@ from activity.models import Activity
 from accounts.models import Account
 from django.contrib.contenttypes.fields import GenericRelation
 import uuid
+from django.conf import settings
+import os
 
 def truncate_folder_name(folder_name):
     return folder_name[0:20]
@@ -21,6 +23,8 @@ class Folder(models.Model):
         permissions = (
             ("can_download_folder", "Can Download Folder"),
             ("can_rename_folder", "Can Rename Folder"),
+            ("can_copy_folder", "Can Copy Folder"),
+            ("can_move_folder", "Can Move Folder"),
         )
 
     def __str__(self):
@@ -33,6 +37,9 @@ class Folder(models.Model):
 
     def get_absolute_url(self):
         return f'/folder/{self.unique_id}'
+
+    def get_path_on_disk(self):
+        return os.path.join(settings.MEDIA_ROOT, settings.DRIVE_PATH, str(self.user.unique_id), self.get_folder_tree_as_dirs())
 
     def get_files_count(self):
         return self.files.filter(trash=None).count()

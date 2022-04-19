@@ -13,6 +13,7 @@ import uuid
 from datetime import datetime, timezone
 from model_utils import Choices
 from .validators import validation_message
+from django.template.defaultfilters import truncatechars
 
 User = get_user_model()
 
@@ -114,6 +115,10 @@ class File(models.Model):
 
     def is_public(self):
         return self.privacy.option == 'public'
+
+    @property
+    def file_name(self):
+        return truncatechars(self.name, 20)
 
     # this save method is used to hardcode file field
     # if the uploaded file is an image then it will be compressed

@@ -1,6 +1,7 @@
 from django.contrib import admin
 from file.models import File, FileQuality, MediaFileProperties, VideoSubtitle, FilePrivacy, Trash, SharedObject, SharedObjectPermission, FileSharingBlockList
 from nested_inline.admin import NestedStackedInline, NestedModelAdmin
+from django.template.defaultfilters import truncatewords
 
 class FilePrivacyInline(NestedStackedInline):
     model = FilePrivacy
@@ -12,7 +13,7 @@ class FileConfig(NestedModelAdmin):
     model = File
 
     list_filter = ('user__username', 'size', 'type', 'category', 'uploaded_at')
-    list_display = ('user', 'size', 'type', 'category', 'uploaded_at')
+    list_display = ('user', 'file_name', 'size', 'type', 'category', 'uploaded_at')
 
     inlines = [FilePrivacyInline]
 

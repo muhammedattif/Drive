@@ -22,10 +22,13 @@ error_messages = {
     'file_not_found': 'File Not Found!',
     'file_not_shared_yet': 'File is not shred with this user.',
     'required_fields': 'Some fields are required.',
-    'permission_denied': 'Permission Denied!'
+    'permission_denied': 'Permission Denied!',
+    'not_found': 'Not Found!'
 }
 
 success_messages = {
     'deleted_successfully': 'Deleted Successfully!',
-    'folder_renamed_successfully': 'Folder Renamed Successfully!'
+    'folder_renamed_successfully': 'Folder Renamed Successfully!',
+    'copied_successfully': 'Copied Successfully!',
+    'moved_successfully': 'Moved Successfully!',
 }

@@ -9,6 +9,115 @@ from .forms import PrivacySettingsForm
 from django.contrib import messages
 from django.http import HttpResponse, FileResponse
 import time
+import uuid
+from django.contrib.admin.utils import NestedObjects
+from activity.models import Activity
+
+from django.db.models.deletion import Collector
+from django.db.models.fields.related import ForeignKey
+
+from django.db.utils import IntegrityError
+
+
+class ObjectCloner(object):
+    """
+    [1]. The simple way with global configuration:
+    >>> cloner = ObjectCloner()
+    >>> cloner.set_objects = [obj1, obj2]   # or can be queryset
+    >>> cloner.include_childs = True
+    >>> cloner.max_clones = 1
+    >>> cloner.execute()
+
+    [2]. Clone the objects with custom configuration per-each objects.
+    >>> cloner = ObjectCloner()
+    >>> cloner.set_objects = [
+        {
+            'object': obj1,
+            'include_childs': True,
+            'max_clones': 2
+        },
+        {
+            'object': obj2,
+            'include_childs': False,
+            'max_clones': 1
+        }
+    ]
+    >>> cloner.execute()
+    """
+    set_objects = []            # list/queryset of objects to clone.
+    include_childs = True       # include all their childs or not.
+    max_clones = 1              # maximum clone per-objects.
+
+    def clone_object(self, object):
+        """
+        function to clone the object.
+        :param `object` is an object to clone, e.g: <Post: object(1)>
+        :return new object.
+        """
+        try:
+            object.pk = None
+            object.unique_id = uuid.uuid4()
+            object.save()
+            return object
+        except IntegrityError:
+            return None
+
+    def clone_childs(self, object):
+        """
+        function to clone all childs of current `object`.
+        :param `object` is a cloned parent object, e.g: <Post: object(1)>
+        :return
+        """
+        # bypass the none object.
+        if object is None:
+            return
+
+        # find the related objects contains with this current object.
+        # e.g: (<ManyToOneRel: app.comment>,)
+        related_objects = object._meta.related_objects
+
+        if len(related_objects) > 0:
+            for relation in related_objects:
+                # find the related field name in the child object, e.g: 'post'
+                remote_field_name = relation.remote_field.name
+
+                # find all childs who have the same parent.
+                # e.g: childs = Comment.objects.filter(post=object)
+                childs = relation.related_model.objects.all()
+
+                for old_child in childs:
+                    new_child = self.clone_object(old_child)
+
+                    if new_child is not None:
+                        # "TypeError: Direct assignment to the forward side of a many-to-many set is prohibited. Use comments.set() instead."
+                        # how can I clone that M2M values?
+                        setattr(new_child, remote_field_name, object)
+                        new_child.save()
+
+                    self.clone_childs(new_child)
+        return
+
+    def execute(self):
+        include_childs = self.include_childs
+        max_clones = self.max_clones
+        new_objects = []
+
+        for old_object in self.set_objects:
+            # custom per-each objects by using dict {}.
+            if isinstance(old_object, dict):
+                include_childs = old_object.get('include_childs', True)
+                max_clones = old_object.get('max_clones', 1)
+                old_object = old_object.get('object')  # assigned as object or None.
+
+            for _ in range(max_clones):
+                new_object = self.clone_object(old_object)
+                print(new_object)
+                if new_object is not None:
+                    if include_childs:
+                        self.clone_childs(new_object)
+                    new_objects.append(new_object)
+
+        return new_objects
 
 # Home Page View
 @login_required(login_url='login')
@@ -40,6 +149,14 @@ def home(request):
 
     return render(request, 'drive/home.html', context)
 
+
+def recursive(folder):
+
+    for file in folder.files.all():
+        files_obj.append(file)
+    for folder in folder.folder_set.all():
+        folders_obj.append(folder)
+        recursive(folder)
 
 # Filter files based on category view
 @login_required(login_url='login')

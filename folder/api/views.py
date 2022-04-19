@@ -7,6 +7,16 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from file.models import File
 from folder.models import Folder
 from folder.utils import check_sub_folders_limit, create_folder_tree_if_not_exist
+from django.conf import settings
+from folder import utils
+from folder.exceptions import UnknownError
+from cloud import messages as response_messages
+from folder.permissions import CopyFolderPermission, MoveFolderPermission
+
+# Third-Party Libs
+import os
+import pathlib
+import shutil
 
 # Create folder tree API
 @api_view(['POST'])
@@ -90,3 +100,110 @@ def delete_folder(request, format=None):
         parent_folder.delete()
         content['message'] = 'Folder Removed Successfully!'
         return Response(content, status=status.HTTP_200_OK)
+
+
+class FolderCopyView(APIView, CopyFolderPermission):
+
+    permission_classes = [CopyFolderPermission]
+
+    def put(self, request, uuid):
+
+        destination_folder_id = request.data['destination_folder_id']
+
+        folder = Folder.objects.filter(unique_id=uuid, user=request.user).first()
+        if not folder:
+            return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
+
+        folder_current_path = folder.get_path_on_disk()
+
+        destination_folder = Folder.objects.filter(unique_id=destination_folder_id, user=request.user).first()
+        if not destination_folder:
+            return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
+
+        destination_path = destination_folder.get_path_on_disk()
+
+        if self.is_destination_subfolder_of_source(folder_current_path, destination_path):
+            raise UnknownError(detail='The destination folder is a subfolder of the source folder.')
+
+        destination_path = os.path.join(destination_path, folder.name)
+
+        if self.is_destination_equal_source(folder_current_path, destination_path):
+            raise UnknownError(detail='The destination folder is same as the source folder.')
+
+        try:
+            self.copy_folder(folder_current_path, destination_path)
+        except IOError as e:
+            raise UnknownError(detail=e)
+        return Response(response_messages.success('copied_successfully'))
+
+    def copy_folder(self, folder_current_path, destination_path):
+        from folder.utils import copytree
+        copytree(
+        folder_current_path,
+        destination_path
+        )
+
+    def is_destination_equal_source(self, folder_current_path, destination_path):
+        if folder_current_path == destination_path:
+            return True
+        return False
+
+    def is_destination_subfolder_of_source(self, folder_current_path, destination_path):
+        folder_current_path = pathlib.Path(folder_current_path)
+        destination_path = pathlib.Path(destination_path)
+        return destination_path.is_relative_to(folder_current_path)
+
+class FolderMoveView(APIView):
+
+    permission_classes = [MoveFolderPermission]
+
+    def put(self, request, uuid):
+
+        destination_folder_id = request.data['destination_folder_id']
+
+        folder = Folder.objects.filter(unique_id=uuid, user=request.user).first()
+        if not folder:
+            return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
+
+        folder_current_path = folder.get_path_on_disk()
+
+        destination_folder = Folder.objects.filter(unique_id=destination_folder_id, user=request.user).first()
+        if not destination_folder:
+            return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
+
+        destination_path = destination_folder.get_path_on_disk()
+
+        if self.is_destination_subfolder_of_source(folder_current_path, destination_path):
+            raise UnknownError(detail='The destination folder is a subfolder of the source folder.')
+
+        destination_path = os.path.join(destination_path, folder.name)
+
+        if self.is_destination_equal_source(folder_current_path, destination_path):
+            raise UnknownError(detail='The destination folder is same as the source folder.')
+
+        try:
+            self.move_folder(folder_current_path, destination_path)
+        except IOError as e:
+            raise UnknownError(detail=e)
+        except OSError as e:
+            raise UnknownError(detail=e)
+
+        folder.parent_folder = destination_folder
+        folder.save(update_fields=['parent_folder'])
+        return Response(response_messages.success('moved_successfully'))
+
+    def is_destination_equal_source(self, folder_current_path, destination_path):
+        if folder_current_path == destination_path:
+            return True
+        return False
+
+    def is_destination_subfolder_of_source(self, folder_current_path, destination_path):
+        folder_current_path = pathlib.Path(folder_current_path)
+        destination_path = pathlib.Path(destination_path)
+        return destination_path.is_relative_to(folder_current_path)
+
+    def move_folder(self, folder_current_path, destination_path):
+        shutil.move(
+        folder_current_path,
+        destination_path
+        )
