@@ -99,8 +99,8 @@ def upload(request, format=None):
         try:
             file = File.objects.create(
                  user=user, name=file_name,
-                 size=file_size, type=file_type,
-                 category=file_category,
+                 size=size, type=type,
+                 category=category,
                  file=uploaded_file, parent_folder=parent_folder
             )
             # if privacy parameter passed then set it, if not then the default is 'private'
