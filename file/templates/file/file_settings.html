@@ -67,7 +67,7 @@
       </div>
     </div>
   </form>
-  {% if not file.properties.converted and type == 'video' %}
+  {% if not file.properties.converted and file_type == 'video' %}
     <h5 class="mb-4">Video Qualities</h5>
 
     {% for file_quality in converted_qualities %}
