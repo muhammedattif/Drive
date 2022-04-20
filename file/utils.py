@@ -108,7 +108,7 @@ def convert_video_quality(video_path, quality):
     # cmd = ['ffmpeg', '-y', '-i', video_path, '-filter_complex', f'[0]scale=-1:width={width}:height={height}[s0]',
     #        '-map', '[s0]', '-map', '0:a', '-c:a', 'copy', new_video_path]
 
-    cmd = f"ffmpeg -y -i '{video_path}' -vf scale=-1:width={width}:height={height} '{new_video_path}'"
+    cmd = f"ffmpeg -y -i '{str(video_path)}' -vf scale=-1:width={width}:height={height} '{str(new_video_path)}'"
     subprocess.call(
         cmd,
         shell=True
