@@ -193,7 +193,6 @@ class RangeFileWrapper(object):
 
 @api_view(['GET'])
 @permission_classes([])
-@permission_required('file.can_stream_media_files', raise_exception=True)
 def stream_video(request, uuid, token, expiry, quality):
 
     if not check_url(request, uuid, token, expiry, quality):
@@ -233,7 +232,6 @@ def stream_video(request, uuid, token, expiry, quality):
 
 @api_view(['GET'])
 @permission_classes([])
-@permission_required('file.can_stream_media_files', raise_exception=True)
 def generate_video_links(request, uuid):
 
     original_file_uuid = uuid
