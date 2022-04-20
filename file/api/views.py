@@ -93,14 +93,14 @@ def upload(request, format=None):
             content['error_description'] = 'Invalid File!'
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
-        size = uploaded_file.size
-        category = get_file_cat(uploaded_file)
-        type = uploaded_file.content_type
+        file_size = uploaded_file.size
+        file_category = get_file_cat(uploaded_file)
+        file_type = uploaded_file.content_type
         try:
             file = File.objects.create(
                  user=user, name=file_name,
-                 size=size, type=type,
-                 category=category,
+                 size=file_size, type=file_type,
+                 category=file_category,
                  file=uploaded_file, parent_folder=parent_folder
             )
             # if privacy parameter passed then set it, if not then the default is 'private'
