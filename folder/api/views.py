@@ -11,16 +11,19 @@ from django.conf import settings
 from folder import utils
 from folder.exceptions import UnknownError
 from cloud import messages as response_messages
-from folder.permissions import CopyFolderPermission, MoveFolderPermission
+from folder.permissions import CreateFolderPermission, DownloadFolderPermission, CopyFolderPermission, MoveFolderPermission
 from folder.api.serializers import FolderSerializer
-
+from zipfile import ZIP_DEFLATED, ZipFile
+from django.http import FileResponse
 # Third-Party Libs
 import os
+from pathlib import Path
 import pathlib
 import shutil
 
 class FoldeCreateView(APIView):
 
+    permission_classes = [CreateFolderPermission]
     def post(self, request):
 
         if not ('folder_name' in request.data or request.data['folder_name']):
@@ -57,6 +60,34 @@ class FolderDetailView(APIView):
         serializer = FolderSerializer(folder, many=False, read_only=True)
         return Response(serializer.data)
 
+class FolderDownloadView(APIView):
+
+    permission_classes = [DownloadFolderPermission]
+
+    def get(self, request, uuid):
+
+        folder = Folder.objects.get(user=request.user, unique_id=uuid)
+        folder_tree = folder.get_folder_tree_as_dirs()
+
+        user = request.user
+        folder_to_compress = Path(os.path.join(settings.MEDIA_ROOT, settings.DRIVE_PATH, str(user.unique_id), folder_tree))
+
+        path_to_archive_in_os = Path(
+            os.path.join(settings.MEDIA_ROOT, settings.COMPRESS_PATH, f"{str(folder.name)}{'.zip'}"))
+
+        with ZipFile(
+                path_to_archive_in_os,
+                mode="w",
+                compression=ZIP_DEFLATED
+        ) as zip:
+            for file in folder_to_compress.rglob("*"):
+                relative_path = file.relative_to(folder_to_compress)
+                print(f"Packing {file} as {relative_path}")
+                zip.write(file, arcname=relative_path)
+
+        response = FileResponse(open(path_to_archive_in_os, 'rb'), as_attachment=True)
+        response['Content-Disposition'] = 'attachment; filename={}'.format(folder.name + '.zip')
+        return response
 
 class FolderDestroyView(APIView):
 

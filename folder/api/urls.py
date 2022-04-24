@@ -6,7 +6,8 @@ FolderCopyView,
 FolderMoveView,
 FolderDestroyView,
 FoldeCreateView,
-FolderDetailView
+FolderDetailView,
+FolderDownloadView
 )
 
 app_name = 'folder'
@@ -20,5 +21,6 @@ urlpatterns = [
     path('<str:uuid>/', FolderDetailView.as_view(), name='detail'),
     path('<str:uuid>/delete', FolderDestroyView.as_view(), name='delete'),
     path('<str:uuid>/copy', FolderCopyView.as_view(), name='copy'),
-    path('<str:uuid>/move', FolderMoveView.as_view(), name='move')
+    path('<str:uuid>/move', FolderMoveView.as_view(), name='move'),
+    path('<str:uuid>/download', FolderDownloadView.as_view(), name='download'),
 ]
