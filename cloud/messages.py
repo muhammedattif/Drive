@@ -1,3 +1,4 @@
+from django.conf import settings
 
 def error(error_key, **extra_data):
     return {
@@ -23,7 +24,11 @@ error_messages = {
     'file_not_shared_yet': 'File is not shred with this user.',
     'required_fields': 'Some fields are required.',
     'permission_denied': 'Permission Denied!',
-    'not_found': 'Not Found!'
+    'not_found': 'Not Found!',
+    'exists_in_destination': 'A folder with the name of the copied one already exists in this folder.',
+    'folder_exists': 'A folder with the same name already exists.',
+    'sub_folders_limit_exceeded': f'Sub folders limit is {settings.SUB_FOLDERS_LIMIT}!.',
+    'folder_name_empty': "Ops, you forget to enter folder's name."
 }
 
 success_messages = {

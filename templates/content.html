@@ -1,4 +1,7 @@
 
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/context.standalone.css' %}">
+
 {% if folders %}
 <span class="badge text-muted mb-1 mt-4">Folders</span>
 <div class="drive-wrapper drive-grid-view collapse_grid" id="collapse_grid">
@@ -9,7 +12,7 @@
                         {% for folder in folders %}
                           <div class="col-lg-3 col-md-4 col-sm-12">
                               <div class="card">
-                                  <div class="file">
+                                  <div id="{{folder.unique_id}}" class="file folder-context-menu">
                                     <div class="show_settings">
 
                                       <div class="hover">
@@ -137,7 +140,7 @@
                       {% for file in files %}
                       <div class="col-lg-3 col-md-4 col-sm-12">
                           <div class="card">
-                              <div class="file">
+                              <div id="{{file.unique_id}}" class="file file-context-menu">
                                 <div class="show_settings">
                                   <div class="file_settings">
                                     <h4><a href="{% url 'file:file_settings' file.unique_id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Sharing Settings"><i class="lni lni-users share icons"></i></a></h4>
@@ -342,4 +345,15 @@
       })
     });
 
+</script>
+
+<script src="{% static 'js/jquery.js' %}" crossorigin="anonymous"></script>
+
+{% include 'initialize.html' %}
+<script src="{% static 'js/context.js' %}"></script>
+<script>
+    context.init({preventDoubleContext: false});
+    context.attach('.folder-context-menu', folder_menu);
+    context.attach('.file-context-menu', file_menu);
+    context.attach('body', body_menu);
 </script>

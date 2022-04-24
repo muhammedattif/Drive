@@ -1,0 +1,242 @@
+<script type="text/javascript">
+  exampleMenuItemSource = function (selector) {
+      if ($(selector).attr('id') == 'PNG_JPG') {
+          return [
+                  {
+                      header: 'Example Dynamic'
+                  },
+                  {
+                      text: 'PNG',
+                      action: function(e, selector) { alert('PNG clicked on ' + selector.prop("tagName") + ":" + selector.attr("id")); }
+                  },
+                  {
+                      text: 'JPG',
+                      action: function(e, selector) { alert('JPG clicked on ' + selector.prop("tagName") + ":" + selector.attr("id")); }
+                  },
+                  {   divider: true   },
+                  {
+                      icon: 'glyphicon-list-alt',
+                      text: 'Dynamic nested',
+                      subMenu : [
+                      {
+                          text: 'More dynamic',
+                          action: function(e, selector) { alert('More dynamic clicked on ' + selector.prop("tagName") + ":" + selector.attr("id")); }
+                      },
+                      {
+                          text: 'And more...',
+                          action: function(e, selector) { alert('And more... clicked on ' + selector.prop("tagName") + ":" + selector.attr("id")); }
+                      }
+                      ]
+                  }
+              ]
+      } else {
+          return [
+                  {
+                      icon: 'glyphicon-exclamation-sign',
+                      text: 'No image types supported!'
+                  }
+              ]
+      }
+  }
+
+  var file_menu = {
+      id: 'FILE-MENU',
+      data: [
+          {
+              header: 'Actions Menu'
+          },
+          {
+              icon: 'fa-solid fa-eye',
+              text: 'Preview',
+              action: function(e, selector) {
+                alert('Create clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
+              }
+          },
+          {
+              divider: true
+          },
+          {
+              header: 'Sharing'
+          },
+          {
+              icon: 'fa-solid fa-share-nodes',
+              text: 'Shared with',
+              action: function(e, selector) {
+                 alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
+                }
+          },
+          {
+              icon: 'fa-solid fa-share-nodes',
+              text: 'Share with',
+              action: function(e, selector) {
+                 alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
+             }
+          },
+          {
+              icon: 'fa-solid fa-link',
+              text: 'Copy Link',
+              action: function(e, selector) {
+                 alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
+             }
+          },
+          {
+              icon: 'fa-solid fa-lock',
+              text: 'Privacy',
+              action: function(e, selector) {
+                 alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
+               }
+          },
+          {
+              divider: true
+          },
+
+          {
+              icon: 'fa-solid fa-paste',
+              text: 'Cut',
+              action: function(e, selector) {
+                localStorage.copiedFolder = selector.attr("id")
+               }
+          },
+          {
+              icon: 'fa-solid fa-star',
+              text: 'Add to Starred',
+              action: function(e, selector) {
+                 alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
+               }
+          },
+          {
+              icon: 'fa-solid fa-pen-to-square',
+              text: 'Rename',
+              action: function(e, selector) {
+                 alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
+               }
+          },
+
+          {
+              icon: 'fa-solid fa-cloud-arrow-down',
+              text: 'Downlaod',
+              action: function(e, selector) {
+                 alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
+               }
+          },
+          {
+              icon: 'fa-solid fa-circle-info',
+              text: 'Details',
+              action: function(e, selector) {
+                 alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
+               }
+          },
+          {
+              icon: 'fa-solid fa-trash',
+              text: 'Move to Trash',
+              action: function(e, selector) {
+                 alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
+               }
+          },
+
+          {
+              icon: 'fa-solid fa-gears',
+              text: 'Settings',
+              action: function(e, selector) {
+                 alert('Delete clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
+               }
+          }
+      ]
+  };
+
+  var folder_menu = {
+      id: 'FOLDER-MENU',
+      data: [
+
+          {
+              header: 'Sharing'
+          },
+          {
+              icon: 'fa-solid fa-universal-access',
+              text: 'Shared with',
+              action: function(e, selector) {
+                 alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
+                }
+
+          },
+          {
+              icon: 'fa-solid fa-share-nodes',
+              text: 'Share with',
+              action: function(e, selector) { alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id")); }
+          },
+
+          {
+              divider: true
+          },
+          {
+              icon: 'fa-solid fa-paste',
+              text: 'Cut',
+              action: function(e, selector) {
+                localStorage.copiedFolder = selector.attr("id")
+                console.log(selector.attr("id"))
+                }
+          },
+          {
+              icon: 'fa-solid fa-pen-to-square',
+              text: 'Rename',
+              action: function(e, selector) { alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id")); }
+          },
+
+          {
+              icon: 'fa-solid fa-cloud-arrow-down',
+              text: 'Downlaod',
+              action: function(e, selector) { alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id")); }
+          },
+          {
+              icon: 'fa-solid fa-trash',
+              text: 'Delete',
+              action: function(e, selector) { alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id")); }
+          },
+
+      ]
+  };
+
+  var body_menu = [
+      {
+          header: 'Actions Menu'
+      },
+      {
+          icon: 'fa-solid fa-paste',
+          text: 'Paste Here',
+          action: function(e, selector) {
+
+            var current_folder = $("#DirectoryID").text()
+            var copiedFolder = localStorage.getItem("copiedFolder");
+             payload = {
+                 "destination_folder_id": current_folder,
+               }
+
+               var url = '{% url "folder_api:move" 1111 %}'.replace('1111', copiedFolder)
+               console.log(url);
+               $.ajax({
+                 type: "PUT",
+                 headers: {'X-CSRFToken': '{{csrf_token}}'},
+                 dataType: "json",
+                 url: url,
+                 timeout: 5000,
+                 data: payload,
+                 success: function(data){
+                  location.reload();
+                 },
+                 error: function(data){
+                   alert("Something went wrong.")
+                 },
+                 complete: function(data){
+
+                 },
+               });
+           }
+      },
+      {
+          icon: 'fa-solid fa-cloud-arrow-up',
+          text: 'Upload Here',
+          action: function(e, selector) { alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id")); }
+      }
+  ];
+
+</script>

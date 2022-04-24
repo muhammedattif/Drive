@@ -12,12 +12,41 @@ from folder import utils
 from folder.exceptions import UnknownError
 from cloud import messages as response_messages
 from folder.permissions import CopyFolderPermission, MoveFolderPermission
+from folder.api.serializers import FolderSerializer
 
 # Third-Party Libs
 import os
 import pathlib
 import shutil
 
+class FoldeCreateView(APIView):
+
+    def post(self, request):
+
+        if not ('folder_name' in request.data or request.data['folder_name']):
+            return Response(response_messages.error('folder_name_empty'), status=status.HTTP_404_NOT_FOUND)
+        folder_name = request.data['folder_name']
+
+        if 'parent_folder_id' in request.data and request.data['parent_folder_id']:
+            parent_folder_id = request.data['parent_folder_id']
+            parent_folder = Folder.objects.filter(unique_id=parent_folder_id, user=request.user).first()
+            if not parent_folder:
+                return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
+
+            if len(parent_folder.get_folder_tree()) > settings.SUB_FOLDERS_LIMIT:
+                return Response(messages.error('sub_folders_limit_exceeded'), status=status.HTTP_400_BAD_REQUEST)
+
+        else:
+            parent_folder = None
+
+        new_folder, created = Folder.objects.get_or_create(user=request.user, name=folder_name, parent_folder=parent_folder)
+        if not created:
+            return Response(response_messages.error('folder_exists'), status=status.HTTP_409_CONFLICT)
+
+        serializer = FolderSerializer(new_folder, many=False)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+# Deprecated
 # Create folder tree API
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -43,7 +72,7 @@ def create_folder_tree(request, format=None):
     }
     return Response(content, status=status.HTTP_201_CREATED)
 
-
+# Deprecated
 # Delete Folder API
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -100,6 +129,18 @@ def delete_folder(request, format=None):
         parent_folder.delete()
         content['message'] = 'Folder Removed Successfully!'
         return Response(content, status=status.HTTP_200_OK)
+
+
+class FolderDestroyView(APIView):
+
+    def delete(self, request, uuid):
+
+        folder = Folder.objects.filter(unique_id=uuid, user=request.user).first()
+        if not folder:
+            return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
+        folder.delete()
+        return Response(response_messages.success('deleted_successfully'))
+
 
 
 class FolderCopyView(APIView, CopyFolderPermission):
@@ -159,25 +200,38 @@ class FolderMoveView(APIView):
 
     def put(self, request, uuid):
 
-        destination_folder_id = request.data['destination_folder_id']
-
         folder = Folder.objects.filter(unique_id=uuid, user=request.user).first()
         if not folder:
             return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
 
         folder_current_path = folder.get_path_on_disk()
 
-        destination_folder = Folder.objects.filter(unique_id=destination_folder_id, user=request.user).first()
-        if not destination_folder:
-            return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
+        if 'destination_folder_id' in request.data and request.data['destination_folder_id']:
+            destination_folder_id = request.data['destination_folder_id']
+            destination_folder = Folder.objects.prefetch_related('folder_set').filter(unique_id=destination_folder_id, user=request.user).first()
+            if not destination_folder:
+                return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
 
-        destination_path = destination_folder.get_path_on_disk()
+            destination_dir_folder_names = destination_folder.folder_set.values_list('name', flat=True)
+            if folder.name in destination_dir_folder_names:
+                return Response(response_messages.error('exists_in_destination'), status=status.HTTP_409_CONFLICT)
 
+            destination_path = destination_folder.get_path_on_disk()
+        else:
+            destination_folder = None
+            destination_path = os.path.join(settings.MEDIA_ROOT, settings.DRIVE_PATH, str(request.user.unique_id))
+            base_dir_folder_names = Folder.objects.filter(user=request.user, parent_folder=None).values_list('name', flat=True)
+            if folder.name in base_dir_folder_names:
+                return Response(response_messages.error('exists_in_destination'), status=status.HTTP_409_CONFLICT)
+
+        print(folder_current_path)
+        print(destination_path)
         if self.is_destination_subfolder_of_source(folder_current_path, destination_path):
             raise UnknownError(detail='The destination folder is a subfolder of the source folder.')
 
-        destination_path = os.path.join(destination_path, folder.name)
 
+
+        destination_path = os.path.join(destination_path, folder.name)
         if self.is_destination_equal_source(folder_current_path, destination_path):
             raise UnknownError(detail='The destination folder is same as the source folder.')
 
@@ -201,6 +255,9 @@ class FolderMoveView(APIView):
         folder_current_path = pathlib.Path(folder_current_path)
         destination_path = pathlib.Path(destination_path)
         return destination_path.is_relative_to(folder_current_path)
+
+    def is_copied_folder_exists_in_destination(copied_folder, destination_folder):
+        pass
 
     def move_folder(self, folder_current_path, destination_path):
         shutil.move(

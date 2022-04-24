@@ -146,7 +146,7 @@ def home(request):
         'files': files,
         'folders': folders
     }
-
+    
     return render(request, 'drive/home.html', context)
 
 

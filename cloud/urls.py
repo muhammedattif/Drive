@@ -40,11 +40,11 @@ urlpatterns = [
 
     path('file/', include('file.urls', namespace='file')),
     # File APIs
-    path('api/file/', include('file.api.urls',  namespace='file_api')),
+    path('api/files/', include('file.api.urls',  namespace='file_api')),
 
     path('folder/', include('folder.urls', namespace='folder')),
     # Folder APIs
-    path('api/folder/', include('folder.api.urls', 'folder_api')),
+    path('api/folders/', include('folder.api.urls', 'folder_api')),
 
     path('api-auth/', include('rest_framework.urls')),
 
