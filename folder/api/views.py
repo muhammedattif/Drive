@@ -1,10 +1,12 @@
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.pagination import PageNumberPagination
 from django.contrib.auth.decorators import permission_required
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from file.models import File
+from file.api.serializers import FileSerializer
 from folder.models import Folder
 from folder.utils import check_sub_folders_limit, create_folder_tree_if_not_exist
 from django.conf import settings
@@ -12,7 +14,7 @@ from folder import utils
 from folder.exceptions import UnknownError
 from cloud import messages as response_messages
 from folder.permissions import CreateFolderPermission, DownloadFolderPermission, CopyFolderPermission, MoveFolderPermission
-from folder.api.serializers import FolderSerializer
+from folder.api.serializers import FolderSerializer, BasicFolderInfoSerializer
 from zipfile import ZIP_DEFLATED, ZipFile
 from django.http import FileResponse
 # Third-Party Libs
@@ -59,6 +61,33 @@ class FolderDetailView(APIView):
 
         serializer = FolderSerializer(folder, many=False, read_only=True)
         return Response(serializer.data)
+
+class FolderFilesView(APIView, PageNumberPagination):
+
+    def get(self, request, uuid):
+
+        folder = Folder.objects.select_related('parent_folder').prefetch_related('files').filter(unique_id=uuid, user=request.user).first()
+        if not folder:
+            return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
+
+        files = folder.files.all()
+        files = self.paginate_queryset(files, request, view=self)
+        serializer = FileSerializer(files, many=True, read_only=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class FolderSubFoldersView(APIView, PageNumberPagination):
+
+    def get(self, request, uuid):
+
+        folder = Folder.objects.select_related('parent_folder').prefetch_related('files').filter(unique_id=uuid, user=request.user).first()
+        if not folder:
+            return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
+
+        files = folder.sub_folders.all()
+        files = self.paginate_queryset(files, request, view=self)
+        serializer = BasicFolderInfoSerializer(files, many=True, read_only=True)
+        return self.get_paginated_response(serializer.data)
 
 class FolderDownloadView(APIView):
 
