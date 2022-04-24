@@ -5,6 +5,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 import uuid
 from django.conf import settings
 import os
+from .managers import FolderManager
 
 def truncate_folder_name(folder_name):
     return folder_name[0:20]
@@ -14,7 +15,7 @@ class Folder(models.Model):
     unique_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     user = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="folders")
     name = models.CharField(default="New Folder", max_length=20)
-    parent_folder = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True)
+    parent_folder = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True, related_name='sub_folders')
     created_at = models.DateTimeField(verbose_name="Date Created", auto_now_add=True)
     activities = GenericRelation(Activity)
 
@@ -26,6 +27,8 @@ class Folder(models.Model):
             ("can_copy_folder", "Can Copy Folder"),
             ("can_move_folder", "Can Move Folder"),
         )
+
+    objects = FolderManager()
 
     def __str__(self):
         return self.name

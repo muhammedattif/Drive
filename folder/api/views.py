@@ -46,6 +46,158 @@ class FoldeCreateView(APIView):
         serializer = FolderSerializer(new_folder, many=False)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+class FolderDetailView(APIView):
+
+    def get(self, request, uuid):
+
+        folder = Folder.objects.select_related('parent_folder').annotate_sub_files_count().annotate_sub_folders_count().filter(unique_id=uuid, user=request.user).first()
+        if not folder:
+            return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
+
+        serializer = FolderSerializer(folder, many=False, read_only=True)
+        return Response(serializer.data)
+
+
+class FolderDestroyView(APIView):
+
+    def delete(self, request, uuid):
+
+        folder = Folder.objects.filter(unique_id=uuid, user=request.user).first()
+        if not folder:
+            return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
+        folder.delete()
+        return Response(response_messages.success('deleted_successfully'))
+
+
+
+class FolderCopyView(APIView, CopyFolderPermission):
+
+    permission_classes = [CopyFolderPermission]
+
+    def put(self, request, uuid):
+
+        destination_folder_id = request.data['destination_folder_id']
+
+        folder = Folder.objects.filter(unique_id=uuid, user=request.user).first()
+        if not folder:
+            return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
+
+        folder_current_path = folder.get_path_on_disk()
+
+        destination_folder = Folder.objects.filter(unique_id=destination_folder_id, user=request.user).first()
+        if not destination_folder:
+            return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
+
+        destination_path = destination_folder.get_path_on_disk()
+
+        if self.is_destination_subfolder_of_source(folder_current_path, destination_path):
+            raise UnknownError(detail='The destination folder is a subfolder of the source folder.')
+
+        destination_path = os.path.join(destination_path, folder.name)
+
+        if self.is_destination_equal_source(folder_current_path, destination_path):
+            raise UnknownError(detail='The destination folder is same as the source folder.')
+
+        try:
+            self.copy_folder(folder_current_path, destination_path)
+        except IOError as e:
+            raise UnknownError(detail=e)
+        return Response(response_messages.success('copied_successfully'))
+
+    def copy_folder(self, folder_current_path, destination_path):
+        from folder.utils import copytree
+        copytree(
+        folder_current_path,
+        destination_path
+        )
+
+    def is_destination_equal_source(self, folder_current_path, destination_path):
+        if folder_current_path == destination_path:
+            return True
+        return False
+
+    def is_destination_subfolder_of_source(self, folder_current_path, destination_path):
+        folder_current_path = pathlib.Path(folder_current_path)
+        destination_path = pathlib.Path(destination_path)
+        return destination_path.is_relative_to(folder_current_path)
+
+class FolderMoveView(APIView):
+
+    permission_classes = [MoveFolderPermission]
+
+    def put(self, request, uuid):
+
+        folder = Folder.objects.filter(unique_id=uuid, user=request.user).first()
+        if not folder:
+            return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
+
+        folder_current_path = folder.get_path_on_disk()
+
+        if 'destination_folder_id' in request.data and request.data['destination_folder_id']:
+            destination_folder_id = request.data['destination_folder_id']
+            destination_folder = Folder.objects.prefetch_related('sub_folders').filter(unique_id=destination_folder_id, user=request.user).first()
+            if not destination_folder:
+                return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
+
+            destination_dir_folder_names = destination_folder.sub_folders.values_list('name', flat=True)
+            if folder.name in destination_dir_folder_names:
+                return Response(response_messages.error('exists_in_destination'), status=status.HTTP_409_CONFLICT)
+
+            destination_path = destination_folder.get_path_on_disk()
+        else:
+            destination_folder = None
+            destination_path = os.path.join(settings.MEDIA_ROOT, settings.DRIVE_PATH, str(request.user.unique_id))
+            base_dir_folder_names = Folder.objects.filter(user=request.user, parent_folder=None).values_list('name', flat=True)
+            if folder.name in base_dir_folder_names:
+                return Response(response_messages.error('exists_in_destination'), status=status.HTTP_409_CONFLICT)
+
+        print(folder_current_path)
+        print(destination_path)
+        if self.is_destination_subfolder_of_source(folder_current_path, destination_path):
+            raise UnknownError(detail='The destination folder is a subfolder of the source folder.')
+
+
+
+        destination_path = os.path.join(destination_path, folder.name)
+        if self.is_destination_equal_source(folder_current_path, destination_path):
+            raise UnknownError(detail='The destination folder is same as the source folder.')
+
+        try:
+            self.move_folder(folder_current_path, destination_path)
+        except IOError as e:
+            raise UnknownError(detail=e)
+        except OSError as e:
+            raise UnknownError(detail=e)
+
+        folder.parent_folder = destination_folder
+        folder.save(update_fields=['parent_folder'])
+        return Response(response_messages.success('moved_successfully'))
+
+    def is_destination_equal_source(self, folder_current_path, destination_path):
+        if folder_current_path == destination_path:
+            return True
+        return False
+
+    def is_destination_subfolder_of_source(self, folder_current_path, destination_path):
+        folder_current_path = pathlib.Path(folder_current_path)
+        destination_path = pathlib.Path(destination_path)
+        return destination_path.is_relative_to(folder_current_path)
+
+    def is_copied_folder_exists_in_destination(copied_folder, destination_folder):
+        pass
+
+    def move_folder(self, folder_current_path, destination_path):
+        shutil.move(
+        folder_current_path,
+        destination_path
+        )
+
+
+
+
+
+
+
 # Deprecated
 # Create folder tree API
 @api_view(['POST'])
@@ -129,138 +281,3 @@ def delete_folder(request, format=None):
         parent_folder.delete()
         content['message'] = 'Folder Removed Successfully!'
         return Response(content, status=status.HTTP_200_OK)
-
-
-class FolderDestroyView(APIView):
-
-    def delete(self, request, uuid):
-
-        folder = Folder.objects.filter(unique_id=uuid, user=request.user).first()
-        if not folder:
-            return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
-        folder.delete()
-        return Response(response_messages.success('deleted_successfully'))
-
-
-
-class FolderCopyView(APIView, CopyFolderPermission):
-
-    permission_classes = [CopyFolderPermission]
-
-    def put(self, request, uuid):
-
-        destination_folder_id = request.data['destination_folder_id']
-
-        folder = Folder.objects.filter(unique_id=uuid, user=request.user).first()
-        if not folder:
-            return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
-
-        folder_current_path = folder.get_path_on_disk()
-
-        destination_folder = Folder.objects.filter(unique_id=destination_folder_id, user=request.user).first()
-        if not destination_folder:
-            return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
-
-        destination_path = destination_folder.get_path_on_disk()
-
-        if self.is_destination_subfolder_of_source(folder_current_path, destination_path):
-            raise UnknownError(detail='The destination folder is a subfolder of the source folder.')
-
-        destination_path = os.path.join(destination_path, folder.name)
-
-        if self.is_destination_equal_source(folder_current_path, destination_path):
-            raise UnknownError(detail='The destination folder is same as the source folder.')
-
-        try:
-            self.copy_folder(folder_current_path, destination_path)
-        except IOError as e:
-            raise UnknownError(detail=e)
-        return Response(response_messages.success('copied_successfully'))
-
-    def copy_folder(self, folder_current_path, destination_path):
-        from folder.utils import copytree
-        copytree(
-        folder_current_path,
-        destination_path
-        )
-
-    def is_destination_equal_source(self, folder_current_path, destination_path):
-        if folder_current_path == destination_path:
-            return True
-        return False
-
-    def is_destination_subfolder_of_source(self, folder_current_path, destination_path):
-        folder_current_path = pathlib.Path(folder_current_path)
-        destination_path = pathlib.Path(destination_path)
-        return destination_path.is_relative_to(folder_current_path)
-
-class FolderMoveView(APIView):
-
-    permission_classes = [MoveFolderPermission]
-
-    def put(self, request, uuid):
-
-        folder = Folder.objects.filter(unique_id=uuid, user=request.user).first()
-        if not folder:
-            return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
-
-        folder_current_path = folder.get_path_on_disk()
-
-        if 'destination_folder_id' in request.data and request.data['destination_folder_id']:
-            destination_folder_id = request.data['destination_folder_id']
-            destination_folder = Folder.objects.prefetch_related('folder_set').filter(unique_id=destination_folder_id, user=request.user).first()
-            if not destination_folder:
-                return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
-
-            destination_dir_folder_names = destination_folder.folder_set.values_list('name', flat=True)
-            if folder.name in destination_dir_folder_names:
-                return Response(response_messages.error('exists_in_destination'), status=status.HTTP_409_CONFLICT)
-
-            destination_path = destination_folder.get_path_on_disk()
-        else:
-            destination_folder = None
-            destination_path = os.path.join(settings.MEDIA_ROOT, settings.DRIVE_PATH, str(request.user.unique_id))
-            base_dir_folder_names = Folder.objects.filter(user=request.user, parent_folder=None).values_list('name', flat=True)
-            if folder.name in base_dir_folder_names:
-                return Response(response_messages.error('exists_in_destination'), status=status.HTTP_409_CONFLICT)
-
-        print(folder_current_path)
-        print(destination_path)
-        if self.is_destination_subfolder_of_source(folder_current_path, destination_path):
-            raise UnknownError(detail='The destination folder is a subfolder of the source folder.')
-
-
-
-        destination_path = os.path.join(destination_path, folder.name)
-        if self.is_destination_equal_source(folder_current_path, destination_path):
-            raise UnknownError(detail='The destination folder is same as the source folder.')
-
-        try:
-            self.move_folder(folder_current_path, destination_path)
-        except IOError as e:
-            raise UnknownError(detail=e)
-        except OSError as e:
-            raise UnknownError(detail=e)
-
-        folder.parent_folder = destination_folder
-        folder.save(update_fields=['parent_folder'])
-        return Response(response_messages.success('moved_successfully'))
-
-    def is_destination_equal_source(self, folder_current_path, destination_path):
-        if folder_current_path == destination_path:
-            return True
-        return False
-
-    def is_destination_subfolder_of_source(self, folder_current_path, destination_path):
-        folder_current_path = pathlib.Path(folder_current_path)
-        destination_path = pathlib.Path(destination_path)
-        return destination_path.is_relative_to(folder_current_path)
-
-    def is_copied_folder_exists_in_destination(copied_folder, destination_folder):
-        pass
-
-    def move_folder(self, folder_current_path, destination_path):
-        shutil.move(
-        folder_current_path,
-        destination_path
-        )

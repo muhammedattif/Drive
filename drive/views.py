@@ -146,7 +146,7 @@ def home(request):
         'files': files,
         'folders': folders
     }
-    
+
     return render(request, 'drive/home.html', context)
 
 
@@ -154,7 +154,7 @@ def recursive(folder):
 
     for file in folder.files.all():
         files_obj.append(file)
-    for folder in folder.folder_set.all():
+    for folder in folder.sub_folders.all():
         folders_obj.append(folder)
         recursive(folder)
 

@@ -22,7 +22,7 @@ def folder(request, unique_id=None):
             folder = Folder.objects.get(unique_id=unique_id, user=request.user)
             context['folder'] = folder
             # Child folders
-            context['folders'] = folder.folder_set.all().select_related('parent_folder')
+            context['folders'] = folder.sub_folders.all().select_related('parent_folder')
 
             # Child files
             files = folder.files.filter(trash=None).select_related('privacy')
