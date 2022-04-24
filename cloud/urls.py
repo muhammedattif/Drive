@@ -37,6 +37,8 @@ urlpatterns = [
     path('api/account/', include('accounts.api.urls', 'account_api')),
 
     path('drive/', include('drive.urls', namespace='drive')),
+    # Drive APIs
+    path('api/drive/', include('drive.api.urls',  namespace='drive_api')),
 
     path('file/', include('file.urls', namespace='file')),
     # File APIs
