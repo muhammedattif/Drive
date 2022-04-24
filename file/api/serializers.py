@@ -5,13 +5,13 @@ from django.urls import reverse
 import hashlib
 from file.models import FileQuality
 from django.conf import settings
-from file.models import File, SharedObject, SharedObjectPermission
+from file.models import File, FileQuality, SharedObject, SharedObjectPermission
 from drf_writable_nested.serializers import WritableNestedModelSerializer
 from django.contrib.auth import get_user_model
 from accounts.api.serializers import BasicUserInfoSerializer
 from folder.api.serializers import FolderSerializer
 
-class QualitySerializer(serializers.Serializer):
+class EncrypredQualitySerializer(serializers.Serializer):
     quality = serializers.CharField()
     url = serializers.SerializerMethodField()
 
@@ -30,7 +30,7 @@ class QualitySerializer(serializers.Serializer):
         }))
         return url
 
-class OriginalQualitySerializer(serializers.Serializer):
+class EncrypredOriginalQualitySerializer(serializers.Serializer):
     quality = serializers.SerializerMethodField()
     url = serializers.SerializerMethodField()
 
@@ -50,6 +50,31 @@ class OriginalQualitySerializer(serializers.Serializer):
             'expiry': expiry,
             'quality': file.properties.quality
         }))
+        return url
+
+class QualitySerializer(serializers.Serializer):
+    quality = serializers.CharField()
+    url = serializers.SerializerMethodField()
+
+    def get_url(self, file):
+        request = self.context.get('request')
+        url = request.build_absolute_uri(file.converted_file.file.url)
+        return url
+
+class OriginalQualitySerializer(serializers.ModelSerializer):
+    quality = serializers.SerializerMethodField()
+    url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = File
+        fields = ('quality', 'url')
+
+    def get_quality(self, file):
+        return file.properties.quality
+
+    def get_url(self, file):
+        request = self.context.get('request')
+        url = request.build_absolute_uri(file.file.url)
         return url
 
 class SubtitlesSerializer(serializers.Serializer):

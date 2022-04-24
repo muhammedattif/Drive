@@ -20,7 +20,16 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from django.urls import reverse
 from file.utils import detect_quality
-from .serializers import SubtitlesSerializer, CoverSerializer, QualitySerializer, OriginalQualitySerializer, FileQualitySerilizer, SharedObjectSerializer
+from .serializers import (
+SubtitlesSerializer,
+CoverSerializer,
+QualitySerializer,
+OriginalQualitySerializer,
+EncrypredQualitySerializer,
+EncrypredOriginalQualitySerializer,
+FileQualitySerilizer,
+SharedObjectSerializer
+)
 from django.conf import settings
 from django.core.exceptions import ValidationError
 import cloud.messages as response_messages
@@ -246,8 +255,8 @@ def generate_video_links(request, uuid):
     file_qualities = original_file.qualities.filter(status='converted')
     subtitles = original_file.properties.subtitles.all()
 
-    qualities_serializer = QualitySerializer(file_qualities, many=True, context={'request': request})
-    original_file_quality_serializer = OriginalQualitySerializer(original_file, many=False, context={'request': request})
+    qualities_serializer = EncrypredQualitySerializer(file_qualities, many=True, context={'request': request})
+    original_file_quality_serializer = EncrypredOriginalQualitySerializer(original_file, many=False, context={'request': request})
 
     subtitle_serializer = SubtitlesSerializer(subtitles, many=True, context={'request': request})
     properties_serializer = CoverSerializer(original_file.properties, many=False, context={'request': request})
@@ -260,6 +269,40 @@ def generate_video_links(request, uuid):
     }
 
     return Response(media_file_response)
+
+
+@api_view(['GET'])
+@permission_classes([])
+def generate_video_links_for_iphone(request, uuid):
+
+    original_file_uuid = uuid
+
+    try:
+        original_file = File.objects.get(unique_id=original_file_uuid)
+    except File.DoesNotExist:
+        return Response({"error_description": 'Video Does Not exists!'}, status=status.HTTP_404_NOT_FOUND)
+    except ValidationError:
+        return Response({"error_description": 'Invalid video UUID!'}, status=status.HTTP_400_BAD_REQUEST)
+
+    file_qualities = original_file.qualities.filter(status='converted')
+    subtitles = original_file.properties.subtitles.all()
+
+    qualities_serializer = QualitySerializer(file_qualities, many=True, context={'request': request})
+    original_file_quality_serializer = OriginalQualitySerializer(original_file, many=False, context={'request': request})
+
+    subtitle_serializer = SubtitlesSerializer(subtitles, many=True, context={'request': request})
+    properties_serializer = CoverSerializer(original_file.properties, many=False, context={'request': request})
+
+    encrypted_urls = qualities_serializer.data
+    encrypted_urls.append(original_file_quality_serializer.data)
+    media_file_response = {
+        'properties': properties_serializer.data,
+        'subtitles': subtitle_serializer.data,
+        'encrypted_urls': encrypted_urls
+    }
+
+    return Response(media_file_response)
+
 
 def check_url(request, uuid, token, expiry, quality):
 
