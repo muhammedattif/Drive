@@ -189,6 +189,71 @@
                               </div>
                           </div>
                       </div>
+
+
+
+                        <!-- Modal -->
+                        <div class="modal fade" id="fileDetails{{file.unique_id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                          <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLabel">File Details</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                  <span aria-hidden="true">&times;</span>
+                                </button>
+                              </div>
+                                <table class="table">
+                                   <tbody>
+                                       <tr>
+                                           <td class="text-muted h6 mr-2">Name</td>
+                                           <td> </td>
+                                           <td class="m-4">{{file.name|truncatechars:35}}</td>
+                                       </tr>
+
+                                       <tr>
+                                           <td class="text-muted h6 m-4">Type</td>
+                                           <td> </td>
+                                           <td class="m-4">{{file.type}}</td>
+                                       </tr>
+
+                                       <tr>
+                                           <td class="text-muted h6 m-4">Size</td>
+                                           <td> </td>
+                                           <td class="m-4">{{file.size|filesizeformat}}</td>
+                                       </tr>
+
+                                       <tr>
+                                           <td class="text-muted h6 m-4">Location</td>
+                                           <td> </td>
+                                           {% if file.parent_folder %}
+                                            <td class="m-4"><a href="{% url 'folder:folder' file.parent_folder.unique_id %}"><i class="fa fa-folder"></i> {{file.parent_folder.name}}</a></td>
+                                            {% else %}
+                                            <td class="m-4"><a href="{% url 'home' %}"><i class="fa-solid fa-house"></i> Home</a></td>
+                                           {% endif %}
+                                       </tr>
+
+                                       <tr>
+                                           <td class="text-muted h6 m-4">Owner</td>
+                                           <td> </td>
+                                           <td class="m-4">{{file.user.email}}</td>
+                                       </tr>
+
+                                       <tr>
+                                           <td class="text-muted h6 m-4">Created</td>
+                                           <td> </td>
+                                           <td class="m-4">{{file.uploaded_at}}</td>
+                                       </tr>
+
+                                       <tr>
+                                           <td class="text-muted h6 m-4">Category</td>
+                                           <td> </td>
+                                           <td class="m-4">{{file.category}}</td>
+                                       </tr>
+                                   </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </div>
                       {% endfor %}
                   </div>
 

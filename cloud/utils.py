@@ -55,13 +55,13 @@ def protected_serve(request, path, document_root=None):
         return redirect('error')
 
 
-@login_required(login_url='login')
+# @login_required(login_url='login')
 def protect_drive_path(request, path):
     """
     this function is for preventing anyone to access drive path
     """
-    if not request.user.is_superuser:
-        return redirect('error')
+    # if not request.user.is_superuser:
+    #     return redirect('error')
     return serve(request, path, f'{settings.MEDIA_ROOT}')
 
 

@@ -136,7 +136,7 @@
               text: 'Details',
               href: 'javascript:void(0)',
               action: function(e, selector) {
-                 alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
+                $("#fileDetails"+selector.attr("id")).modal()
                }
           },
           {

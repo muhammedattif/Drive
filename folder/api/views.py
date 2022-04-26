@@ -229,7 +229,7 @@ class FolderCopyView(APIView, CopyFolderPermission):
     def is_destination_subfolder_of_source(self, folder_current_path, destination_path):
         folder_current_path = pathlib.Path(folder_current_path)
         destination_path = pathlib.Path(destination_path)
-        return destination_path.is_relative_to(folder_current_path)
+        return False
 
 class FolderMoveView(APIView):
 
