@@ -136,7 +136,7 @@ class FolderCopyView(APIView, CopyFolderPermission):
 
     def put(self, request, uuid):
 
-        folder = Folder.objects.filter(unique_id=uuid, user=request.user).first()
+        folder = Folder.objects.prefetch_related('sub_folders', 'files').select_related('user').filter(unique_id=uuid, user=request.user).first()
         if not folder:
             return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
 
@@ -181,8 +181,7 @@ class FolderCopyView(APIView, CopyFolderPermission):
         return Response(response_messages.success('copied_successfully'))
 
     def copy_folder_db_relations(self, old_folder, new_folder):
-        print(old_folder.files.all())
-        for file in old_folder.files.all():
+        for file in old_folder.files.prefetch_related('parent_folder', 'user').all():
 
             if file.parent_folder:
                 parent_folder_path = new_folder.get_folder_tree_as_dirs()
@@ -204,7 +203,7 @@ class FolderCopyView(APIView, CopyFolderPermission):
             new_file.file.name = new_path
             new_file.save()
 
-        for folder in old_folder.sub_folders.all():
+        for folder in old_folder.sub_folders.prefetch_related('sub_folders', 'files').select_related('user').all():
             new_child_folder = Folder.objects.create(
             name=folder.name,
             parent_folder=new_folder,

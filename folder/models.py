@@ -41,10 +41,10 @@ class Folder(models.Model):
         if self.id:
             folder_before_save = Folder.objects.get(id=self.id)
             if folder_before_save.parent_folder != self.parent_folder or folder_before_save.name != self.name:
+                print(1)
                 changed_files = self.change_sub_files_paths(self, changed_files=[])
                 if changed_files:
                     from file.models import File
-                    print(changed_files)
                     File.objects.bulk_update(changed_files, ['file'])
 
         super().save(*args, **kwargs)
@@ -60,7 +60,7 @@ class Folder(models.Model):
 
     def change_sub_files_paths(self, folder, changed_files):
 
-        for file in folder.files.all():
+        for file in folder.files.select_related('user').all():
 
             base_dir = f'{settings.DRIVE_PATH}/{str(file.user.unique_id)}'
 
@@ -70,7 +70,7 @@ class Folder(models.Model):
                 file.file.name = new_path
                 changed_files.append(file)
 
-        for folder in folder.sub_folders.all():
+        for folder in folder.sub_folders.prefetch_related('sub_folders', 'files').all():
             return self.change_sub_files_paths(folder, changed_files)
 
         if folder.sub_folders.count() == 0:
