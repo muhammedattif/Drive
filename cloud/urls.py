@@ -62,7 +62,7 @@ urlpatterns = [
     path('link/<str:file_link>/download', download, name='download'),
 
     # Protect Drive path
-    url(r'^{}(?P<path>.*)$'.format(settings.MEDIA_URL[1:]), protect_drive_path),
+    # url(r'^{}(?P<path>.*)$'.format(settings.MEDIA_URL[1:]), protect_drive_path),
 
     # Not Used
     # serving media files
