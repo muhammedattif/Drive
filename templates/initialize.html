@@ -48,6 +48,7 @@
           {
               icon: 'fa-solid fa-eye',
               text: 'Preview',
+              href: 'javascript:void(0)',
               action: function(e, selector) {
                 var url = '{% url "file_base_url" 1111 %}'.replace('1111', selector.attr("link"))
                 window.open(url, '_blank')
@@ -62,6 +63,7 @@
           {
               icon: 'fa-solid fa-share-nodes',
               text: 'Shared with',
+              href: 'javascript:void(0)',
               action: function(e, selector) {
                  alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
                 }
@@ -69,6 +71,7 @@
           {
               icon: 'fa-solid fa-share-nodes',
               text: 'Share with',
+              href: 'javascript:void(0)',
               action: function(e, selector) {
                  alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
              }
@@ -76,6 +79,7 @@
           {
               icon: 'fa-solid fa-link',
               text: 'Copy Link',
+              href: 'javascript:void(0)',
               action: function(e, selector) {
                  alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
              }
@@ -83,6 +87,7 @@
           {
               icon: 'fa-solid fa-lock',
               text: 'Privacy',
+              href: 'javascript:void(0)',
               action: function(e, selector) {
                 var url = '{% url "file:file_settings" 1111 %}'.replace('1111', selector.attr("id"))
                 window.location.href = url
@@ -95,6 +100,7 @@
           {
               icon: 'fa-solid fa-paste',
               text: 'Cut',
+              href: 'javascript:void(0)',
               action: function(e, selector) {
                 localStorage.copiedFolder = selector.attr("id")
                }
@@ -102,6 +108,7 @@
           {
               icon: 'fa-solid fa-star',
               text: 'Add to Starred',
+              href: 'javascript:void(0)',
               action: function(e, selector) {
                  alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
                }
@@ -109,6 +116,7 @@
           {
               icon: 'fa-solid fa-pen-to-square',
               text: 'Rename',
+              href: 'javascript:void(0)',
               action: function(e, selector) {
                  alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
                }
@@ -117,6 +125,7 @@
           {
               icon: 'fa-solid fa-cloud-arrow-down',
               text: 'Downlaod',
+              href: 'javascript:void(0)',
               action: function(e, selector) {
                 var url = '{% url "file_api:download" 1111 %}'.replace('1111', selector.attr("id"))
                 window.location.href = url
@@ -125,6 +134,7 @@
           {
               icon: 'fa-solid fa-circle-info',
               text: 'Details',
+              href: 'javascript:void(0)',
               action: function(e, selector) {
                  alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
                }
@@ -132,6 +142,7 @@
           {
               icon: 'fa-solid fa-trash',
               text: 'Move to Trash',
+              href: 'javascript:void(0)',
               action: function(e, selector) {
                 var url = '{% url "file:move_to_trash" 1111 %}'.replace('1111', selector.attr("id"))
                 window.location.href = url
@@ -141,6 +152,7 @@
           {
               icon: 'fa-solid fa-gears',
               text: 'Settings',
+              href: 'javascript:void(0)',
               action: function(e, selector) {
                 var url = '{% url "file:file_settings" 1111 %}'.replace('1111', selector.attr("id"))
                 window.location.href = url
@@ -159,6 +171,7 @@
           {
               icon: 'fa-solid fa-universal-access',
               text: 'Shared with',
+              href: 'javascript:void(0)',
               action: function(e, selector) {
                  alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
                 }
@@ -167,6 +180,7 @@
           {
               icon: 'fa-solid fa-share-nodes',
               text: 'Share with',
+              href: 'javascript:void(0)',
               action: function(e, selector) { alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id")); }
           },
 
@@ -176,6 +190,7 @@
           {
               icon: 'fa-solid fa-clone',
               text: 'Copy',
+              href: 'javascript:void(0)',
               action: function(e, selector) {
                 localStorage.copiedFolder = selector.attr("id")
                 localStorage.ContextMenuAction = 'copy'
@@ -185,6 +200,7 @@
           {
               icon: 'fa-solid fa-copy',
               text: 'Cut',
+              href: 'javascript:void(0)',
               action: function(e, selector) {
                 localStorage.copiedFolder = selector.attr("id")
                 localStorage.ContextMenuAction = 'cut'
@@ -193,7 +209,10 @@
           {
               icon: 'fa-solid fa-pen-to-square',
               text: 'Rename',
-              action: function(e, selector) { alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id")); }
+              href: 'javascript:void(0)',
+              action: function(e, selector) {
+                 $("#id"+selector.attr("id")+"rename").modal()
+               }
           },
 
           {
@@ -208,7 +227,10 @@
           {
               icon: 'fa-solid fa-trash',
               text: 'Delete',
-              action: function(e, selector) { alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id")); }
+              href: 'javascript:void(0)',
+              action: function(e, selector) {
+                 $("#id"+selector.attr("id")).modal()
+               }
           },
 
       ]
@@ -221,6 +243,7 @@
       {
           icon: 'fa-solid fa-paste',
           text: 'Paste Here',
+          href: 'javascript:void(0)',
           action: function(e, selector) {
             if (!localStorage.copiedFolder){
               return false
@@ -264,7 +287,10 @@
       {
           icon: 'fa-solid fa-cloud-arrow-up',
           text: 'Upload Here',
-          action: function(e, selector) { alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id")); }
+          href: 'javascript:void(0)',
+          action: function(e, selector) {
+            $("#UploadFileModal").modal()
+           }
       }
   ];
 

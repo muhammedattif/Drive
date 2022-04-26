@@ -40,7 +40,7 @@ class Folder(models.Model):
 
         if self.id:
             folder_before_save = Folder.objects.get(id=self.id)
-            if folder_before_save.parent_folder != self.parent_folder:
+            if folder_before_save.parent_folder != self.parent_folder or folder_before_save.name != self.name:
                 changed_files = self.change_sub_files_paths(self, changed_files=[])
                 if changed_files:
                     from file.models import File
