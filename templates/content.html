@@ -140,7 +140,7 @@
                       {% for file in files %}
                       <div class="col-lg-3 col-md-4 col-sm-12">
                           <div class="card">
-                              <div id="{{file.unique_id}}" class="file file-context-menu">
+                              <div id="{{file.unique_id}}" link="{{file.privacy.link}}" class="file file-context-menu">
                                 <div class="show_settings">
                                   <div class="file_settings">
                                     <h4><a href="{% url 'file:file_settings' file.unique_id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Sharing Settings"><i class="lni lni-users share icons"></i></a></h4>

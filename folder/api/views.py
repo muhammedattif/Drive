@@ -136,19 +136,30 @@ class FolderCopyView(APIView, CopyFolderPermission):
 
     def put(self, request, uuid):
 
-        destination_folder_id = request.data['destination_folder_id']
-
         folder = Folder.objects.filter(unique_id=uuid, user=request.user).first()
         if not folder:
             return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
 
         folder_current_path = folder.get_path_on_disk()
 
-        destination_folder = Folder.objects.filter(unique_id=destination_folder_id, user=request.user).first()
-        if not destination_folder:
-            return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
+        if 'destination_folder_id' in request.data and request.data['destination_folder_id']:
+            destination_folder_id = request.data['destination_folder_id']
+            destination_folder = Folder.objects.prefetch_related('sub_folders').filter(unique_id=destination_folder_id, user=request.user).first()
+            if not destination_folder:
+                return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
 
-        destination_path = destination_folder.get_path_on_disk()
+            destination_dir_folder_names = destination_folder.sub_folders.values_list('name', flat=True)
+            if folder.name in destination_dir_folder_names:
+                return Response(response_messages.error('exists_in_destination'), status=status.HTTP_409_CONFLICT)
+
+            destination_path = destination_folder.get_path_on_disk()
+        else:
+            destination_folder = None
+            destination_path = os.path.join(settings.MEDIA_ROOT, settings.DRIVE_PATH, str(request.user.unique_id))
+            base_dir_folder_names = Folder.objects.filter(user=request.user, parent_folder=None).values_list('name', flat=True)
+            if folder.name in base_dir_folder_names:
+                return Response(response_messages.error('exists_in_destination'), status=status.HTTP_409_CONFLICT)
+
 
         if self.is_destination_subfolder_of_source(folder_current_path, destination_path):
             raise UnknownError(detail='The destination folder is a subfolder of the source folder.')
@@ -159,12 +170,51 @@ class FolderCopyView(APIView, CopyFolderPermission):
             raise UnknownError(detail='The destination folder is same as the source folder.')
 
         try:
-            self.copy_folder(folder_current_path, destination_path)
+            self.copy_folder_on_disk(folder_current_path, destination_path)
         except IOError as e:
             raise UnknownError(detail=e)
+
+        new_folder = Folder.objects.create(name=folder.name, parent_folder=destination_folder, user=folder.user)
+        new_folder.save()
+        self.copy_folder_db_relations(folder, new_folder)
+
         return Response(response_messages.success('copied_successfully'))
 
-    def copy_folder(self, folder_current_path, destination_path):
+    def copy_folder_db_relations(self, old_folder, new_folder):
+        print(old_folder.files.all())
+        for file in old_folder.files.all():
+
+            if file.parent_folder:
+                parent_folder_path = new_folder.get_folder_tree_as_dirs()
+                base_dir = f'{settings.DRIVE_PATH}/{str(file.user.unique_id)}'
+                new_path = f'{base_dir}/{parent_folder_path}/{file.name}'
+            else:
+                base_dir = f'{settings.DRIVE_PATH}/{str(file.user.unique_id)}'
+                new_path = f'{base_dir}/{file.name}'
+
+            new_file = File(
+            user=file.user,
+            name=file.name,
+            size=file.size,
+            type=file.type,
+            category=file.category,
+            file=file.file,
+            parent_folder=new_folder
+            )
+            new_file.file.name = new_path
+            new_file.save()
+
+        for folder in old_folder.sub_folders.all():
+            new_child_folder = Folder.objects.create(
+            name=folder.name,
+            parent_folder=new_folder,
+            user=folder.user
+            )
+
+            return self.copy_folder_db_relations(folder, new_child_folder)
+
+
+    def copy_folder_on_disk(self, folder_current_path, destination_path):
         from folder.utils import copytree
         copytree(
         folder_current_path,
@@ -211,8 +261,6 @@ class FolderMoveView(APIView):
             if folder.name in base_dir_folder_names:
                 return Response(response_messages.error('exists_in_destination'), status=status.HTTP_409_CONFLICT)
 
-        print(folder_current_path)
-        print(destination_path)
         if self.is_destination_subfolder_of_source(folder_current_path, destination_path):
             raise UnknownError(detail='The destination folder is a subfolder of the source folder.')
 
@@ -251,7 +299,6 @@ class FolderMoveView(APIView):
         folder_current_path,
         destination_path
         )
-
 
 
 

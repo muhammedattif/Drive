@@ -192,17 +192,6 @@ class SharedWithMeDestroyOriginalView(APIView):
 		shared_file.content_object.delete()
 		return Response(response_messages.success('deleted_successfully'))
 
-class SharedWithMeEditOriginalView(APIView):
-
-	def put(self, request, sharing_id):
-		shared_file = request.user.shared_with_me.filter(id=sharing_id, permissions__can_view=True, permissions__can_rename=True).first()
-		if not shared_file:
-			raise PermissionDenied()
-
-		if shared_file.content_type.model == 'folder':
-			print(1)
-
-		return Response(response_messages.success('deleted_successfully'))
 
 # Rename original folder
 class SharedWithMeEditOriginalView(APIView):

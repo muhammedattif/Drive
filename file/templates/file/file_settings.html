@@ -28,6 +28,14 @@
 {% endfor %}
 
 <div class="container-fluid">
+<h2 class="title"><a
+  {% if file.parent_folder %}
+    href="{% url 'folder:folder' file.parent_folder.unique_id  %}"
+  {% else %}
+  href="{% url 'home' %}"
+  {% endif %}
+
+  ><i class="fa-solid fa-angle-left"></i> Go Back</a></h2>
   <form  method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <h5 class="mb-4">File sharing settings</h5>

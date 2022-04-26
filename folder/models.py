@@ -4,8 +4,9 @@ from accounts.models import Account
 from django.contrib.contenttypes.fields import GenericRelation
 import uuid
 from django.conf import settings
-import os
 from .managers import FolderManager
+import os
+from pathlib import Path
 
 def truncate_folder_name(folder_name):
     return folder_name[0:20]
@@ -36,6 +37,16 @@ class Folder(models.Model):
     def save(self, *args, **kwargs):
         if not self.id:
             self.name = truncate_folder_name(self.name)
+
+        if self.id:
+            folder_before_save = Folder.objects.get(id=self.id)
+            if folder_before_save.parent_folder != self.parent_folder:
+                changed_files = self.change_sub_files_paths(self, changed_files=[])
+                if changed_files:
+                    from file.models import File
+                    print(changed_files)
+                    File.objects.bulk_update(changed_files, ['file'])
+
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
@@ -46,6 +57,24 @@ class Folder(models.Model):
 
     def get_files_count(self):
         return self.files.filter(trash=None).count()
+
+    def change_sub_files_paths(self, folder, changed_files):
+
+        for file in folder.files.all():
+
+            base_dir = f'{settings.DRIVE_PATH}/{str(file.user.unique_id)}'
+
+            new_path = f'{base_dir}/{folder.get_folder_tree_as_dirs()}/{file.name}'
+
+            if str(file.file) != new_path:
+                file.file.name = new_path
+                changed_files.append(file)
+
+        for folder in folder.sub_folders.all():
+            return self.change_sub_files_paths(folder, changed_files)
+
+        if folder.sub_folders.count() == 0:
+            return changed_files
 
     # This function id to return folder tree as objects [<folder_obj2>, <folder_obj2>, <folder_obj3>]
     # Not Used

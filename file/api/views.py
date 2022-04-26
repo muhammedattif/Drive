@@ -169,6 +169,15 @@ def delete(request, unique_id):
         return Response(content, status=status.HTTP_404_NOT_FOUND)
 
 
+class FileDestroyView(APIView):
+
+    def get(self, request, uuid):
+        file = File.objects.get(unique_id=uuid, user=request.user)
+
+        response = FileResponse(file.file, as_attachment=True)
+        response['Content-Disposition'] = f'attachment; filename="{file.name}"'
+        return response
+
 class RangeFileWrapper(object):
     def __init__(self, filelike, blksize=8192, offset=0, length=None):
         self.filelike = filelike

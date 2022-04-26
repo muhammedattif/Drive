@@ -129,6 +129,22 @@ class File(models.Model):
     #         self.size = self.file.size
     #     super().save(*args, **kwargs)
 
+    def save(self, *args, **kwargs):
+        if self.id:
+            old_file = File.objects.get(id=self.id)
+            if old_file.parent_folder != self.parent_folder:
+                if self.parent_folder:
+                    parent_folder_path = self.parent_folder.get_folder_tree_as_dirs()
+                    base_dir = f'{settings.DRIVE_PATH}/{str(self.user.unique_id)}'
+                    new_path = f'{base_dir}/{parent_folder_path}/{self.name}'
+                else:
+                    base_dir = f'{settings.DRIVE_PATH}/{str(self.user.unique_id)}'
+                    new_path = f'{base_dir}/{self.name}'
+
+                if str(self.file) != new_path:
+                    self.file.name = new_path
+        super().save(*args, **kwargs)
+
 class FileQuality(models.Model):
 
     STATUS_CHOICES = (

@@ -49,7 +49,8 @@
               icon: 'fa-solid fa-eye',
               text: 'Preview',
               action: function(e, selector) {
-                alert('Create clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
+                var url = '{% url "file_base_url" 1111 %}'.replace('1111', selector.attr("link"))
+                window.open(url, '_blank')
               }
           },
           {
@@ -83,8 +84,9 @@
               icon: 'fa-solid fa-lock',
               text: 'Privacy',
               action: function(e, selector) {
-                 alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
-               }
+                var url = '{% url "file:file_settings" 1111 %}'.replace('1111', selector.attr("id"))
+                window.location.href = url
+              }
           },
           {
               divider: true
@@ -116,8 +118,9 @@
               icon: 'fa-solid fa-cloud-arrow-down',
               text: 'Downlaod',
               action: function(e, selector) {
-                 alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
-               }
+                var url = '{% url "file_api:download" 1111 %}'.replace('1111', selector.attr("id"))
+                window.location.href = url
+              }
           },
           {
               icon: 'fa-solid fa-circle-info',
@@ -130,16 +133,18 @@
               icon: 'fa-solid fa-trash',
               text: 'Move to Trash',
               action: function(e, selector) {
-                 alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
-               }
+                var url = '{% url "file:move_to_trash" 1111 %}'.replace('1111', selector.attr("id"))
+                window.location.href = url
+              }
           },
 
           {
               icon: 'fa-solid fa-gears',
               text: 'Settings',
               action: function(e, selector) {
-                 alert('Delete clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
-               }
+                var url = '{% url "file:file_settings" 1111 %}'.replace('1111', selector.attr("id"))
+                window.location.href = url
+              }
           }
       ]
   };
@@ -169,11 +174,20 @@
               divider: true
           },
           {
-              icon: 'fa-solid fa-paste',
+              icon: 'fa-solid fa-clone',
+              text: 'Copy',
+              action: function(e, selector) {
+                localStorage.copiedFolder = selector.attr("id")
+                localStorage.ContextMenuAction = 'copy'
+
+                }
+          },
+          {
+              icon: 'fa-solid fa-copy',
               text: 'Cut',
               action: function(e, selector) {
                 localStorage.copiedFolder = selector.attr("id")
-                console.log(selector.attr("id"))
+                localStorage.ContextMenuAction = 'cut'
                 }
           },
           {
@@ -185,7 +199,11 @@
           {
               icon: 'fa-solid fa-cloud-arrow-down',
               text: 'Downlaod',
-              action: function(e, selector) { alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id")); }
+              href: 'javascript:void(0)',
+              action: function(e, selector) {
+                var url = '{% url "folder_api:download" 1111 %}'.replace('1111', selector.attr("id"))
+                window.location.href = url
+              }
           },
           {
               icon: 'fa-solid fa-trash',
@@ -204,14 +222,20 @@
           icon: 'fa-solid fa-paste',
           text: 'Paste Here',
           action: function(e, selector) {
-
+            if (!localStorage.copiedFolder){
+              return false
+            }
             var current_folder = $("#DirectoryID").text()
             var copiedFolder = localStorage.getItem("copiedFolder");
              payload = {
                  "destination_folder_id": current_folder,
                }
 
-               var url = '{% url "folder_api:move" 1111 %}'.replace('1111', copiedFolder)
+               if(localStorage.ContextMenuAction === 'copy'){
+                 var url = '{% url "folder_api:copy" 1111 %}'.replace('1111', copiedFolder)
+               }else{
+                 var url = '{% url "folder_api:move" 1111 %}'.replace('1111', copiedFolder)
+               }
                console.log(url);
                $.ajax({
                  type: "PUT",
@@ -230,6 +254,11 @@
 
                  },
                });
+
+               if(localStorage.ContextMenuAction === 'cut'){
+                 localStorage.copiedFolder = ''
+               }
+
            }
       },
       {

@@ -2,7 +2,8 @@ from folder.models import Folder
 from django.conf import settings
 from rest_framework.response import Response
 from rest_framework import status
-import shutil
+import os
+from shutil import *
 
 def check_sub_folders_limit(folder_tree):
     if len(folder_tree.split('/')) > settings.SUB_FOLDERS_LIMIT:
@@ -36,11 +37,8 @@ def create_folder_tree_if_not_exist(folder_tree, user):
     return parent_folder
 
 
-import os
-from shutil import *
 def copytree(src, dst, symlinks=False, ignore=None):
     names = os.listdir(src)
-    print(names)
     if ignore is not None:
         ignored_names = ignore(src, names)
     else:
@@ -58,12 +56,9 @@ def copytree(src, dst, symlinks=False, ignore=None):
             if symlinks and os.path.islink(srcname):
                 linkto = os.readlink(srcname)
                 os.symlink(linkto, dstname)
-                print(srcname)
             elif os.path.isdir(srcname):
-                print(srcname)
                 copytree(srcname, dstname, symlinks, ignore)
             else:
-                print(srcname)
                 # Will raise a SpecialFileError for unsupported file types
                 copy2(srcname, dstname)
         # catch the Error from the recursive copytree so that we can

@@ -12,7 +12,7 @@ import time
 import uuid
 from django.contrib.admin.utils import NestedObjects
 from activity.models import Activity
-
+from django.conf import settings
 from django.db.models.deletion import Collector
 from django.db.models.fields.related import ForeignKey
 
@@ -142,6 +142,8 @@ def home(request):
     page_number = request.GET.get('page')
     files = paginator.get_page(page_number)
 
+
+    # recursive(folders[0])
     context = {
         'files': files,
         'folders': folders
@@ -149,14 +151,19 @@ def home(request):
 
     return render(request, 'drive/home.html', context)
 
-
+from pathlib import Path
 def recursive(folder):
 
     for file in folder.files.all():
-        files_obj.append(file)
+        print(folder.get_folder_tree_as_dirs())
+        print(file.file)
+        base_dir = f'{settings.DRIVE_PATH}/{str(file.user.unique_id)}'
+
+        new_path = f'{base_dir}/{folder.get_folder_tree_as_dirs()}/{file.name}'
+        print(new_path)
     for folder in folder.sub_folders.all():
-        folders_obj.append(folder)
         recursive(folder)
+
 
 # Filter files based on category view
 @login_required(login_url='login')
