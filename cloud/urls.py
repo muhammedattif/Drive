@@ -18,7 +18,7 @@ from django.urls import path, include
 from django.conf.urls import url
 from django.conf.urls.static import static
 from django.conf import settings
-from accounts.views import login_view, register_view, logout_view
+from accounts.views import login_view, register_view, logout_view, shared_with_me
 from drive.views import home
 from file.views import download
 import debug_toolbar
@@ -32,6 +32,7 @@ urlpatterns = [
     path('login', login_view, name='login'),
     path('register', register_view, name='register'),
     path('logout', logout_view, name='logout'),
+    path('shared-with-me', shared_with_me, name='shared-with-me'),
 
     # Account APIs
     path('api/account/', include('accounts.api.urls', 'account_api')),

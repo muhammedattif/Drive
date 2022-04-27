@@ -1,0 +1,363 @@
+{% extends "base.html" %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/context.standalone.css' %}">
+
+{% block content %}
+
+
+{% if not files_shared_with_me%}
+<!-- Google font -->
+<link href="https://fonts.googleapis.com/css?family=Raleway:400,700" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Passion+One:900" rel="stylesheet">
+
+<link type="text/css" rel="stylesheet" href="{% static 'uploader/css/no_files_found.css' %}" />
+<div class="drive-wrapper drive-grid-view collapse_grid" id="collapse_grid">
+    <div class="grid-items-wrapper">
+      <div id="main-content" class="file_manager">
+              <div class="container-fluid">
+                  <div class="row clearfix">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-12">
+                                <div id="notfound">
+                                    <div class="notfound">
+                                        <h2>No one shared with you any file yet!</h2>
+                                        <p>Upload new files and start sharing them.</p>
+                                        <a data-toggle="modal" data-target="#UploadFileModal" href="#"><i class="fas fa-cloud-upload-alt"></i> Upload File</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                  </div>
+
+              </div>
+          </div>
+
+    </div>
+</div>
+{% endif %}
+
+{% if files_shared_with_me %}
+<span class="badge text-muted mb-1 mt-4">Folders</span>
+<div class="drive-wrapper drive-grid-view collapse_grid" id="collapse_grid">
+    <div class="grid-items-wrapper">
+      <div id="main-content" class="file_manager">
+              <div class="container-fluid">
+                  <div class="row clearfix">
+                        {% for object in files_shared_with_me %}
+                        {% if  object.content_type.model == 'folder' %}
+                          <div class="col-lg-3 col-md-4 col-sm-12">
+                              <div class="card">
+                                  <div id="{{folder.unique_id}}" class="file folder-context-menu">
+                                    <div class="show_settings">
+
+                                      <div class="hover">
+
+                                          {% if perms.folder.delete_folder %}
+                                            <h4><a data-toggle="modal" data-target="#id{{folder.unique_id}}"><i data-placement="top" title="" data-original-title="Delete Folder" data-toggle="tooltip" class="lni lni-trash-can delete icons"></i></a></h4>
+                                          {% endif %}
+                                          {% if perms.folder.can_rename_folder %}
+                                            <h4><a data-toggle="modal" data-target="#id{{folder.unique_id}}rename"><i data-placement="top" title="" data-original-title="Rename Folder"  data-toggle="tooltip" class="lni lni-brush-alt copy"></i></a></h4>
+                                          {% endif %}
+                                          {% if perms.folder.can_download_folder %}
+                                            <h4><a href=""><i data-placement="top" title="" data-original-title="Download Folder"  data-toggle="tooltip" class="lni lni-arrow-down-circle download icons"></i></a></h4>
+                                          {% endif %}
+                                      </div>
+                                    </div>
+                                      <a href="">
+                                          <div class="icon">
+                                              <i class="fa fa-folder text-primary folder-icon" ></i>
+                                          </div>
+                                          <div class="file-name">
+                                              <a title="{{ folder.name }}" href=""><p class="m-b-5 text-muted">{{ object.content_object.name }}</p></a>
+                                              <small>Files: {{object.content_object.get_files_count}} <span class="date text-muted">{{object.content_object.created_at}}</span></small>
+                                          </div>
+                                      </a>
+                                  </div>
+                              </div>
+                            </div>
+
+                        {% if perms.folder.can_rename_folder %}
+                          <!-- Delete Modal -->
+                            <div class="modal fade" id="id{{folder.unique_id}}" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                              <div class="modal-dialog">
+                                <div class="modal-content">
+
+                                  <div class="modal-body">
+                                    Are you sure you want to delete this Folder?
+                                      <div><small class="text-danger">This folder will be deleted permanently. You can't undo this action.</small></div>
+                                  </div>
+                                  <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-dark" data-dismiss="modal">Cancel</button>
+                                    <a href="" type="button" class="btn btn-danger">Delete</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                      {% endif %}
+
+                      {% if perms.folder.can_rename_folder %}
+                      <!-- Rename Folder Modal -->
+                          <div class="modal fade " id="id{{folder.unique_id}}rename" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                              <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                  <div class="modal-header primary_bg">
+                                    <h5 class="modal-title" id="CreateFolderModal">Rename Folder</h5>
+                                    <button type="button" class="close text-light" data-dismiss="modal" aria-label="Close">
+                                      <span aria-hidden="true">&times;</span>
+                                    </button>
+                                  </div>
+                                  <div class="modal-body">
+
+                                    <form method="POST" action="">
+                                        {%csrf_token%}
+                                        <div class="input-group mb-3">
+                                          <div class="input-group-prepend">
+                                            <span class="input-group-text" id="basic-addon1"><i class="fas fa-folder"></i></span>
+                                          </div>
+                                          <input type="text" value="{{folder.name}}" name="folder_new_name" class="form-control" placeholder="Folder Name" aria-label="Folder Name" aria-describedby="basic-addon1">
+                                            <small class="text-muted">Note: In case folder name is more than 20 chars it will be truncated automatically to 20 chars.</small>
+                                        </div>
+                                        <button type="submit" class="btn primary float-right">Rename</button>
+
+                                    </form>
+
+                                  </div>
+
+                                </div>
+                              </div>
+                            </div>
+                      {% endif %}
+
+                      {% endif %}
+                        {% endfor %}
+                  </div>
+              </div>
+          </div>
+    </div>
+</div>
+
+
+{% endif %}
+
+{% if files_shared_with_me %}
+<span class="badge text-muted mb-1 mt-4">Files</span>
+<div class="drive-wrapper drive-grid-view collapse_grid" id="collapse_grid">
+    <div class="grid-items-wrapper">
+      <div id="main-content" class="file_manager">
+              <div class="container-fluid">
+                  <div class="row clearfix">
+                      {% for object in files_shared_with_me %}
+                      {% if object.content_type.model == 'file' %}
+
+                      <div class="col-lg-3 col-md-4 col-sm-12">
+                          <div class="card">
+                              <div id="{{file.unique_id}}" link="{{file.privacy.link}}" class="file file-context-menu">
+                                <div class="show_settings">
+                                  <div class="file_settings">
+                                    <h4><a href="" data-toggle="tooltip" data-placement="top" title="" data-original-title="Sharing Settings"><i class="lni lni-users share icons"></i></a></h4>
+                                  </div>
+                                  <div class="uuid_link">
+                                    <h4><a id="{{file.unique_id}}" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy UUID"><i onclick="CopyFileLink('{{ file.unique_id }}', '{{file.unique_id}}')" class="lni lni-share-alt-1"></i></a></h4>
+                                  </div>
+
+                                  <div class="hover">
+                                    <h4><a id="link-{{file.unique_id}}" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ file.get_url }}', 'link-{{file.unique_id}}')" class="lni lni-link copy icons"></i></a></h4>
+                                    {% if perms.file.can_download_file %}
+                                        <h4><a href="" download data-toggle="tooltip" data-placement="top" title="" data-original-title="Download"><i class="lni lni-arrow-down-circle download icons"></i></a></h4>
+                                    {% endif %}
+
+                                    {% if perms.file.can_add_files_to_trash %}
+                                        <h4><a href="" data-toggle="tooltip" data-placement="top" title="" data-original-title="Move To Trash"><i class="lni lni-trash-can delete icons"></i></a></h4>
+                                    {% endif %}
+                                  </div>
+                                </div>
+                                  <a href="{{file.get_url}}" target="_blank">
+
+
+                                      <div class="icon">
+                                          {% if object.content_object.type == 'image/gif' %}
+                                            <i class="fa-solid fa-photo-film text-danger"></i>
+                                          {% elif object.content_object.category == 'images' %}
+                                            <i class="fa-solid fa-image text-primary"></i>
+                                          {% elif object.content_object.type == 'application/pdf' %}
+                                            <i class="fa-solid fa-file-pdf text-success"></i>
+                                          {% elif object.content_object.category == 'docs' %}
+                                            <i class="fa-solid fa-file-word text-success"></i>
+                                          {% elif object.content_object.category == 'media' %}
+                                            <i class="fa-solid fa-clapperboard text-danger"></i>
+                                          {% elif object.content_object.category == 'zip' or file.type == 'application/octet-stream' %}
+                                            <i class="fa-solid fa-file-zipper text-warning"></i>
+                                          {% else %}
+                                            <i class="fa fa-file"></i>
+                                          {% endif %}
+
+                                      </div>
+                                      <div class="file-name">
+                                          <a title="{{ file.name }}" href="{{file.get_url}}" target="_blank"><p class="m-b-5 text-muted">{{object.content_object.name|truncatechars:35}}</p></a>
+                                          <small>Size: {{object.content_object.size|filesizeformat}} <span class="date text-muted">{{object.content_object.uploaded_at}}</span></small>
+                                      </div>
+                                  </a>
+                              </div>
+                          </div>
+                      </div>
+
+
+
+                        <!-- Modal -->
+                        <div class="modal fade" id="fileDetails{{file.unique_id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                          <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLabel">File Details</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                  <span aria-hidden="true">&times;</span>
+                                </button>
+                              </div>
+                                <table class="table">
+                                   <tbody>
+                                       <tr>
+                                           <td class="text-muted h6 mr-2">Name</td>
+                                           <td> </td>
+                                           <td class="m-4">{{file.name|truncatechars:35}}</td>
+                                       </tr>
+
+                                       <tr>
+                                           <td class="text-muted h6 m-4">Type</td>
+                                           <td> </td>
+                                           <td class="m-4">{{file.type}}</td>
+                                       </tr>
+
+                                       <tr>
+                                           <td class="text-muted h6 m-4">Size</td>
+                                           <td> </td>
+                                           <td class="m-4">{{file.size|filesizeformat}}</td>
+                                       </tr>
+
+                                       <tr>
+                                           <td class="text-muted h6 m-4">Location</td>
+                                           <td> </td>
+                                           {% if file.parent_folder %}
+                                            <td class="m-4"><a href="{% url 'folder:folder' file.parent_folder.unique_id %}"><i class="fa fa-folder"></i> {{file.parent_folder.name}}</a></td>
+                                            {% else %}
+                                            <td class="m-4"><a href="{% url 'home' %}"><i class="fa-solid fa-house"></i> Home</a></td>
+                                           {% endif %}
+                                       </tr>
+
+                                       <tr>
+                                           <td class="text-muted h6 m-4">Owner</td>
+                                           <td> </td>
+                                           <td class="m-4">{{file.user.email}}</td>
+                                       </tr>
+
+                                       <tr>
+                                           <td class="text-muted h6 m-4">Created</td>
+                                           <td> </td>
+                                           <td class="m-4">{{file.uploaded_at}}</td>
+                                       </tr>
+
+                                       <tr>
+                                           <td class="text-muted h6 m-4">Category</td>
+                                           <td> </td>
+                                           <td class="m-4">{{file.category}}</td>
+                                       </tr>
+                                   </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </div>
+                        {% endif %}
+                      {% endfor %}
+
+                  </div>
+
+              </div>
+          </div>
+
+    </div>
+</div>
+
+{% endif %}
+
+
+<script type="text/javascript">
+  function CopyFileLink(link, id)  {
+      const file_id = document.getElementById(id);
+      const el = document.createElement('textarea');
+      const tooltip_text = file_id.getAttribute('data-original-title')
+      el.value = link;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      file_id.style.display = "none";
+
+      file_id.setAttribute('data-original-title', 'Copied!')
+      setTimeout(function(){
+        file_id.style.display = "block";
+      }, 100);
+
+      setTimeout(function(){
+        file_id.setAttribute('data-original-title', tooltip_text)
+      }, 500);
+
+    };
+
+    const grid_toggle = document.getElementById('drive-grid-toggle');
+    const list_toggle = document.getElementById('drive-list-toggle');
+
+    grid_toggle.addEventListener('click', (e) => {
+      $(".collapse_list").addClass('d-none');
+      $(".collapse_grid").removeClass("d-none");
+      anime({
+        targets: '.collapse_grid',
+        translateY: 10,
+        direction: 'alternate',
+        easing: 'spring(1, 80, 10, 0)'
+      })
+
+      anime({
+        targets: '.collapse_list',
+        translateY: 0,
+        direction: 'alternate',
+        easing: 'spring(1, 80, 10, 0)'
+      })
+    });
+
+
+
+
+    list_toggle.addEventListener('click', (e) => {
+      $(".collapse_grid").addClass("d-none");
+      $(".collapse_list").removeClass("d-none");
+
+      anime({
+        targets: '.collapse_grid',
+        translateY: 0,
+        direction: 'alternate',
+        easing: 'spring(1, 80, 10, 0)'
+      })
+
+      anime({
+        targets: '.collapse_list',
+        translateY: 10,
+        direction: 'alternate',
+        easing: 'spring(1, 80, 10, 0)'
+      })
+    });
+
+</script>
+
+<script src="{% static 'js/jquery.js' %}" crossorigin="anonymous"></script>
+
+{% include 'initialize.html' %}
+<script src="{% static 'js/context.js' %}"></script>
+<script>
+    context.init({preventDoubleContext: false});
+    context.attach('.folder-context-menu', folder_menu);
+    context.attach('.file-context-menu', file_menu);
+    context.attach('body', body_menu);
+</script>
+
+{% endblock %}

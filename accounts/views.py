@@ -4,6 +4,7 @@ import json
 from accounts.forms import CreateUserForm
 from django.contrib.auth import authenticate, login, logout
 from django.db import transaction
+from django.db.models import Q
 # Create your views here.
 
 # Registration View
@@ -49,3 +50,24 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('login')
+
+
+# Shared With Me Files
+def shared_with_me(request):
+
+    blocked_users = getattr(request.user, 'file_sharing_block_list', [])
+    if blocked_users:
+        blocked_users = blocked_users.users.values_list('id')
+
+    files_shared_with_me = request.user.shared_with_me.prefetch_related('shared_by', 'shared_with', 'permissions', 'content_type', 'content_object').filter(\
+    ~Q(shared_with__file_sharing_block_list__users__in=[request.user]),
+    ~Q(shared_by__in=blocked_users),
+    ~Q(shared_with__in=blocked_users),
+    permissions__can_view=True,
+    )
+
+    context = {
+    'files_shared_with_me': files_shared_with_me
+    }
+
+    return render(request, 'shared_with_me_content.html', context)
