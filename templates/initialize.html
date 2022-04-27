@@ -271,7 +271,8 @@
                   location.reload();
                  },
                  error: function(data){
-                   alert("Something went wrong.")
+                   $('.context-error').text(data.responseJSON.detail)
+                   $('.error').toast('show')
                  },
                  complete: function(data){
 

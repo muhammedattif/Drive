@@ -131,6 +131,7 @@ class File(models.Model):
 
     def save(self, *args, **kwargs):
         if self.id:
+            # Change File path in case it moved to anothe path
             old_file = File.objects.get(id=self.id)
             if old_file.parent_folder != self.parent_folder:
                 if self.parent_folder:

@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from file.models import File
+from file.models import File, FilePrivacy, MediaFileProperties
 from file.api.serializers import FileSerializer
 from folder.models import Folder
 from folder.utils import check_sub_folders_limit, create_folder_tree_if_not_exist
@@ -17,6 +17,7 @@ from folder.permissions import CreateFolderPermission, DownloadFolderPermission,
 from folder.api.serializers import FolderSerializer, BasicFolderInfoSerializer
 from zipfile import ZIP_DEFLATED, ZipFile
 from django.http import FileResponse
+from file.utils import detect_quality, generate_file_link
 # Third-Party Libs
 import os
 from pathlib import Path
@@ -176,41 +177,108 @@ class FolderCopyView(APIView, CopyFolderPermission):
 
         new_folder = Folder.objects.create(name=folder.name, parent_folder=destination_folder, user=folder.user)
         new_folder.save()
-        self.copy_folder_db_relations(folder, new_folder)
+
+        objects_lists = {
+        'folders_objs': [],
+        'files_objs': [],
+        'privacy_objs': [],
+        'media_props_objs': []
+        }
+
+        default_upload_privacy = request.user.drive_settings.default_upload_privacy
+        created_objects = self.copy_folder_db_relations(folder, new_folder, default_upload_privacy, objects_lists=objects_lists)
+
+        folders_objs = created_objects['folders_objs']
+        Folder.objects.bulk_create(folders_objs)
+
+        files_objs = created_objects['files_objs']
+        File.objects.bulk_create(files_objs)
+
+        privacy_objs = created_objects['privacy_objs']
+        FilePrivacy.objects.bulk_create(privacy_objs)
+
+        media_props_objs = created_objects['media_props_objs']
+        MediaFileProperties.objects.bulk_create(media_props_objs)
+
 
         return Response(response_messages.success('copied_successfully'))
 
-    def copy_folder_db_relations(self, old_folder, new_folder):
-        for file in old_folder.files.prefetch_related('parent_folder', 'user').all():
+    def copy_folder_db_relations(self, old_folder, new_folder, default_upload_privacy, objects_lists):
 
-            if file.parent_folder:
-                parent_folder_path = new_folder.get_folder_tree_as_dirs()
-                base_dir = f'{settings.DRIVE_PATH}/{str(file.user.unique_id)}'
-                new_path = f'{base_dir}/{parent_folder_path}/{file.name}'
-            else:
-                base_dir = f'{settings.DRIVE_PATH}/{str(file.user.unique_id)}'
-                new_path = f'{base_dir}/{file.name}'
+        sub_files = old_folder.files.prefetch_related('parent_folder', 'user').all()
+        for file in sub_files:
 
-            new_file = File(
-            user=file.user,
-            name=file.name,
-            size=file.size,
-            type=file.type,
-            category=file.category,
-            file=file.file,
-            parent_folder=new_folder
-            )
-            new_file.file.name = new_path
-            new_file.save()
-
-        for folder in old_folder.sub_folders.prefetch_related('sub_folders', 'files').select_related('user').all():
-            new_child_folder = Folder.objects.create(
-            name=folder.name,
+            new_file, new_file_privacy, media_file_props = self.deuplicate_file(
+            old_file=file,
             parent_folder=new_folder,
-            user=folder.user
+            default_upload_privacy=default_upload_privacy
             )
 
-            return self.copy_folder_db_relations(folder, new_child_folder)
+            objects_lists['files_objs'].append(new_file)
+            objects_lists['privacy_objs'].append(new_file_privacy)
+            if media_file_props:
+                objects_lists['media_props_objs'].append(media_file_props)
+
+
+
+        sub_folders = old_folder.sub_folders.prefetch_related('sub_folders', 'files').select_related('user').all()
+        for folder in sub_folders:
+
+            new_child_folder = self.duplicate_folder(old_folder=folder, parent_folder=new_folder)
+            objects_lists['folders_objs'].append(new_child_folder)
+
+            return self.copy_folder_db_relations(
+            old_folder=folder,
+            new_folder=new_child_folder,
+            default_upload_privacy=default_upload_privacy,
+            objects_lists=objects_lists
+            )
+
+        if sub_folders.count() == 0:
+            return objects_lists
+
+    def deuplicate_file(self, old_file, parent_folder, default_upload_privacy):
+
+        if old_file.parent_folder:
+            parent_folder_path = parent_folder.get_folder_tree_as_dirs()
+            base_dir = f'{settings.DRIVE_PATH}/{str(old_file.user.unique_id)}'
+            new_path = f'{base_dir}/{parent_folder_path}/{old_file.name}'
+        else:
+            base_dir = f'{settings.DRIVE_PATH}/{str(old_file.user.unique_id)}'
+            new_path = f'{base_dir}/{old_file.name}'
+
+
+        new_file = File(
+        user=old_file.user,
+        name=old_file.name,
+        size=old_file.size,
+        type=old_file.type,
+        category=old_file.category,
+        file=old_file.file,
+        parent_folder=parent_folder
+        )
+        new_file.file.name = new_path
+
+        new_file_privacy = FilePrivacy(file=new_file)
+        new_file_privacy.option = default_upload_privacy
+        new_file_privacy.link = generate_file_link(new_file.name)
+
+
+        if new_file.category == 'media':
+            media_file_quality = detect_quality(new_file.file.path)
+            media_file_props = MediaFileProperties(media_file=new_file, quality=media_file_quality)
+        else:
+            return new_file, new_file_privacy, None
+
+        return new_file, new_file_privacy, media_file_props
+
+    def duplicate_folder(self, old_folder, parent_folder):
+        new_folder = Folder(
+        name=old_folder.name,
+        parent_folder=parent_folder,
+        user=old_folder.user
+        )
+        return new_folder
 
 
     def copy_folder_on_disk(self, folder_current_path, destination_path):
@@ -264,7 +332,6 @@ class FolderMoveView(APIView):
             raise UnknownError(detail='The destination folder is a subfolder of the source folder.')
 
 
-
         destination_path = os.path.join(destination_path, folder.name)
         if self.is_destination_equal_source(folder_current_path, destination_path):
             raise UnknownError(detail='The destination folder is same as the source folder.')
@@ -298,8 +365,6 @@ class FolderMoveView(APIView):
         folder_current_path,
         destination_path
         )
-
-
 
 
 
