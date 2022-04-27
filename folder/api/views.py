@@ -11,7 +11,7 @@ from folder.models import Folder
 from folder.utils import check_sub_folders_limit, create_folder_tree_if_not_exist
 from django.conf import settings
 from folder import utils
-from folder.exceptions import UnknownError
+from folder.exceptions import UnknownError, InsufficientStorageError
 from cloud import messages as response_messages
 from folder.permissions import CreateFolderPermission, DownloadFolderPermission, CopyFolderPermission, MoveFolderPermission
 from folder.api.serializers import FolderSerializer, BasicFolderInfoSerializer
@@ -175,8 +175,7 @@ class FolderCopyView(APIView, CopyFolderPermission):
         except IOError as e:
             raise UnknownError(detail=e)
 
-        new_folder = Folder.objects.create(name=folder.name, parent_folder=destination_folder, user=folder.user)
-        new_folder.save()
+        new_folder = Folder(name=folder.name, parent_folder=destination_folder, user=folder.user)
 
         objects_lists = {
         'folders_objs': [],
@@ -186,7 +185,18 @@ class FolderCopyView(APIView, CopyFolderPermission):
         }
 
         default_upload_privacy = request.user.drive_settings.default_upload_privacy
-        created_objects = self.copy_folder_db_relations(folder, new_folder, default_upload_privacy, objects_lists=objects_lists)
+        created_objects, copied_files_size = self.copy_folder_db_relations(
+                                                        folder,
+                                                        new_folder,
+                                                        default_upload_privacy,
+                                                        objects_lists=objects_lists,
+                                                        copied_files_size=0
+                                                        )
+        # check if the user is allowed to copy files with these size or his limit reached
+        if not request.user.drive_settings.is_allowed_to_upload_files(copied_files_size):
+            raise InsufficientStorageError()
+
+        new_folder.save()
 
         folders_objs = created_objects['folders_objs']
         Folder.objects.bulk_create(folders_objs)
@@ -203,7 +213,7 @@ class FolderCopyView(APIView, CopyFolderPermission):
 
         return Response(response_messages.success('copied_successfully'))
 
-    def copy_folder_db_relations(self, old_folder, new_folder, default_upload_privacy, objects_lists):
+    def copy_folder_db_relations(self, old_folder, new_folder, default_upload_privacy, objects_lists, copied_files_size):
 
         sub_files = old_folder.files.prefetch_related('parent_folder', 'user').all()
         for file in sub_files:
@@ -213,6 +223,7 @@ class FolderCopyView(APIView, CopyFolderPermission):
             parent_folder=new_folder,
             default_upload_privacy=default_upload_privacy
             )
+            copied_files_size += new_file.size
 
             objects_lists['files_objs'].append(new_file)
             objects_lists['privacy_objs'].append(new_file_privacy)
@@ -231,11 +242,12 @@ class FolderCopyView(APIView, CopyFolderPermission):
             old_folder=folder,
             new_folder=new_child_folder,
             default_upload_privacy=default_upload_privacy,
-            objects_lists=objects_lists
+            objects_lists=objects_lists,
+            copied_files_size=copied_files_size
             )
 
         if sub_folders.count() == 0:
-            return objects_lists
+            return objects_lists, copied_files_size
 
     def deuplicate_file(self, old_file, parent_folder, default_upload_privacy):
 
