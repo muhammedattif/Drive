@@ -18,7 +18,7 @@ RUN pip install -r requirements.txt
 COPY ./entrypoint.sh .
 RUN sed -i 's/\r$//g' /opt/app-root/src/entrypoint.sh
 RUN chmod +x /opt/app-root/src/entrypoint.sh
-COPY ./env.test ./.env
+COPY ./env.dev ./.env
 #CMD [ "python", "./manage.py" ]
 #CMD ['celery', '-A', 'cloud', 'worker', '-l', 'INFO']
 RUN celery -A cloud worker -l info -D
