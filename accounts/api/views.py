@@ -29,7 +29,7 @@ UnknownError,
 InBlockList
 )
 import cloud.messages as response_messages
-
+from django.contrib.contenttypes.models import ContentType
 
 User = get_user_model()
 
@@ -79,7 +79,6 @@ class SharedListCreateView(APIView, PageNumberPagination):
 
 	@transaction.atomic
 	def post(self, request):
-
 		required_fields = []
 		if 'file_uuid' not in request.data:
 			required_fields.append('file_uuid')
@@ -94,19 +93,24 @@ class SharedListCreateView(APIView, PageNumberPagination):
 		file_uuid = request.data['file_uuid']
 		shared_with = request.data['shared_with']
 		permissions = request.data['permissions']
-
 		shared_with = User.objects.prefetch_related('file_sharing_block_list__users').filter(email=shared_with).first()
 		if not shared_with:
 			return Response(response_messages.error('user_not_found'), status=status.HTTP_404_NOT_FOUND)
 
 		if not self.request.user.can_share_with(shared_with):
 			return Response(response_messages.error('share_files_denied'), status=status.HTTP_403_FORBIDDEN)
-
 		file = File.objects.filter(user=request.user, unique_id=file_uuid).first()
 		if not file:
 			return Response(response_messages.error('file_not_found'), status=status.HTTP_404_NOT_FOUND)
 
-		shared_file, created = SharedObject.objects.get_or_create(shared_by=request.user, file=file, shared_with=shared_with)
+
+		shared_file, created = SharedObject.objects.get_or_create(
+		shared_by=request.user,
+		content_type=ContentType.objects.get(model='file'),
+		object_id=file.id,
+		shared_with=shared_with
+		)
+
 		if created:
 			SharedObjectPermission.objects.create(file=shared_file, **permissions)
 

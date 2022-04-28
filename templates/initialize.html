@@ -74,6 +74,7 @@
               href: 'javascript:void(0)',
               action: function(e, selector) {
                  $("#shareWith").modal()
+                 $(".shareForm").attr("id", selector.attr("id"))
              }
           },
           {
@@ -259,7 +260,6 @@
                }else{
                  var url = '{% url "folder_api:move" 1111 %}'.replace('1111', copiedFolder)
                }
-               console.log(url);
                $.ajax({
                  type: "PUT",
                  headers: {'X-CSRFToken': '{{csrf_token}}'},
@@ -294,5 +294,70 @@
            }
       }
   ];
+
+var shareForm = document.getElementById('submitShare')
+shareForm.addEventListener('click', function(event) {
+  event.preventDefault();
+
+  var form = document.getElementsByClassName('shareForm')[0]
+  var userEmail = form.elements['userEmail']
+  var canView = form.elements['canView']
+  var canRename = form.elements['canRename']
+  var canDownload = form.elements['canDownload']
+  var canDelete = form.elements['canDelete']
+
+  if(!userEmail.value){
+    $('#shareError').text("User Email is not valid.")
+  }else{
+    $('#shareError').text("")
+  }
+  var fileId = $('.shareForm').attr("id")
+
+  var url = '{% url "account_api:shared-objects" %}'
+  var payload = {
+    "file_uuid": fileId,
+    "shared_with": userEmail.value,
+    "permissions": {
+        "can_view": canView.checked,
+        "can_rename": canRename.checked,
+        "can_download": canDownload.checked,
+        "can_delete": canDelete.checked
+    }
+  }
+
+  $.ajax({
+    type: "POST",
+    headers: {'X-CSRFToken': '{{csrf_token}}'},
+    dataType: "json",
+    url: url,
+    timeout: 5000,
+    data: JSON.stringify(payload),
+    contentType: "application/json; charset=utf-8",
+    success: function(data){
+      $('#shareWith').modal('toggle')
+      $(".shareForm").attr("id", "")
+      $('.context-error').text("Shared Successfully!")
+      var toast = $('.error')
+      toast.toast('show')
+      toast.find('.toast-header').removeClass("bg-danger")
+      toast.find('.toast-header').addClass("bg-success")
+
+    },
+    error: function(data){
+      $('.context-error').text(data.responseJSON.error_description)
+      var toast = $('.error')
+      toast.toast('show')
+      toast.find('.toast-header').removeClass("bg-success")
+      toast.find('.toast-header').addClass("bg-danger")
+
+      console.log(data.responseJSON);
+    },
+    complete: function(data){
+    },
+  });
+
+
+
+});
 
 </script>

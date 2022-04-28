@@ -2,6 +2,22 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'css/context.standalone.css' %}">
 
+
+<div class="position-fixed top-10% right-0% p-3" style="z-index: 5; right: 0; top: 0;">
+  <div class="toast hide error" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
+    <div class="toast-header bg-danger" style="color: white;">
+        <i class="fas fa-exclamation-triangle"></i>
+      <strong class="mr-auto ml-2">System</strong>
+      <small>Now</small>
+      <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+        <span style="color: white;" aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="toast-body context-error">
+    </div>
+  </div>
+</div>
+
 {% if folders %}
 <span class="badge text-muted mb-1 mt-4">Folders</span>
 <div class="drive-wrapper drive-grid-view collapse_grid" id="collapse_grid">
@@ -269,14 +285,15 @@
                           </div>
                           <div class="modal-body">
 
-                            <form method="POST" action="">
-                                {%csrf_token%}
-                                <div class="input-group mb-3">
+                            <form class="shareForm" >
+                                <div class="input-group mb-2">
                                   <div class="input-group-prepend">
                                     <span class="input-group-text" id="basic-addon1"><i class="fa-solid fa-user"></i></span>
                                   </div>
-                                  <input type="text" value="{{folder.name}}" name="folder_new_name" class="form-control" placeholder="User Email" aria-label="User Email" aria-describedby="basic-addon1">
+                                  <input type="text" name="userEmail" class="form-control" placeholder="User Email" aria-label="User Email" aria-describedby="basic-addon1">
                                 </div>
+                                <small id="shareError" class="text-danger"></small>
+
                                 <div class="custom-control custom-checkbox my-1 mr-sm-2">
                                   <input type="checkbox" class="custom-control-input" id="canView">
                                   <label class="custom-control-label" for="canView">Can View</label>
@@ -306,7 +323,8 @@
                                   >
                                   <label class="custom-control-label" for="canDelete">Can Delete</label>
                                 </div>
-                                <button type="submit" class="btn primary float-right">Share</button>
+
+                                <button id="submitShare" type="submit" class="btn primary float-right">Share</button>
 
                             </form>
 

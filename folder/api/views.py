@@ -11,7 +11,7 @@ from folder.models import Folder
 from folder.utils import check_sub_folders_limit, create_folder_tree_if_not_exist
 from django.conf import settings
 from folder import utils
-from folder.exceptions import UnknownError, InsufficientStorageError
+from folder.exceptions import UnknownError, InsufficientStorageError, FolderNotFoundError, CopiedFolderAlreadyExits
 from cloud import messages as response_messages
 from folder.permissions import CreateFolderPermission, DownloadFolderPermission, CopyFolderPermission, MoveFolderPermission
 from folder.api.serializers import FolderSerializer, BasicFolderInfoSerializer
@@ -139,7 +139,7 @@ class FolderCopyView(APIView, CopyFolderPermission):
 
         folder = Folder.objects.prefetch_related('sub_folders', 'files').select_related('user').filter(unique_id=uuid, user=request.user).first()
         if not folder:
-            return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
+            raise FolderNotFoundError()
 
         folder_current_path = folder.get_path_on_disk()
 
@@ -147,19 +147,17 @@ class FolderCopyView(APIView, CopyFolderPermission):
             destination_folder_id = request.data['destination_folder_id']
             destination_folder = Folder.objects.prefetch_related('sub_folders').filter(unique_id=destination_folder_id, user=request.user).first()
             if not destination_folder:
-                return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
+                raise FolderNotFoundError()
 
-            destination_dir_folder_names = destination_folder.sub_folders.values_list('name', flat=True)
-            if folder.name in destination_dir_folder_names:
-                return Response(response_messages.error('exists_in_destination'), status=status.HTTP_409_CONFLICT)
-
+            dir_folder_names = destination_folder.sub_folders.values_list('name', flat=True)
             destination_path = destination_folder.get_path_on_disk()
         else:
             destination_folder = None
             destination_path = os.path.join(settings.MEDIA_ROOT, settings.DRIVE_PATH, str(request.user.unique_id))
-            base_dir_folder_names = Folder.objects.filter(user=request.user, parent_folder=None).values_list('name', flat=True)
-            if folder.name in base_dir_folder_names:
-                return Response(response_messages.error('exists_in_destination'), status=status.HTTP_409_CONFLICT)
+            dir_folder_names = Folder.objects.filter(user=request.user, parent_folder=None).values_list('name', flat=True)
+
+        if folder.name in dir_folder_names:
+            raise CopiedFolderAlreadyExits()
 
 
         if self.is_destination_subfolder_of_source(folder_current_path, destination_path):
@@ -318,7 +316,7 @@ class FolderMoveView(APIView):
 
         folder = Folder.objects.filter(unique_id=uuid, user=request.user).first()
         if not folder:
-            return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
+            raise FolderNotFoundError()
 
         folder_current_path = folder.get_path_on_disk()
 
@@ -326,11 +324,11 @@ class FolderMoveView(APIView):
             destination_folder_id = request.data['destination_folder_id']
             destination_folder = Folder.objects.prefetch_related('sub_folders').filter(unique_id=destination_folder_id, user=request.user).first()
             if not destination_folder:
-                return Response(response_messages.error('not_found'), status=status.HTTP_404_NOT_FOUND)
+                raise FolderNotFoundError()
 
             destination_dir_folder_names = destination_folder.sub_folders.values_list('name', flat=True)
             if folder.name in destination_dir_folder_names:
-                return Response(response_messages.error('exists_in_destination'), status=status.HTTP_409_CONFLICT)
+                raise CopiedFolderAlreadyExits()
 
             destination_path = destination_folder.get_path_on_disk()
         else:
@@ -338,7 +336,7 @@ class FolderMoveView(APIView):
             destination_path = os.path.join(settings.MEDIA_ROOT, settings.DRIVE_PATH, str(request.user.unique_id))
             base_dir_folder_names = Folder.objects.filter(user=request.user, parent_folder=None).values_list('name', flat=True)
             if folder.name in base_dir_folder_names:
-                return Response(response_messages.error('exists_in_destination'), status=status.HTTP_409_CONFLICT)
+                raise CopiedFolderAlreadyExits()
 
         if self.is_destination_subfolder_of_source(folder_current_path, destination_path):
             raise UnknownError(detail='The destination folder is a subfolder of the source folder.')
