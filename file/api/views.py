@@ -5,13 +5,16 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth import get_user_model
 from django.db.models import Q, F
-from file.models import File, FileQuality, SharedObject, SharedObjectPermission
-from file.utils import get_file_cat
+from file.models import File, FilePrivacy, MediaFileProperties, FileQuality, SharedObject, SharedObjectPermission
+from file.utils import get_file_cat, generate_file_link
 from folder.utils import check_sub_folders_limit, create_folder_tree_if_not_exist
+from folder.models import Folder
 from django.http import FileResponse, StreamingHttpResponse, HttpResponse
 from rest_framework.views import APIView
 import os
 import re
+import shutil
+from pathlib import Path
 from wsgiref.util import FileWrapper
 from django.http.response import StreamingHttpResponse
 from secrets import compare_digest
@@ -33,6 +36,10 @@ SharedObjectSerializer
 from django.conf import settings
 from django.core.exceptions import ValidationError
 import cloud.messages as response_messages
+from file.permissions import CopyFilePermission, MoveFilePermission
+from file.exceptions import FileNotFoundError, MoveFileSameDestinationError
+from folder.exceptions import FolderNotFoundError
+from cloud.exceptions import UnknownError, InsufficientStorageError
 
 User = get_user_model()
 
@@ -169,7 +176,7 @@ def delete(request, unique_id):
         return Response(content, status=status.HTTP_404_NOT_FOUND)
 
 
-class FileDestroyView(APIView):
+class FileDownloadView(APIView):
 
     def get(self, request, uuid):
         file = File.objects.get(unique_id=uuid, user=request.user)
@@ -370,3 +377,179 @@ class SharedWithListView(APIView):
             return Response(response_messages.error('file_not_found'), status=status.HTTP_404_NOT_FOUND)
         serializer = SharedObjectSerializer(file_shared_with, many=True, read_only=True, context={'request': request})
         return Response(serializer.data)
+
+class FileCopyView(APIView):
+
+    permission_classes = [CopyFilePermission]
+
+    def put(self, request, uuid):
+
+        old_file = File.objects.select_related('user').filter(unique_id=uuid, user=request.user).first()
+        if not old_file:
+            raise FileNotFoundError()
+
+        # Check if the user is allowed to copy file with this size or his limit reached
+        if not request.user.drive_settings.is_allowed_to_upload_files(old_file.size):
+            raise InsufficientStorageError()
+
+        file_current_path = old_file.file.path
+
+        if 'destination_folder_id' in request.data and request.data['destination_folder_id']:
+            destination_folder_id = request.data['destination_folder_id']
+            destination_folder = Folder.objects.prefetch_related('sub_folders').filter(unique_id=destination_folder_id, user=request.user).first()
+            if not destination_folder:
+                raise FolderNotFoundError()
+
+            destination_path = destination_folder.get_path_on_disk()
+        else:
+            destination_folder = None
+            destination_path = os.path.join(settings.MEDIA_ROOT, settings.DRIVE_PATH, str(request.user.unique_id))
+
+        try:
+            new_file_name = self.copy_file_on_disk(file_current_path, destination_path)
+        except IOError as e:
+            raise UnknownError(detail=e)
+
+        # Creating and saving the file
+        new_file = self.replicate_file(old_file, new_file_name, destination_folder)
+        new_file.save()
+
+        default_upload_privacy = request.user.drive_settings.default_upload_privacy
+
+        # Update the drive settings for the user
+        request.user.drive_settings.add_storage_uploaded(new_file.size)
+        request.user.drive_settings.save()
+
+        return Response(response_messages.success('copied_successfully'))
+
+    def replicate_file(self, old_file, new_file_name, destination_folder):
+
+        if destination_folder:
+            parent_folder_path = destination_folder.get_folder_tree_as_dirs()
+            base_dir = f'{settings.DRIVE_PATH}/{str(old_file.user.unique_id)}'
+            new_path = f'{base_dir}/{parent_folder_path}/{new_file_name}'
+        else:
+            base_dir = f'{settings.DRIVE_PATH}/{str(old_file.user.unique_id)}'
+            new_path = f'{base_dir}/{new_file_name}'
+
+        new_file = File(
+        user=old_file.user,
+        name=new_file_name,
+        size=old_file.size,
+        type=old_file.type,
+        category=old_file.category,
+        file=old_file.file,
+        parent_folder=destination_folder
+        )
+        new_file.file.name = new_path
+
+        return new_file
+
+    def copy_file_on_disk(self, file_current_path, destination_path):
+
+        if not Path(destination_path).is_dir():
+            os.makedirs(destination_path)
+
+        file_path = Path(file_current_path)
+        file_name = file_path.stem
+        file_extension = Path(file_current_path).suffix
+
+        old_destination_path = os.path.join(destination_path, file_name+file_extension)
+
+        if Path(old_destination_path).is_file():
+            i = 1
+            while os.path.exists(os.path.join(destination_path, file_name + "_" + str(i) + file_extension)):
+                i+=1
+            file_name = file_name + "_" + str(i) + file_extension
+        else:
+            file_name = file_name + file_extension
+
+        new_destination_path = os.path.join(destination_path, file_name)
+
+        shutil.copy2(
+        file_current_path,
+        new_destination_path
+        )
+        return file_name
+
+class FileMoveView(APIView):
+
+    permission_classes = [MoveFilePermission]
+
+    def put(self, request, uuid):
+
+        file = File.objects.filter(unique_id=uuid, user=request.user).first()
+        if not file:
+            raise FileNotFoundError()
+
+        file_current_path = file.file.path
+
+        if 'destination_folder_id' in request.data and request.data['destination_folder_id']:
+            destination_folder_id = request.data['destination_folder_id']
+            destination_folder = Folder.objects.prefetch_related('sub_folders').filter(unique_id=destination_folder_id, user=request.user).first()
+            if not destination_folder:
+                raise FolderNotFoundError()
+
+            destination_path = destination_folder.get_path_on_disk()
+        else:
+            destination_folder = None
+            destination_path = os.path.join(settings.MEDIA_ROOT, settings.DRIVE_PATH, str(request.user.unique_id))
+            base_dir_folder_names = Folder.objects.filter(user=request.user, parent_folder=None).values_list('name', flat=True)
+
+        if destination_folder == file.parent_folder:
+            raise MoveFileSameDestinationError()
+
+        try:
+            file_name = self.move_file_on_disk(file_current_path, destination_path)
+        except IOError as e:
+            raise UnknownError(detail=e)
+        except OSError as e:
+            raise UnknownError(detail=e)
+
+        self.move_file_on_db(file, file_name, destination_folder)
+
+        return Response(response_messages.success('moved_successfully'))
+
+    def move_file_on_db(self, file, file_name, destination_folder):
+
+        if destination_folder:
+            parent_folder_path = destination_folder.get_folder_tree_as_dirs()
+            base_dir = f'{settings.DRIVE_PATH}/{str(file.user.unique_id)}'
+            new_path = f'{base_dir}/{parent_folder_path}/{file_name}'
+        else:
+            base_dir = f'{settings.DRIVE_PATH}/{str(file.user.unique_id)}'
+            new_path = f'{base_dir}/{file_name}'
+
+        file.parent_folder = destination_folder
+        file.name = file_name
+        file.file.name = new_path
+        file.save(update_fields=['parent_folder', 'name', 'file'])
+        return True
+
+    def move_file_on_disk(self, file_current_path, destination_path):
+
+        if not Path(destination_path).is_dir():
+            os.makedirs(destination_path)
+
+        file_path = Path(file_current_path)
+        file_name = file_path.stem
+        file_extension = Path(file_current_path).suffix
+
+        old_destination_path = os.path.join(destination_path, file_name+file_extension)
+
+        if Path(old_destination_path).is_file():
+            i = 1
+            while os.path.exists(os.path.join(destination_path, file_name + "_" + str(i) + file_extension)):
+                i+=1
+            file_name = file_name + "_" + str(i) + file_extension
+        else:
+            file_name = file_name + file_extension
+
+        new_destination_path = os.path.join(destination_path, file_name)
+
+        shutil.move(
+        file_current_path,
+        new_destination_path
+        )
+
+        return file_name

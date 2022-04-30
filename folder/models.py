@@ -41,7 +41,6 @@ class Folder(models.Model):
         if self.id:
             folder_before_save = Folder.objects.get(id=self.id)
             if folder_before_save.parent_folder != self.parent_folder or folder_before_save.name != self.name:
-                print(1)
                 changed_files = self.change_sub_files_paths(self, changed_files=[])
                 if changed_files:
                     from file.models import File
@@ -91,7 +90,7 @@ class Folder(models.Model):
         folder_tree.reverse()
         return folder_tree
 
-    # This function id to return folder tree as objects [<folder_obj2>, <folder_obj2>, <folder_obj3>]
+    # This function is to return folder tree as objects [<folder_obj1>, <folder_obj2>, <folder_obj3>]
     # Recursion
     def get_folder_tree(self, folder=None, folder_tree=None):
 

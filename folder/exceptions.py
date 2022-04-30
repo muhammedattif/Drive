@@ -32,3 +32,8 @@ class InBlockList(APIException):
 class FolderNotFoundError(NotFound):
     default_detail = (error_messages['not_found'])
     default_code = 'error'
+
+class MoveFolderSameDestinationError(APIException):
+    status_code = status.HTTP_409_CONFLICT
+    default_detail = (error_messages['move_to_same_destination'])
+    default_code = 'error'

@@ -28,7 +28,8 @@ error_messages = {
     'exists_in_destination': 'A folder with the name of the copied one already exists in this folder.',
     'folder_exists': 'A folder with the same name already exists.',
     'sub_folders_limit_exceeded': f'Sub folders limit is {settings.SUB_FOLDERS_LIMIT}!.',
-    'folder_name_empty': "Ops, you forget to enter folder's name."
+    'folder_name_empty': "Ops, you forget to enter folder's name.",
+    'move_to_same_destination': "Canot move Files/Folders to the same destination."
 }
 
 success_messages = {

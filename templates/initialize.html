@@ -99,11 +99,23 @@
           },
 
           {
-              icon: 'fa-solid fa-paste',
+              icon: 'fa-solid fa-clone',
+              text: 'Copy',
+              href: 'javascript:void(0)',
+              action: function(e, selector) {
+                localStorage.copiedObject = selector.attr("id")
+                localStorage.ContextMenuAction = 'copy'
+                localStorage.ContextMenuActionObject = 'file'
+               }
+          },
+          {
+              icon: 'fa-solid fa-copy',
               text: 'Cut',
               href: 'javascript:void(0)',
               action: function(e, selector) {
-                localStorage.copiedFolder = selector.attr("id")
+                localStorage.copiedObject = selector.attr("id")
+                localStorage.ContextMenuAction = 'cut'
+                localStorage.ContextMenuActionObject = 'file'
                }
           },
           {
@@ -193,8 +205,9 @@
               text: 'Copy',
               href: 'javascript:void(0)',
               action: function(e, selector) {
-                localStorage.copiedFolder = selector.attr("id")
+                localStorage.copiedObject = selector.attr("id")
                 localStorage.ContextMenuAction = 'copy'
+                localStorage.ContextMenuActionObject = 'folder'
 
                 }
           },
@@ -203,8 +216,9 @@
               text: 'Cut',
               href: 'javascript:void(0)',
               action: function(e, selector) {
-                localStorage.copiedFolder = selector.attr("id")
+                localStorage.copiedObject = selector.attr("id")
                 localStorage.ContextMenuAction = 'cut'
+                localStorage.ContextMenuActionObject = 'folder'
                 }
           },
           {
@@ -246,20 +260,29 @@
           text: 'Paste Here',
           href: 'javascript:void(0)',
           action: function(e, selector) {
-            if (!localStorage.copiedFolder){
+            if (!localStorage.copiedObject){
               return false
             }
             var current_folder = $("#DirectoryID").text()
-            var copiedFolder = localStorage.getItem("copiedFolder");
+            var copiedObject = localStorage.getItem("copiedObject");
              payload = {
                  "destination_folder_id": current_folder,
                }
 
-               if(localStorage.ContextMenuAction === 'copy'){
-                 var url = '{% url "folder_api:copy" 1111 %}'.replace('1111', copiedFolder)
+               if(localStorage.ContextMenuActionObject === 'folder'){
+                 if(localStorage.ContextMenuAction === 'copy'){
+                   var url = '{% url "folder_api:copy" 1111 %}'.replace('1111', copiedObject)
+                 }else{
+                   var url = '{% url "folder_api:move" 1111 %}'.replace('1111', copiedObject)
+                 }
                }else{
-                 var url = '{% url "folder_api:move" 1111 %}'.replace('1111', copiedFolder)
+                 if(localStorage.ContextMenuAction === 'copy'){
+                   var url = '{% url "file_api:copy" 1111 %}'.replace('1111', copiedObject)
+                 }else{
+                   var url = '{% url "file_api:move" 1111 %}'.replace('1111', copiedObject)
+                 }
                }
+
                $.ajax({
                  type: "PUT",
                  headers: {'X-CSRFToken': '{{csrf_token}}'},
@@ -280,7 +303,7 @@
                });
 
                if(localStorage.ContextMenuAction === 'cut'){
-                 localStorage.copiedFolder = ''
+                 localStorage.copiedObject = ''
                }
 
            }

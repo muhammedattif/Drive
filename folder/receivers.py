@@ -5,9 +5,8 @@ from activity.models import Activity
 from django.dispatch import receiver
 import os
 
-# Not used (not compatible with macOS and Linux)
 # This receiver is to create folder dir in physical storage
-#@receiver(post_save, sender=Folder)
+@receiver(post_save, sender=Folder)
 def create_folder_dir(sender, instance=None, created=False, **kwargs):
     if created:
         if instance.parent_folder:
@@ -25,7 +24,7 @@ def create_folder_dir(sender, instance=None, created=False, **kwargs):
                 instance.name)
 
         if not os.path.exists(folder_path):
-            os.makedirs(u'\\\\?\\{}'.format(folder_path), exist_ok=True)
+            os.makedirs(folder_path, exist_ok=True)
 
 
 # This receiver is to record user activity

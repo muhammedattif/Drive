@@ -11,7 +11,13 @@ from folder.models import Folder
 from folder.utils import check_sub_folders_limit, create_folder_tree_if_not_exist
 from django.conf import settings
 from folder import utils
-from folder.exceptions import UnknownError, InsufficientStorageError, FolderNotFoundError, CopiedFolderAlreadyExits
+from folder.exceptions import (
+UnknownError,
+InsufficientStorageError,
+FolderNotFoundError,
+CopiedFolderAlreadyExits,
+MoveFolderSameDestinationError
+)
 from cloud import messages as response_messages
 from folder.permissions import CreateFolderPermission, DownloadFolderPermission, CopyFolderPermission, MoveFolderPermission
 from folder.api.serializers import FolderSerializer, BasicFolderInfoSerializer
@@ -149,31 +155,21 @@ class FolderCopyView(APIView, CopyFolderPermission):
             if not destination_folder:
                 raise FolderNotFoundError()
 
-            dir_folder_names = destination_folder.sub_folders.values_list('name', flat=True)
             destination_path = destination_folder.get_path_on_disk()
         else:
             destination_folder = None
             destination_path = os.path.join(settings.MEDIA_ROOT, settings.DRIVE_PATH, str(request.user.unique_id))
-            dir_folder_names = Folder.objects.filter(user=request.user, parent_folder=None).values_list('name', flat=True)
 
-        if folder.name in dir_folder_names:
-            raise CopiedFolderAlreadyExits()
-
-
-        if self.is_destination_subfolder_of_source(folder_current_path, destination_path):
-            raise UnknownError(detail='The destination folder is a subfolder of the source folder.')
-
-        destination_path = os.path.join(destination_path, folder.name)
-
-        if self.is_destination_equal_source(folder_current_path, destination_path):
-            raise UnknownError(detail='The destination folder is same as the source folder.')
+        # if self.is_destination_subfolder_of_source(folder_current_path, destination_path):
+        #     raise UnknownError(detail='The destination folder is a subfolder of the source folder.')
 
         try:
-            self.copy_folder_on_disk(folder_current_path, destination_path)
+            folder_name = self.copy_folder_on_disk(folder_current_path, destination_path)
         except IOError as e:
             raise UnknownError(detail=e)
 
-        new_folder = Folder(name=folder.name, parent_folder=destination_folder, user=folder.user)
+        new_folder = Folder.objects.create(name=folder_name, parent_folder=destination_folder, user=folder.user)
+
 
         objects_lists = {
         'folders_objs': [],
@@ -197,13 +193,7 @@ class FolderCopyView(APIView, CopyFolderPermission):
         request.user.drive_settings.add_storage_uploaded(copied_files_size)
         request.user.drive_settings.save()
 
-        # Save the folder
-        new_folder.save()
-
-        # Create all the child folders or files and its properties
-        folders_objs = created_objects['folders_objs']
-        Folder.objects.bulk_create(folders_objs)
-
+        # Create all the files and its properties
         files_objs = created_objects['files_objs']
         File.objects.bulk_create(files_objs)
 
@@ -239,7 +229,7 @@ class FolderCopyView(APIView, CopyFolderPermission):
         for folder in sub_folders:
 
             new_child_folder = self.duplicate_folder(old_folder=folder, parent_folder=new_folder)
-            objects_lists['folders_objs'].append(new_child_folder)
+            new_child_folder.save()
 
             return self.copy_folder_db_relations(
             old_folder=folder,
@@ -298,15 +288,26 @@ class FolderCopyView(APIView, CopyFolderPermission):
 
     def copy_folder_on_disk(self, folder_current_path, destination_path):
         from folder.utils import copytree
+
+        if not Path(destination_path).is_dir():
+            os.makedirs(destination_path)
+
+        folder_name = os.path.basename(folder_current_path)
+        old_destination_path = os.path.join(destination_path, folder_name)
+
+        if Path(old_destination_path).is_dir():
+            i = 1
+            while os.path.exists(os.path.join(destination_path, folder_name + " " + str(i))):
+                i+=1
+            folder_name = folder_name + " " + str(i)
+
+        new_destination_path = os.path.join(destination_path, folder_name)
+
         copytree(
         folder_current_path,
-        destination_path
+        new_destination_path
         )
-
-    def is_destination_equal_source(self, folder_current_path, destination_path):
-        if folder_current_path == destination_path:
-            return True
-        return False
+        return folder_name
 
     def is_destination_subfolder_of_source(self, folder_current_path, destination_path):
         folder_current_path = pathlib.Path(folder_current_path)
@@ -331,55 +332,56 @@ class FolderMoveView(APIView):
             if not destination_folder:
                 raise FolderNotFoundError()
 
-            destination_dir_folder_names = destination_folder.sub_folders.values_list('name', flat=True)
-            if folder.name in destination_dir_folder_names:
-                raise CopiedFolderAlreadyExits()
-
             destination_path = destination_folder.get_path_on_disk()
         else:
             destination_folder = None
             destination_path = os.path.join(settings.MEDIA_ROOT, settings.DRIVE_PATH, str(request.user.unique_id))
-            base_dir_folder_names = Folder.objects.filter(user=request.user, parent_folder=None).values_list('name', flat=True)
-            if folder.name in base_dir_folder_names:
-                raise CopiedFolderAlreadyExits()
+
+        if folder.parent_folder == destination_folder:
+            raise MoveFolderSameDestinationError()
 
         if self.is_destination_subfolder_of_source(folder_current_path, destination_path):
             raise UnknownError(detail='The destination folder is a subfolder of the source folder.')
 
-
-        destination_path = os.path.join(destination_path, folder.name)
-        if self.is_destination_equal_source(folder_current_path, destination_path):
-            raise UnknownError(detail='The destination folder is same as the source folder.')
-
         try:
-            self.move_folder(folder_current_path, destination_path)
+            folder_name = self.move_folder(folder_current_path, destination_path)
         except IOError as e:
             raise UnknownError(detail=e)
         except OSError as e:
             raise UnknownError(detail=e)
 
         folder.parent_folder = destination_folder
-        folder.save(update_fields=['parent_folder'])
+        folder.name = folder_name
+        folder.save(update_fields=['parent_folder', 'name'])
         return Response(response_messages.success('moved_successfully'))
 
-    def is_destination_equal_source(self, folder_current_path, destination_path):
-        if folder_current_path == destination_path:
-            return True
-        return False
 
     def is_destination_subfolder_of_source(self, folder_current_path, destination_path):
         folder_current_path = pathlib.Path(folder_current_path)
         destination_path = pathlib.Path(destination_path)
         return destination_path.is_relative_to(folder_current_path)
 
-    def is_copied_folder_exists_in_destination(copied_folder, destination_folder):
-        pass
 
     def move_folder(self, folder_current_path, destination_path):
+        if not Path(destination_path).is_dir():
+            os.makedirs(destination_path)
+
+        folder_name = os.path.basename(folder_current_path)
+        old_destination_path = os.path.join(destination_path, folder_name)
+
+        if Path(old_destination_path).is_dir():
+            i = 1
+            while os.path.exists(os.path.join(destination_path, folder_name + " " + str(i))):
+                i+=1
+            folder_name = folder_name + " " + str(i)
+
+        new_destination_path = os.path.join(destination_path, folder_name)
+
         shutil.move(
         folder_current_path,
-        destination_path
+        new_destination_path
         )
+        return folder_name
 
 
 
