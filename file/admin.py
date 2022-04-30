@@ -47,7 +47,7 @@ class SharedObjectConfig(NestedModelAdmin):
     model = SharedObject
 
     list_filter = ('permissions__can_view', 'permissions__can_delete', 'permissions__can_download', 'permissions__can_rename')
-    list_display = ('shared_by', 'shared_with')
+    list_display = ('shared_by', 'content_object', 'shared_with')
 
     inlines = [SharedObjectPermissionInline]
 

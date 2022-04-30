@@ -120,7 +120,7 @@ def convert_video_quality(video_path, quality):
 
 
 def shorten_path(file_path):
-    return Path(*Path(file_path).parts[5:])
+    return Path(*Path(file_path).parts[9:])
 
 def get_resolution(quality):
     if quality == '144p':

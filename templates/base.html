@@ -62,7 +62,7 @@
                               {% if user.drive_settings.unlimited_storage %}
 
                                           <div class="box">
-                                          <h2 class="text-muted">Unlimited</h2>
+                                          <h2 class="text-muted unlimited">Unlimited storage</h2>
                                          </div>
                               {% endif %}
                               <h5 class=" text-success font-weight-bold"><span class="float-end text-secondary mb-2">
@@ -169,12 +169,6 @@
                     </nav> -->
                 </div>
                 <div class="content-panel">
-                    {% if request.user.compressed_files %}
-                        {% if request.user.compressed_files.is_compressed and not request.user.compressed_files.is_downloaded %}
-                            {% include "drive/compressed_data_notification.html" %}
-                        {% endif %}
-                    {% endif %}
-
                     <div id="dropfile" class="toast align-items-center text-white primary_bg border-0 text-center position-absolute" role="alert" data-autohide="false" aria-live="assertive">
                         <div class="d-flex">
                             <div class="toast-body">
@@ -282,15 +276,25 @@
                             </div>
                             {% if perms.drive.can_compress_account_data %}
                              <div class="btn-group" role="group">
-                                <a href="{% url 'drive:compress_user_files' %}">
-                                    <button type="button" class="btn primary" data-toggle="tooltip" data-placement="top" title="" data-original-title="Compress all your data"><i class="fa-solid fa-file-zipper"></i></button>
-                                </a>
+                                  {% if request.user.compressed_files and request.user.compressed_files.is_compressed and not request.user.compressed_files.is_downloaded %}
+
+                                     <a href="{% url 'drive:download_compressed_data' %}">
+                                         <button type="button" class="btn primary" data-toggle="tooltip" data-placement="top" title="" data-original-title="Your data has been compressed and ready for download"><i class="fa-solid fa-download"></i></button>
+                                         </a>
+                                  {% else %}
+                                        <a href="{% url 'drive:compress_user_files' %}">
+                                            <button type="button" class="btn primary" data-toggle="tooltip" data-placement="top" title="" data-original-title="Compress all your data"><i class="fa-solid fa-file-zipper"></i></button>
+                                        </a>
+                                   {% endif %}
+
+
+
                             </div>
                             {% endif %}
 
                             <div class="btn-group" role="group">
                                <a href="{% url 'shared-with-me' %}">
-                                   <button type="button" class="btn primary" data-toggle="tooltip" data-placement="top" title="" data-original-title=""><i class="fa-solid fa-universal-access"></i> Shared with me</button>
+                                   <button type="button" class="btn primary" data-toggle="tooltip" data-placement="top" title="" data-original-title=""><i class="fa-brands fa-creative-commons-share"></i> Shared with me</button>
                                </a>
                            </div>
 

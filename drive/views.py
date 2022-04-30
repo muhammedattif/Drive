@@ -252,8 +252,9 @@ def download_compressed_data(request):
 @permission_required('drive.can_erase_account_data', raise_exception=True)
 def erase_account_data(request):
     if request.method == 'POST':
-        request.user.files.all().delete()
+        
         request.user.folders.all().delete()
+        request.user.files.all().delete()
         messages.error(request, 'Account data has been erased.')
 
     return redirect('home')

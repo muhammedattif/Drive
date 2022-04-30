@@ -142,7 +142,7 @@
 
 
     let response = "";
-    let apiUrl = window.location.origin + "/api/file/{{file.unique_id}}/conversion_status"
+    let apiUrl = window.location.origin + "/api/files/{{file.unique_id}}/conversion_status"
 
     async function check_status(apiUrl) {
         let response = await fetch(apiUrl);

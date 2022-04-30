@@ -6,6 +6,7 @@ from rest_framework.authtoken.models import Token
 from django.db.models.signals import m2m_changed
 from django.contrib.auth.models import Group, Permission
 from django.db.models import Q
+from file.models import FileSharingBlockList
 
 # A workaround to add user to a group
 @receiver(post_save, sender=Account)
@@ -63,3 +64,9 @@ def create_user_drive_settings(sender, instance=None, created=False, **kwargs):
             DriveSettings.objects.create(user=instance, unlimited_storage=True)
         else:
             DriveSettings.objects.create(user=instance)
+
+
+@receiver(post_save, sender=Account)
+def create_blocklist(sender, instance=None, created=False, **kwargs):
+    if created:
+        FileSharingBlockList.objects.create(user=instance)

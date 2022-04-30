@@ -24,6 +24,10 @@ INTERNAL_IPS = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.' + env('DATABASE_ENGINE'),
-        'NAME': BASE_DIR / env('DATABASE_NAME')
+        'NAME': env("DATABASE_NAME"),
+        'USER': env("DATABASE_USER"),
+        'PASSWORD': env("DATABASE_PASSWORD"),
+        'HOST': env("DATABASE_HOST"),
+        'PORT': int(env("DATABASE_PORT"))
     }
 }

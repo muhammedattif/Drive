@@ -190,12 +190,17 @@ class FolderCopyView(APIView, CopyFolderPermission):
                                                         objects_lists=objects_lists,
                                                         copied_files_size=0
                                                         )
-        # check if the user is allowed to copy files with these size or his limit reached
+        # Check if the user is allowed to copy files with these size or his limit reached
         if not request.user.drive_settings.is_allowed_to_upload_files(copied_files_size):
             raise InsufficientStorageError()
+        # Update the drive settings for the user
+        request.user.drive_settings.add_storage_uploaded(copied_files_size)
+        request.user.drive_settings.save()
 
+        # Save the folder
         new_folder.save()
 
+        # Create all the child folders or files and its properties
         folders_objs = created_objects['folders_objs']
         Folder.objects.bulk_create(folders_objs)
 

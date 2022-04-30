@@ -88,3 +88,8 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
 def create_shared_file_permissions(sender, instance=None, created=False, **kwargs):
     if created and not hasattr(instance, 'permissions'):
         SharedObjectPermission.objects.create(file=instance)
+
+
+@receiver(post_delete, sender=File)
+def delete_shared_instances(sender, instance, **kwargs):
+    SharedObject.objects.filter(content_type__model='file', object_id=instance.id).delete()
