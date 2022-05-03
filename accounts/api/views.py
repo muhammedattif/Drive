@@ -80,8 +80,10 @@ class SharedListCreateView(APIView, PageNumberPagination):
 	@transaction.atomic
 	def post(self, request):
 		required_fields = []
-		if 'file_uuid' not in request.data:
-			required_fields.append('file_uuid')
+		if 'object_type' not in request.data:
+			required_fields.append('object_type')
+		if 'object_uuid' not in request.data:
+			required_fields.append('object_uuid')
 		if 'shared_with' not in request.data:
 			required_fields.append('shared_with')
 		if 'permissions' not in request.data:
@@ -90,7 +92,8 @@ class SharedListCreateView(APIView, PageNumberPagination):
 		if required_fields:
 			return Response(response_messages.error('required_fields', required_fields=required_fields), status=status.HTTP_400_BAD_REQUEST)
 
-		file_uuid = request.data['file_uuid']
+		object_type = request.data['object_type']
+		object_uuid = request.data['object_uuid']
 		shared_with = request.data['shared_with']
 		permissions = request.data['permissions']
 		shared_with = User.objects.prefetch_related('file_sharing_block_list__users').filter(email=shared_with).first()
@@ -99,17 +102,25 @@ class SharedListCreateView(APIView, PageNumberPagination):
 
 		if not self.request.user.can_share_with(shared_with):
 			return Response(response_messages.error('share_files_denied'), status=status.HTTP_403_FORBIDDEN)
-		file = File.objects.filter(user=request.user, unique_id=file_uuid).first()
-		if not file:
-			return Response(response_messages.error('file_not_found'), status=status.HTTP_404_NOT_FOUND)
 
+		if object_type == 'file':
+			object = File.objects.filter(user=request.user, unique_id=object_uuid).first()
+		elif object_type == 'folder':
+			object = Folder.objects.filter(user=request.user, unique_id=object_uuid).first()
+		else:
+			return Response(response_messages.error('shared_object_key_error'), status=status.HTTP_400_BAD_REQUEST)
+
+		if not object:
+			return Response(response_messages.error('file_not_found'), status=status.HTTP_404_NOT_FOUND)
 
 		shared_file, created = SharedObject.objects.get_or_create(
 		shared_by=request.user,
-		content_type=ContentType.objects.get(model='file'),
-		object_id=file.id,
+		content_type=ContentType.objects.get(model=object_type),
+		object_id=object.id,
 		shared_with=shared_with
 		)
+
+		# TODO: Include it in the manager
 
 		if created:
 			SharedObjectPermission.objects.create(file=shared_file, **permissions)

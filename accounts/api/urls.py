@@ -26,7 +26,7 @@ urlpatterns = [
 
     path('shared-with-me/<int:sharing_id>/remove', SharedWithMeDestroyView.as_view(), name="remove-shared-with-me"),
 
-    path('shared-with-me/<int:sharing_id>/delete', SharedWithMeDestroyOriginalView.as_view(), name="delate-original-shared-file"),
+    path('shared-with-me/<int:sharing_id>/delete', SharedWithMeDestroyOriginalView.as_view(), name="delete-original-shared-file"),
     path('shared-with-me/<int:sharing_id>/edit', SharedWithMeEditOriginalView.as_view(), name="edit-original-shared-file"),
     path('shared-with-me/<int:sharing_id>/download', SharedWithMeDownloadView.as_view(), name="download-original-shared-file"),
   ]

@@ -29,7 +29,8 @@ error_messages = {
     'folder_exists': 'A folder with the same name already exists.',
     'sub_folders_limit_exceeded': f'Sub folders limit is {settings.SUB_FOLDERS_LIMIT}!.',
     'folder_name_empty': "Ops, you forget to enter folder's name.",
-    'move_to_same_destination': "Canot move Files/Folders to the same destination."
+    'move_to_same_destination': "Canot move Files/Folders to the same destination.",
+    'shared_object_key_error': 'Object type must be one of the following (file, folder).'
 }
 
 success_messages = {

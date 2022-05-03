@@ -74,6 +74,8 @@
               href: 'javascript:void(0)',
               action: function(e, selector) {
                  $("#shareWith").modal()
+                 localStorage.objectToShare = 'file'
+                 localStorage.objectIdToShare = selector.attr("id")
                  $(".shareForm").attr("id", selector.attr("id"))
              }
           },
@@ -194,7 +196,12 @@
               icon: 'fa-solid fa-user-plus',
               text: 'Share with',
               href: 'javascript:void(0)',
-              action: function(e, selector) { alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id")); }
+              action: function(e, selector) {
+                $("#shareWith").modal()
+                localStorage.objectToShare = 'folder'
+                localStorage.objectIdToShare = selector.attr("id")
+                $(".shareForm").attr("id", selector.attr("id"))
+               }
           },
 
           {
@@ -334,11 +341,12 @@ shareForm.addEventListener('click', function(event) {
   }else{
     $('#shareError').text("")
   }
-  var fileId = $('.shareForm').attr("id")
+  var objectId = localStorage.objectIdToShare
 
   var url = '{% url "account_api:shared-objects" %}'
   var payload = {
-    "file_uuid": fileId,
+    "object_type": localStorage.objectToShare,
+    "object_uuid": objectId,
     "shared_with": userEmail.value,
     "permissions": {
         "can_view": canView.checked,

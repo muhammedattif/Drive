@@ -10,7 +10,7 @@ from drf_writable_nested.serializers import WritableNestedModelSerializer
 from django.contrib.auth import get_user_model
 from accounts.api.serializers import BasicUserInfoSerializer
 from folder.api.serializers import FolderSerializer
-
+from folder.models import Folder
 class EncrypredQualitySerializer(serializers.Serializer):
     quality = serializers.CharField()
     url = serializers.SerializerMethodField()
@@ -139,7 +139,8 @@ class SharedObjectSerializer(serializers.ModelSerializer):
     def get_content_object(self, shared_object):
         if self.get_content_type(shared_object) == 'file':
             return FileSerializer(shared_object.content_object, many=False, read_only=True, context=self.context).data
-        return FolderSerializer(shared_object.content_object, many=False, read_only=True).data
+        folder = Folder.objects.annotate_sub_files_count().annotate_sub_folders_count().filter(id=shared_object.object_id).first()
+        return FolderSerializer(folder, many=False, read_only=True).data
 
     def get_content_type(self, shared_object):
         return shared_object.content_type.model

@@ -51,17 +51,20 @@
                               <div class="card">
                                   <div id="{{folder.unique_id}}" class="file folder-context-menu">
                                     <div class="show_settings">
-
+                                      <div class="file_settings">
+                                        {% csrf_token %}
+                                        <h4><a onclick="removeSharedWith('{{ object.id }}')" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Remove from shared with me"><i class="lni lni-unlink icons delete"></i></a></h4>
+                                      </div>
                                       <div class="hover">
 
-                                          {% if perms.folder.delete_folder %}
-                                            <h4><a data-toggle="modal" data-target="#id{{folder.unique_id}}"><i data-placement="top" title="" data-original-title="Delete Folder" data-toggle="tooltip" class="lni lni-trash-can delete icons"></i></a></h4>
+                                          {% if object.permissions.can_delete %}
+                                            <h4><a data-toggle="modal" data-target="#id{{folder.unique_id}}"><i data-placement="top" title="" data-original-title="Delete Original Folder" data-toggle="tooltip" class="lni lni-trash-can delete icons"></i></a></h4>
                                           {% endif %}
-                                          {% if perms.folder.can_rename_folder %}
-                                            <h4><a data-toggle="modal" data-target="#id{{folder.unique_id}}rename"><i data-placement="top" title="" data-original-title="Rename Folder"  data-toggle="tooltip" class="lni lni-brush-alt copy"></i></a></h4>
+                                          {% if object.permissions.can_rename %}
+                                            <h4><a data-toggle="modal" data-target="#id{{folder.unique_id}}rename"><i data-placement="top" title="" data-original-title="Rename Original Folder"  data-toggle="tooltip" class="text-muted lni lni-brush-alt copy"></i></a></h4>
                                           {% endif %}
-                                          {% if perms.folder.can_download_folder %}
-                                            <h4><a href=""><i data-placement="top" title="" data-original-title="Download Folder"  data-toggle="tooltip" class="lni lni-arrow-down-circle download icons"></i></a></h4>
+                                          {% if object.permissions.can_download %}
+                                            <h4><a href="{% url 'account_api:download-original-shared-file' object.id %}"><i data-placement="top" title="" data-original-title="Download Folder"  data-toggle="tooltip" class="lni lni-arrow-down-circle download icons"></i></a></h4>
                                           {% endif %}
                                       </div>
                                     </div>
@@ -71,7 +74,8 @@
                                           </div>
                                           <div class="file-name">
                                               <a title="{{ folder.name }}" href=""><p class="m-b-5 text-muted">{{ object.content_object.name }}</p></a>
-                                              <small>Files: {{object.content_object.get_files_count}} <span class="date text-muted">{{object.content_object.created_at}}</span></small>
+                                              <small class="text-muted">Shared by: {{object.shared_by.email}}</small>
+                                              <small>Files: {{object.content_object.get_files_count}} <span class="date text-muted">Shared on: {{object.created_at}}</span></small>
                                           </div>
                                       </a>
                                   </div>
@@ -153,29 +157,29 @@
 
                       <div class="col-lg-3 col-md-4 col-sm-12">
                           <div class="card">
-                              <div id="{{file.unique_id}}" link="{{file.privacy.link}}" class="file file-context-menu">
+                              <div id="{{object.content_object.unique_id}}" link="{{object.content_object.privacy.link}}" class="file file-context-menu">
                                 <div class="show_settings">
                                   <div class="file_settings">
-                                    <h4><a href="" data-toggle="tooltip" data-placement="top" title="" data-original-title="Sharing Settings"><i class="lni lni-users share icons"></i></a></h4>
+                                    {% csrf_token %}
+                                    <h4><a onclick="removeSharedWith('{{ object.id }}')" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Remove from shared with me"><i class="lni lni-unlink icons delete"></i></a></h4>
                                   </div>
-                                  <div class="uuid_link">
-                                    <h4><a id="{{file.unique_id}}" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy UUID"><i onclick="CopyFileLink('{{ file.unique_id }}', '{{file.unique_id}}')" class="lni lni-share-alt-1"></i></a></h4>
+                                  {% if object.permissions.can_rename %}
+                                  <div class="file_settings mt-4 pt-2">
+                                    <h4><a href="" data-toggle="tooltip" data-placement="top" title="" data-original-title="Rename Original File"><i class="lni lni-brush-alt icons share"></i></a></h4>
                                   </div>
-
+                                  {% endif %}
                                   <div class="hover">
-                                    <h4><a id="link-{{file.unique_id}}" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ file.get_url }}', 'link-{{file.unique_id}}')" class="lni lni-link copy icons"></i></a></h4>
-                                    {% if perms.file.can_download_file %}
-                                        <h4><a href="" download data-toggle="tooltip" data-placement="top" title="" data-original-title="Download"><i class="lni lni-arrow-down-circle download icons"></i></a></h4>
+                                    <h4><a id="link-{{object.content_object.unique_id}}" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ object.content_object.get_url }}', 'link-{{object.content_object.unique_id}}')" class="lni lni-link copy icons"></i></a></h4>
+                                    {% if object.permissions.can_download %}
+                                        <h4><a href="{% url 'account_api:download-original-shared-file' object.id %}" download data-toggle="tooltip" data-placement="top" title="" data-original-title="Download"><i class="lni lni-arrow-down-circle download icons"></i></a></h4>
                                     {% endif %}
 
-                                    {% if perms.file.can_add_files_to_trash %}
-                                        <h4><a href="" data-toggle="tooltip" data-placement="top" title="" data-original-title="Move To Trash"><i class="lni lni-trash-can delete icons"></i></a></h4>
+                                    {% if object.permissions.can_delete %}
+                                        <h4><a onclick="deleteSharedWith('{{ object.id }}')" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete original file"><i class="lni lni-trash-can delete icons"></i></a></h4>
                                     {% endif %}
                                   </div>
                                 </div>
-                                  <a href="{{file.get_url}}" target="_blank">
-
-
+                                  <a href="{{object.content_object.get_url}}" target="_blank">
                                       <div class="icon">
                                           {% if object.content_object.type == 'image/gif' %}
                                             <i class="fa-solid fa-photo-film text-danger"></i>
@@ -194,9 +198,11 @@
                                           {% endif %}
 
                                       </div>
+
                                       <div class="file-name">
-                                          <a title="{{ file.name }}" href="{{file.get_url}}" target="_blank"><p class="m-b-5 text-muted">{{object.content_object.name|truncatechars:35}}</p></a>
-                                          <small>Size: {{object.content_object.size|filesizeformat}} <span class="date text-muted">{{object.content_object.uploaded_at}}</span></small>
+                                          <a title="{{ object.content_object.name }}" href="{{object.content_object.get_url}}" target="_blank"><p class="m-b-5 text-muted">{{object.content_object.name|truncatechars:35}}</p></a>
+                                          <small class="text-muted">Shared by: {{object.shared_by.email}}</small>
+                                          <small>Size: {{object.content_object.size|filesizeformat}} <span class="date text-muted">{{object.created_at}}</span></small>
                                       </div>
                                   </a>
                               </div>
@@ -346,6 +352,34 @@
         easing: 'spring(1, 80, 10, 0)'
       })
     });
+
+
+    function removeSharedWith(id){
+      const csrf_token = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+      var url = '{% url "account_api:remove-shared-with-me" 1111 %}'.replace('1111' ,id)
+      fetch(url, {
+          method: 'DELETE',
+          headers: {
+          "X-CSRFToken": csrf_token
+        },
+      }).then(response => response.json())
+      location.reload()
+    }
+
+    function deleteSharedWith(id){
+      const csrf_token = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+      var url = '{% url "account_api:delete-original-shared-file" 1111 %}'.replace('1111' ,id)
+      fetch(url, {
+          method: 'DELETE',
+          headers: {
+          "X-CSRFToken": csrf_token
+        },
+      }).then(response => response.json())
+      location.reload()
+    }
+
+
+
 
 </script>
 
