@@ -68,6 +68,7 @@
                  alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
                 }
           },
+          {% if perms.sharedobject.can_share_files %}
           {
               icon: 'fa-solid fa-user-plus',
               text: 'Share with',
@@ -79,6 +80,7 @@
                  $(".shareForm").attr("id", selector.attr("id"))
              }
           },
+          {% endif %}
           {
               icon: 'fa-solid fa-link',
               text: 'Copy Link',
@@ -99,7 +101,7 @@
           {
               divider: true
           },
-
+          {% if perms.file.can_copy_file %}
           {
               icon: 'fa-solid fa-clone',
               text: 'Copy',
@@ -110,6 +112,8 @@
                 localStorage.ContextMenuActionObject = 'file'
                }
           },
+          {% endif %}
+          {% if perms.file.can_move_file %}
           {
               icon: 'fa-solid fa-copy',
               text: 'Cut',
@@ -120,6 +124,7 @@
                 localStorage.ContextMenuActionObject = 'file'
                }
           },
+          {% endif %}
           {
               icon: 'fa-solid fa-star',
               text: 'Add to Starred',
@@ -128,6 +133,7 @@
                  alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
                }
           },
+          {% if perms.file.can_rename_file %}
           {
               icon: 'fa-solid fa-pen-to-square',
               text: 'Rename',
@@ -136,7 +142,8 @@
                  alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
                }
           },
-
+          {% endif %}
+          {% if perms.file.can_download_file %}
           {
               icon: 'fa-solid fa-cloud-arrow-down',
               text: 'Downlaod',
@@ -146,6 +153,7 @@
                 window.location.href = url
               }
           },
+          {% endif %}
           {
               icon: 'fa-solid fa-circle-info',
               text: 'Details',
@@ -154,6 +162,7 @@
                 $("#fileDetails"+selector.attr("id")).modal()
                }
           },
+          {% if perms.file.can_add_files_to_trash %}
           {
               icon: 'fa-solid fa-trash',
               text: 'Move to Trash',
@@ -163,7 +172,7 @@
                 window.location.href = url
               }
           },
-
+          {% endif %}
           {
               icon: 'fa-solid fa-gears',
               text: 'Settings',
@@ -192,6 +201,7 @@
                 }
 
           },
+          {% if perms.folder.can_share_folder %}
           {
               icon: 'fa-solid fa-user-plus',
               text: 'Share with',
@@ -203,10 +213,11 @@
                 $(".shareForm").attr("id", selector.attr("id"))
                }
           },
-
+          {% endif %}
           {
               divider: true
           },
+          {% if perms.folder.can_copy_folder %}
           {
               icon: 'fa-solid fa-clone',
               text: 'Copy',
@@ -218,6 +229,8 @@
 
                 }
           },
+          {% endif %}
+          {% if perms.folder.can_move_folder %}
           {
               icon: 'fa-solid fa-copy',
               text: 'Cut',
@@ -228,6 +241,8 @@
                 localStorage.ContextMenuActionObject = 'folder'
                 }
           },
+          {% endif %}
+          {% if perms.folder.can_rename_folder %}
           {
               icon: 'fa-solid fa-pen-to-square',
               text: 'Rename',
@@ -236,7 +251,8 @@
                  $("#id"+selector.attr("id")+"rename").modal()
                }
           },
-
+          {% endif %}
+          {% if perms.folder.can_download_folder %}
           {
               icon: 'fa-solid fa-cloud-arrow-down',
               text: 'Downlaod',
@@ -246,6 +262,8 @@
                 window.location.href = url
               }
           },
+          {% endif %}
+          {% if perms.folder.can_delete %}
           {
               icon: 'fa-solid fa-trash',
               text: 'Delete',
@@ -254,6 +272,7 @@
                  $("#id"+selector.attr("id")).modal()
                }
           },
+          {% endif %}
 
       ]
   };

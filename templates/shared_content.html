@@ -13,11 +13,19 @@
 
 {% block content %}
 
-<nav aria-label="breadcrumb">
-    <ol class="breadcrumb ">
-        <li class="breadcrumb-item "><a href="{% url 'home' %}"><i class="fas fa-home"></i> Home</a></li>
-    </ol>
-</nav>
+{% with folder.get_folder_tree as folder_tree %}
+  <nav aria-label="breadcrumb">
+      <ol class="breadcrumb ">
+
+          {% if folder_tree %}
+               <li class="breadcrumb-item "><a href="{% url 'home' %}"><i class="fas fa-home"></i> Home</a></li>
+              {% for folder in folder_tree %}
+                  <li class="breadcrumb-item"><a {% if forloop.last %} class="active-dir" {% endif %} href="{% url 'folder:folder' folder.unique_id %}">{% if forloop.last %} <i class="fas fa-folder-open"></i> {% else %}<i class="fas fa-folder-open"></i> {% endif %} {{ folder.name }}</a></li>
+              {% endfor %}
+          {% endif %}
+      </ol>
+  </nav>
+{% endwith %}
 
 {% for message in messages %}
 

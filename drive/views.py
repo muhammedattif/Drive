@@ -142,7 +142,7 @@ def home(request):
     paginator = Paginator(files, 10)  # Show 10 files per page.
     page_number = request.GET.get('page')
     files = paginator.get_page(page_number)
-    
+
     context = {
         'files': files,
         'folders': folders
@@ -288,6 +288,7 @@ def shared_with_me_detail(request, sharing_id):
 
 
     context = {
+        'folder': shared_object.content_object,
         'shared_object': shared_object,
         'files': shared_object.content_object.files.all(),
         'folders': shared_object.content_object.sub_folders.all()

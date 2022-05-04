@@ -42,6 +42,10 @@ class SharedObject(models.Model):
     class Meta:
         ordering = ['-created_at',]
         unique_together = ['shared_by', 'content_type', 'object_id', 'shared_with']
+        permissions = (
+            ("can_share_files", "Can Share Files"),
+            ("can_share_folders", "Can Share Folders"),
+        )
 
     def clean(self):
         if self.shared_by != self.content_object.user:
@@ -101,6 +105,9 @@ class File(models.Model):
         ordering = ('-uploaded_at',)
         permissions = (
             ("can_download_file", "Can Download File"),
+            ("can_copy_file", "Can Copy File"),
+            ("can_move_file", "Can Move File"),
+            ("can_rename_file", "Can Rename File"),
             ("can_stream_media_files", "Can Stream Media Files"),
         )
 
