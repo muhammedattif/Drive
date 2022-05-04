@@ -17,6 +17,9 @@ from django.db.models.deletion import Collector
 from django.db.models.fields.related import ForeignKey
 from django.db.utils import IntegrityError
 from django.db.models import Q
+from file.models import SharedObject
+from django.contrib.contenttypes.models import ContentType
+
 
 class ObjectCloner(object):
     """
@@ -110,7 +113,6 @@ class ObjectCloner(object):
 
             for _ in range(max_clones):
                 new_object = self.clone_object(old_object)
-                print(new_object)
                 if new_object is not None:
                     if include_childs:
                         self.clone_childs(new_object)
@@ -140,9 +142,7 @@ def home(request):
     paginator = Paginator(files, 10)  # Show 10 files per page.
     page_number = request.GET.get('page')
     files = paginator.get_page(page_number)
-
-
-    # recursive(folders[0])
+    
     context = {
         'files': files,
         'folders': folders
@@ -278,3 +278,19 @@ def shared_with_me(request):
     }
 
     return render(request, 'shared_with_me_content.html', context)
+
+def shared_with_me_detail(request, sharing_id):
+
+    shared_object = SharedObject.objects.prefetch_related('permissions').filter(id=sharing_id, content_type=ContentType.objects.get(model='folder')).first()
+
+    if not (shared_object and request.user.can_share_with(shared_object.shared_by)):
+        return redirect('error')
+
+
+    context = {
+        'shared_object': shared_object,
+        'files': shared_object.content_object.files.all(),
+        'folders': shared_object.content_object.sub_folders.all()
+    }
+
+    return render(request, 'shared_content.html', context)

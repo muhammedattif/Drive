@@ -120,6 +120,24 @@ class File(models.Model):
     def file_name(self):
         return truncatechars(self.name, 20)
 
+    def is_shared_with(self, user):
+
+        shared_object = SharedObject.objects.filter(
+        shared_with=user,
+        object_id=self.id,
+        content_type=ContentType.objects.get(model='file')
+        ).first()
+
+        if shared_object:
+            return shared_object, True
+        else:
+            file_tree = self.parent_folder.get_folder_tree()
+            all_folders_shared_with_user = SharedObject.objects.prefetch_related('content_object__parent_folder').filter(shared_with=user, content_type=ContentType.objects.get(model='folder'))
+            for object in all_folders_shared_with_user:
+                if self.parent_folder == object.content_object or object.content_object in file_tree:
+                    return object.content_object, True
+            return None, False
+
     # this save method is used to hardcode file field
     # if the uploaded file is an image then it will be compressed
     # def save(self, *args, **kwargs):

@@ -37,7 +37,13 @@ celery -A cloud worker -l info
 
 ## Important commands for streaming merging
 
-Run this command in the project's main directory
+Run this command in the project's main directory to create props for old media files
 ```
 python manage.py create_files_properties
+```
+
+
+Run this command in the project's main directory to create block lists for old users
+```
+python manage.py create_block_lists
 ```

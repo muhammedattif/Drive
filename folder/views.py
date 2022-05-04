@@ -17,24 +17,33 @@ from django.http import FileResponse, HttpResponse
 @login_required(login_url='login')
 def folder(request, unique_id=None):
     context = {}
-    try:
-        if unique_id:
-            folder = Folder.objects.get(unique_id=unique_id, user=request.user)
-            context['folder'] = folder
-            # Child folders
-            context['folders'] = folder.sub_folders.all().select_related('parent_folder')
+    if unique_id:
+        folder = Folder.objects.filter(unique_id=unique_id).first()
+        if not folder:
+            return redirect('error')
 
-            # Child files
-            files = folder.files.filter(trash=None).select_related('privacy')
-            paginator = Paginator(files, 10)  # Show 10 files per page.
-            page_number = request.GET.get('page')
-            files = paginator.get_page(page_number)
-            context['files'] = files
-        else:
-            # Child folders
-            context['folders'] = Folder.objects.filter(parent_folder=None, user=request.user)
-    except Exception:
-        return redirect('error')
+        shared_object, is_shared = folder.is_shared_with(request.user)
+        if not is_shared and folder.user != request.user:
+            context['shared_object'] = shared_object
+            return redirect('error')
+
+        context['folder'] = folder
+        # Child folders
+        context['folders'] = folder.sub_folders.all().select_related('parent_folder')
+
+        # Child files
+        files = folder.files.filter(trash=None).select_related('privacy')
+        paginator = Paginator(files, 10)  # Show 10 files per page.
+        page_number = request.GET.get('page')
+        files = paginator.get_page(page_number)
+        context['files'] = files
+    else:
+        # Child folders
+        context['folders'] = Folder.objects.filter(parent_folder=None, user=request.user)
+
+    if folder.user != request.user:
+        return render(request, 'shared_content.html', context)
+
     return render(request, 'folder/folder.html', context)
 
 

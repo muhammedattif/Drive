@@ -1,88 +1,103 @@
-{% extends "drive/home.html" %}
+{% extends 'base.html' %}
 {% load static %}
 <link rel="stylesheet" href="{% static 'css/context.standalone.css' %}">
 
+
+{% block title %}
+    <title>Variiance CLOUD</title>
+{% endblock %}
+
+{% block navbar %}
+    {% include 'navbar.html' with folder_id=0 %}
+{% endblock %}
+
 {% block content %}
 
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb ">
+        <li class="breadcrumb-item "><a href="{% url 'home' %}"><i class="fas fa-home"></i> Home</a></li>
+    </ol>
+</nav>
 
-{% if not files_shared_with_me%}
-<!-- Google font -->
-<link href="https://fonts.googleapis.com/css?family=Raleway:400,700" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css?family=Passion+One:900" rel="stylesheet">
+{% for message in messages %}
 
-<link type="text/css" rel="stylesheet" href="{% static 'uploader/css/no_files_found.css' %}" />
-<div class="drive-wrapper drive-grid-view collapse_grid" id="collapse_grid">
-    <div class="grid-items-wrapper">
-      <div id="main-content" class="file_manager">
-              <div class="container-fluid">
-                  <div class="row clearfix">
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-12">
-                                <div id="notfound">
-                                    <div class="notfound">
-                                        <h2>No one shared with you any file yet!</h2>
-                                        <p>Upload new files and start sharing them.</p>
-                                        <a data-toggle="modal" data-target="#UploadFileModal" href="#"><i class="fas fa-cloud-upload-alt"></i> Upload File</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                  </div>
-
-              </div>
-          </div>
-
+  <div class="position-fixed top-10% right-0% p-3" style="z-index: 5; right: 0; top: 0;">
+    <div id="liveToast" class="toast toast-message hide" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
+      <div class="toast-header {% if message.tags == 'error' %} bg-danger {% else %} bg-success{% endif %}  " style="color: white;">
+        {% if message.tags == 'success' %}
+          <i class="fas fa-check-circle"></i>
+        {% else %}
+          <i class="fas fa-exclamation-triangle"></i>
+        {% endif %}
+        <strong class="mr-auto ml-2">System</strong>
+        <small>Now</small>
+        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+          <span style="color: white;" aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="toast-body">
+        {{message}}
+      </div>
     </div>
-</div>
-{% endif %}
+  </div>
+{% endfor %}
 
-{% if files_shared_with_me %}
+
+<div class="position-fixed top-10% right-0% p-3" style="z-index: 5; right: 0; top: 0;">
+  <div class="toast hide error" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
+    <div class="toast-header bg-danger" style="color: white;">
+        <i class="fas fa-exclamation-triangle"></i>
+      <strong class="mr-auto ml-2">System</strong>
+      <small>Now</small>
+      <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+        <span style="color: white;" aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="toast-body context-error">
+    </div>
+  </div>
+</div>
+
+{% if folders %}
 <span class="badge text-muted mb-1 mt-4">Folders</span>
 <div class="drive-wrapper drive-grid-view collapse_grid" id="collapse_grid">
     <div class="grid-items-wrapper">
       <div id="main-content" class="file_manager">
               <div class="container-fluid">
                   <div class="row clearfix">
-                        {% for object in files_shared_with_me %}
-                        {% if  object.content_type.model == 'folder' %}
+                        {% for folder in folders %}
                           <div class="col-lg-3 col-md-4 col-sm-12">
                               <div class="card">
                                   <div id="{{folder.unique_id}}" class="file folder-context-menu">
                                     <div class="show_settings">
-                                      <div class="file_settings">
-                                        {% csrf_token %}
-                                        <h4><a onclick="removeSharedWith('{{ object.id }}')" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Remove from shared with me"><i class="lni lni-unlink icons delete"></i></a></h4>
-                                      </div>
+
                                       <div class="hover">
 
-                                          {% if object.permissions.can_delete %}
-                                            <h4><a data-toggle="modal" data-target="#id{{folder.unique_id}}"><i data-placement="top" title="" data-original-title="Delete Original Folder" data-toggle="tooltip" class="lni lni-trash-can delete icons"></i></a></h4>
+                                          {% if shared_object.permissions.can_delete %}
+                                            <h4><a data-toggle="modal" data-target="#id{{folder.unique_id}}"><i data-placement="top" title="" data-original-title="Delete Folder" data-toggle="tooltip" class="lni lni-trash-can delete icons"></i></a></h4>
                                           {% endif %}
-                                          {% if object.permissions.can_rename %}
-                                            <h4><a data-toggle="modal" data-target="#id{{folder.unique_id}}rename"><i data-placement="top" title="" data-original-title="Rename Original Folder"  data-toggle="tooltip" class="text-muted lni lni-brush-alt copy"></i></a></h4>
+                                          {% if shared_object.permissions.can_rename %}
+                                            <h4><a data-toggle="modal" data-target="#id{{folder.unique_id}}rename"><i data-placement="top" title="" data-original-title="Rename Folder"  data-toggle="tooltip" class="lni lni-brush-alt copy"></i></a></h4>
                                           {% endif %}
-                                          {% if object.permissions.can_download %}
-                                            <h4><a href="{% url 'account_api:download-original-shared-file' object.id %}"><i data-placement="top" title="" data-original-title="Download Folder"  data-toggle="tooltip" class="lni lni-arrow-down-circle download icons"></i></a></h4>
+                                          {% if shared_object.permissions.can_download %}
+                                            <h4><a href="{% url 'folder:download' folder.unique_id %}"><i data-placement="top" title="" data-original-title="Download Folder"  data-toggle="tooltip" class="lni lni-arrow-down-circle download icons"></i></a></h4>
                                           {% endif %}
                                       </div>
                                     </div>
-                                      <a href="{% url 'drive:shared-with-me-detail' object.id %}">
+                                      <a href="{% url 'folder:folder' folder.unique_id %}">
                                           <div class="icon">
                                               <i class="fa fa-folder text-primary folder-icon" ></i>
                                           </div>
                                           <div class="file-name">
-                                              <a title="{{ folder.name }}" href=""><p class="m-b-5 text-muted">{{ object.content_object.name }}</p></a>
-                                              <small class="text-muted">Shared by: {{object.shared_by.email}}</small>
-                                              <small>Files: {{object.content_object.get_files_count}} <span class="date text-muted">Shared on: {{object.created_at}}</span></small>
+                                              <a title="{{ folder.name }}" href="{% url 'folder:folder' folder.unique_id %}"><p class="m-b-5 text-muted">{{ folder.name }}</p></a>
+                                              <small>Files: {{folder.get_files_count}} <span class="date text-muted">{{folder.created_at}}</span></small>
                                           </div>
                                       </a>
                                   </div>
                               </div>
                             </div>
 
-                        {% if perms.folder.can_rename_folder %}
+                        {% if shared_object.permissions.can_delete %}
                           <!-- Delete Modal -->
                             <div class="modal fade" id="id{{folder.unique_id}}" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
                               <div class="modal-dialog">
@@ -94,14 +109,14 @@
                                   </div>
                                   <div class="modal-footer">
                                     <button type="button" class="btn btn-outline-dark" data-dismiss="modal">Cancel</button>
-                                    <a href="" type="button" class="btn btn-danger">Delete</a>
+                                    <a href="{% url 'folder:delete_folder' folder.unique_id %}" type="button" class="btn btn-danger">Delete</a>
                                   </div>
                                 </div>
                               </div>
                             </div>
                       {% endif %}
 
-                      {% if perms.folder.can_rename_folder %}
+                      {% if shared_object.permissions.can_rename %}
                       <!-- Rename Folder Modal -->
                           <div class="modal fade " id="id{{folder.unique_id}}rename" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                               <div class="modal-dialog modal-dialog-centered">
@@ -114,7 +129,7 @@
                                   </div>
                                   <div class="modal-body">
 
-                                    <form method="POST" action="">
+                                    <form method="POST" action="{% url 'folder:rename_folder' folder.unique_id %}">
                                         {%csrf_token%}
                                         <div class="input-group mb-3">
                                           <div class="input-group-prepend">
@@ -132,9 +147,10 @@
                                 </div>
                               </div>
                             </div>
-                      {% endif %}
 
                       {% endif %}
+
+
                         {% endfor %}
                   </div>
               </div>
@@ -142,67 +158,58 @@
     </div>
 </div>
 
-
 {% endif %}
 
-{% if files_shared_with_me %}
+{% if files %}
 <span class="badge text-muted mb-1 mt-4">Files</span>
 <div class="drive-wrapper drive-grid-view collapse_grid" id="collapse_grid">
     <div class="grid-items-wrapper">
       <div id="main-content" class="file_manager">
               <div class="container-fluid">
                   <div class="row clearfix">
-                      {% for object in files_shared_with_me %}
-                      {% if object.content_type.model == 'file' %}
-
+                      {% for file in files %}
                       <div class="col-lg-3 col-md-4 col-sm-12">
                           <div class="card">
-                              <div id="{{object.content_object.unique_id}}" link="{{object.content_object.privacy.link}}" class="file file-context-menu">
+                              <div id="{{file.unique_id}}" link="{{file.privacy.link}}" class="file file-context-menu">
                                 <div class="show_settings">
-                                  <div class="file_settings">
-                                    {% csrf_token %}
-                                    <h4><a onclick="removeSharedWith('{{ object.id }}')" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Remove from shared with me"><i class="lni lni-unlink icons delete"></i></a></h4>
+
+                                  <div class="uuid_link">
+                                    <h4><a id="{{file.unique_id}}" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy UUID"><i onclick="CopyFileLink('{{ file.unique_id }}', '{{file.unique_id}}')" class="lni lni-share-alt-1"></i></a></h4>
                                   </div>
-                                  {% if object.permissions.can_rename %}
-                                  <div class="file_settings mt-4 pt-2">
-                                    <h4><a href="" data-toggle="tooltip" data-placement="top" title="" data-original-title="Rename Original File"><i class="lni lni-brush-alt icons share"></i></a></h4>
-                                  </div>
-                                  {% endif %}
+
                                   <div class="hover">
-                                    <h4><a id="link-{{object.content_object.unique_id}}" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ object.content_object.get_url }}', 'link-{{object.content_object.unique_id}}')" class="lni lni-link copy icons"></i></a></h4>
-                                    {% if object.permissions.can_download %}
-                                        <h4><a href="{% url 'account_api:download-original-shared-file' object.id %}" download data-toggle="tooltip" data-placement="top" title="" data-original-title="Download"><i class="lni lni-arrow-down-circle download icons"></i></a></h4>
+                                    <h4><a id="link-{{file.unique_id}}" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Copy Link"><i onclick="CopyFileLink('{{ file.get_url }}', 'link-{{file.unique_id}}')" class="lni lni-link copy icons"></i></a></h4>
+                                    {% if shared_object.permissions.can_download %}
+                                        <h4><a href="{% url 'download' file.privacy.link %}" download data-toggle="tooltip" data-placement="top" title="" data-original-title="Download"><i class="lni lni-arrow-down-circle download icons"></i></a></h4>
                                     {% endif %}
 
-                                    {% if object.permissions.can_delete %}
-                                        <h4><a onclick="deleteSharedWith('{{ object.id }}')" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete original file"><i class="lni lni-trash-can delete icons"></i></a></h4>
+                                    {% if shared_object.permissions.can_delete %}
+                                        <h4><a href="{% url 'file:move_to_trash' file.unique_id %}" data-toggle="tooltip" data-placement="top" title="" data-original-title="Move To Trash"><i class="lni lni-trash-can delete icons"></i></a></h4>
                                     {% endif %}
                                   </div>
                                 </div>
-                                  <a href="{{object.content_object.get_url}}" target="_blank">
+                                  <a href="{{file.get_url}}" target="_blank">
                                       <div class="icon">
-                                          {% if object.content_object.type == 'image/gif' %}
+                                          {% if file.type == 'image/gif' %}
                                             <i class="fa-solid fa-photo-film text-danger"></i>
-                                          {% elif object.content_object.category == 'images' %}
+                                          {% elif file.category == 'images' %}
                                             <i class="fa-solid fa-image text-primary"></i>
-                                          {% elif object.content_object.type == 'application/pdf' %}
+                                          {% elif file.type == 'application/pdf' %}
                                             <i class="fa-solid fa-file-pdf text-success"></i>
-                                          {% elif object.content_object.category == 'docs' %}
+                                          {% elif file.category == 'docs' %}
                                             <i class="fa-solid fa-file-word text-success"></i>
-                                          {% elif object.content_object.category == 'media' %}
+                                          {% elif file.category == 'media' %}
                                             <i class="fa-solid fa-clapperboard text-danger"></i>
-                                          {% elif object.content_object.category == 'zip' or file.type == 'application/octet-stream' %}
+                                          {% elif file.category == 'zip' or file.type == 'application/octet-stream' %}
                                             <i class="fa-solid fa-file-zipper text-warning"></i>
                                           {% else %}
                                             <i class="fa fa-file"></i>
                                           {% endif %}
 
                                       </div>
-
                                       <div class="file-name">
-                                          <a title="{{ object.content_object.name }}" href="{{object.content_object.get_url}}" target="_blank"><p class="m-b-5 text-muted">{{object.content_object.name|truncatechars:35}}</p></a>
-                                          <small class="text-muted">Shared by: {{object.shared_by.email}}</small>
-                                          <small>Size: {{object.content_object.size|filesizeformat}} <span class="date text-muted">{{object.created_at}}</span></small>
+                                          <a title="{{ file.name }}" href="{{file.get_url}}" target="_blank"><p class="m-b-5 text-muted">{{file.name|truncatechars:35}}</p></a>
+                                          <small>Size: {{file.size|filesizeformat}} <span class="date text-muted">{{file.uploaded_at}}</span></small>
                                       </div>
                                   </a>
                               </div>
@@ -273,9 +280,87 @@
                             </div>
                           </div>
                         </div>
-                        {% endif %}
                       {% endfor %}
+                  </div>
+                  <!-- Shared File Modal -->
+                  <div class="modal fade " id="shareWith" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                      <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                          <div class="modal-header primary_bg">
+                            <h5 class="modal-title" id="CreateFolderModal">Share With</h5>
+                            <button type="button" class="close text-light" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span>
+                            </button>
+                          </div>
+                          <div class="modal-body">
 
+                            <form class="shareForm" >
+                                <div class="input-group mb-2">
+                                  <div class="input-group-prepend">
+                                    <span class="input-group-text" id="basic-addon1"><i class="fa-solid fa-user"></i></span>
+                                  </div>
+                                  <input type="text" name="userEmail" class="form-control" placeholder="User Email" aria-label="User Email" aria-describedby="basic-addon1">
+                                </div>
+                                <small id="shareError" class="text-danger"></small>
+
+                                <div class="custom-control custom-checkbox my-1 mr-sm-2">
+                                  <input type="checkbox" class="custom-control-input" id="canView">
+                                  <label class="custom-control-label" for="canView">Can View</label>
+                                </div>
+                                <div class="custom-control custom-checkbox my-1 mr-sm-2">
+                                  <input type="checkbox" class="custom-control-input" id="canRename"
+                                  {% if not perms.file.change_file %}
+                                  disabled
+                                  {% endif %}
+                                  >
+                                  <label class="custom-control-label" for="canRename">Can Rename</label>
+                                </div>
+
+                                <div class="custom-control custom-checkbox my-1 mr-sm-2">
+                                  <input type="checkbox" class="custom-control-input" id="canDownload"
+                                  {% if not perms.file.can_download_file %}
+                                  disabled
+                                  {% endif %}
+                                  >
+                                  <label class="custom-control-label" for="canDownload">Can Download</label>
+                                </div>
+                                <div class="custom-control custom-checkbox my-1 mr-sm-2">
+                                  <input type="checkbox" class="custom-control-input" id="canDelete"
+                                  {% if not perms.file.delete_file %}
+                                  disabled
+                                  {% endif %}
+                                  >
+                                  <label class="custom-control-label" for="canDelete">Can Delete</label>
+                                </div>
+
+                                <button id="submitShare" type="submit" class="btn primary float-right">Share</button>
+
+                            </form>
+
+                          </div>
+
+                        </div>
+                      </div>
+                    </div>
+
+              </div>
+          </div>
+
+    </div>
+</div>
+{% endif %}
+
+{% if files %}
+  {% include 'file/files_paginator.html' with files=files %}
+{% endif %}
+
+{% if not files and not folders %}
+<div class="drive-wrapper drive-grid-view collapse_grid" id="collapse_grid">
+    <div class="grid-items-wrapper">
+      <div id="main-content" class="file_manager">
+              <div class="container-fluid">
+                  <div class="row clearfix">
+                      {% include 'file/no_files_found.html' %}
                   </div>
 
               </div>
@@ -283,9 +368,7 @@
 
     </div>
 </div>
-
 {% endif %}
-
 
 <script type="text/javascript">
   function CopyFileLink(link, id)  {
@@ -309,78 +392,10 @@
       }, 500);
 
     };
-
-    const grid_toggle = document.getElementById('drive-grid-toggle');
-    const list_toggle = document.getElementById('drive-list-toggle');
-
-    grid_toggle.addEventListener('click', (e) => {
-      $(".collapse_list").addClass('d-none');
-      $(".collapse_grid").removeClass("d-none");
-      anime({
-        targets: '.collapse_grid',
-        translateY: 10,
-        direction: 'alternate',
-        easing: 'spring(1, 80, 10, 0)'
-      })
-
-      anime({
-        targets: '.collapse_list',
-        translateY: 0,
-        direction: 'alternate',
-        easing: 'spring(1, 80, 10, 0)'
-      })
-    });
-
-
-
-
-    list_toggle.addEventListener('click', (e) => {
-      $(".collapse_grid").addClass("d-none");
-      $(".collapse_list").removeClass("d-none");
-
-      anime({
-        targets: '.collapse_grid',
-        translateY: 0,
-        direction: 'alternate',
-        easing: 'spring(1, 80, 10, 0)'
-      })
-
-      anime({
-        targets: '.collapse_list',
-        translateY: 10,
-        direction: 'alternate',
-        easing: 'spring(1, 80, 10, 0)'
-      })
-    });
-
-
-    function removeSharedWith(id){
-      const csrf_token = document.getElementsByName('csrfmiddlewaretoken')[0].value;
-      var url = '{% url "account_api:remove-shared-with-me" 1111 %}'.replace('1111' ,id)
-      fetch(url, {
-          method: 'DELETE',
-          headers: {
-          "X-CSRFToken": csrf_token
-        },
-      }).then(response => response.json())
-      location.reload()
-    }
-
-    function deleteSharedWith(id){
-      const csrf_token = document.getElementsByName('csrfmiddlewaretoken')[0].value;
-      var url = '{% url "account_api:delete-original-shared-file" 1111 %}'.replace('1111' ,id)
-      fetch(url, {
-          method: 'DELETE',
-          headers: {
-          "X-CSRFToken": csrf_token
-        },
-      }).then(response => response.json())
-      location.reload()
-    }
-
 </script>
 
 <script src="{% static 'js/jquery.js' %}" crossorigin="anonymous"></script>
+
 
 
 {% endblock %}

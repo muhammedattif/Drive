@@ -2,6 +2,7 @@ from django.db import models
 from activity.models import Activity
 from accounts.models import Account
 from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.contenttypes.models import ContentType
 import uuid
 from django.conf import settings
 from .managers import FolderManager
@@ -112,3 +113,23 @@ class Folder(models.Model):
         folder_tree = [folder.name for folder in folder_tree]
         folder_tree_dirs = '/'.join(folder_tree)
         return folder_tree_dirs
+
+    def is_shared_with(self, user):
+        from file.models import SharedObject
+        folder_content_type = ContentType.objects.get(model='folder')
+
+        shared_object = SharedObject.objects.filter(
+        shared_with=user,
+        object_id=self.id,
+        content_type=folder_content_type
+        ).first()
+
+        if shared_object:
+            return shared_object, True
+        else:
+            folder_tree = self.get_folder_tree()
+            all_folders_shared_with_user = SharedObject.objects.prefetch_related('content_object__parent_folder').filter(shared_with=user, content_type=folder_content_type)
+            for object in all_folders_shared_with_user:
+                if object.content_object in folder_tree:
+                    return object.content_object, True
+            return None, False
