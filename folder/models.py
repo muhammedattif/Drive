@@ -131,5 +131,5 @@ class Folder(models.Model):
             all_folders_shared_with_user = SharedObject.objects.prefetch_related('content_object__parent_folder').filter(shared_with=user, content_type=folder_content_type)
             for object in all_folders_shared_with_user:
                 if object.content_object in folder_tree:
-                    return object.content_object, True
+                    return object, True
             return None, False

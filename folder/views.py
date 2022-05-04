@@ -24,7 +24,6 @@ def folder(request, unique_id=None):
 
         shared_object, is_shared = folder.is_shared_with(request.user)
         if not is_shared and folder.user != request.user:
-            context['shared_object'] = shared_object
             return redirect('error')
 
         context['folder'] = folder
@@ -42,6 +41,7 @@ def folder(request, unique_id=None):
         context['folders'] = Folder.objects.filter(parent_folder=None, user=request.user)
 
     if folder.user != request.user:
+        context['shared_object'] = shared_object
         return render(request, 'shared_content.html', context)
 
     return render(request, 'folder/folder.html', context)
