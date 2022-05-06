@@ -1,21 +1,20 @@
-from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, BaseUserManager, PermissionsMixin
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.auth.validators import UnicodeUsernameValidator
-from django.conf import settings
-from django.db.models.signals import post_save, pre_save
-from django.dispatch import receiver
-from rest_framework.authtoken.models import Token
-from storage_package.models import StoragePackage
-from django.db.models import F
-# profile image resizing imports
+# Standard library
+import os
 import uuid
-from PIL import Image
 from io import BytesIO
+
+# Django
+from django.conf import settings
+from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
+                                        PermissionsMixin)
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.files import File
 from django.core.files.base import ContentFile
-import os
-from django.db import transaction
+from django.db import models, transaction
+
+# Third-party
+from PIL import Image
+
 
 # this class is for resizing images
 class ResizeImageMixin:

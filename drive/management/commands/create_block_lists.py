@@ -1,7 +1,10 @@
-from django.core.management.base import BaseCommand
+# Django
 from django.conf import settings
-from file.models import FileSharingBlockList
 from django.contrib.auth import get_user_model
+from django.core.management.base import BaseCommand
+
+# Files App
+from file.models import FileSharingBlockList
 
 User = get_user_model()
 

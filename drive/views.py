@@ -1,24 +1,30 @@
-from django.shortcuts import render, redirect, reverse
-from file.models import File
-from folder.models import Folder
-from django.contrib.auth.decorators import login_required, permission_required
-from django.core.paginator import Paginator
-from accounts.models import Account
-from .models import DriveSettings, CompressedFile
-from .forms import PrivacySettingsForm
-from django.contrib import messages
-from django.http import HttpResponse, FileResponse
+# Standard library
 import time
 import uuid
-from django.contrib.admin.utils import NestedObjects
-from activity.models import Activity
+
+# Django
 from django.conf import settings
+from django.contrib import messages
+from django.contrib.admin.utils import NestedObjects
+from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.contenttypes.models import ContentType
+from django.core.paginator import Paginator
+from django.db.models import Q
 from django.db.models.deletion import Collector
 from django.db.models.fields.related import ForeignKey
 from django.db.utils import IntegrityError
-from django.db.models import Q
-from file.models import SharedObject
-from django.contrib.contenttypes.models import ContentType
+from django.http import FileResponse
+from django.shortcuts import redirect, render
+
+# Files App
+from file.models import File, SharedObject
+
+# Folders App
+from folder.models import Folder
+
+# Local Django
+from .forms import PrivacySettingsForm
+from .models import CompressedFile, DriveSettings
 
 
 class ObjectCloner(object):
@@ -151,6 +157,8 @@ def home(request):
     return render(request, 'drive/home.html', context)
 
 from pathlib import Path
+
+
 def recursive(folder):
 
     for file in folder.files.all():

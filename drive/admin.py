@@ -1,5 +1,9 @@
+# Django
 from django.contrib import admin
-from drive.models import DriveSettings, CompressedFile
+
+# Drive App
+from drive.models import CompressedFile, DriveSettings
+
 
 class DriveSettingsConfig(admin.ModelAdmin):
     model = DriveSettings

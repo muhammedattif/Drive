@@ -1,10 +1,19 @@
-from file.models import File, FilePrivacy, MediaFileProperties, SharedObject, SharedObjectPermission
-from activity.models import Activity
-from django.db.models.signals import post_save, post_delete
-from django.dispatch import receiver
+# Standard library
 import os
-from file.utils import detect_quality
+
+# Django
 from django.db import transaction
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
+
+# Activities App
+from activity.models import Activity
+
+# Local Django
+from file.models import (File, FilePrivacy, MediaFileProperties, SharedObject,
+                         SharedObjectPermission)
+from file.utils import detect_quality
+
 
 # This function is used as a decorator for the signals
 # to ensure that all data has been committed within

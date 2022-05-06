@@ -1,20 +1,17 @@
+# Django
 from django.urls import path
-from rest_framework.authtoken.views import obtain_auth_token
-from accounts.api.views import (
-ObtainAuthTokenView,
-SharedListCreateView,
-SharedUpdateDestroyView,
-SharedWithMeList,
-SharedWithMeDestroyView,
-SharedWithMeDestroyOriginalView,
-SharedWithMeEditOriginalView,
-SharedWithMeDownloadView
-)
+
+# Accounts App
+from accounts.api.views import (ObtainAuthTokenView, SharedListCreateView,
+                                SharedUpdateDestroyView,
+                                SharedWithMeDestroyOriginalView,
+                                SharedWithMeDestroyView,
+                                SharedWithMeDownloadView,
+                                SharedWithMeEditOriginalView, SharedWithMeList)
 
 app_name = 'accounts'
 
 urlpatterns = [
-    # path('login', obtain_auth_token, name='login'),
     path('login', ObtainAuthTokenView.as_view(), name="login"),
 
     # Shared Files

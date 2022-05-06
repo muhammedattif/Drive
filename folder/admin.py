@@ -1,5 +1,9 @@
+# Django
 from django.contrib import admin
+
+# Local Django
 from folder.models import Folder
+
 
 class FolderConfig(admin.ModelAdmin):
     model = Folder

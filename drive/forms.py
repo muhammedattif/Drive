@@ -1,5 +1,8 @@
-from .models import DriveSettings
+# Django
 from django.forms import ModelForm
+
+# Local Django
+from .models import DriveSettings
 
 
 class PrivacySettingsForm(ModelForm):

@@ -1,7 +1,12 @@
+# Django
 from django.db import models
-from accounts.models import Account
-from storage_package.models import StoragePackage
 from django.db.models import F
+
+# Accounts App
+from accounts.models import Account
+
+# Storages App
+from storage_package.models import StoragePackage
 
 
 # This class is for Drive Settings Model for the user

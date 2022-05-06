@@ -1,7 +1,11 @@
-from django.core.management.base import BaseCommand
+# Django
 from django.conf import settings
+from django.core.management.base import BaseCommand
+
+# Local Django
 from file.models import File, MediaFileProperties
 from file.utils import detect_quality
+
 
 class Command(BaseCommand):
     help = 'Create Properties for each media file'

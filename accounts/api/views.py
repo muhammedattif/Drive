@@ -1,35 +1,38 @@
-from django.shortcuts import render
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.exceptions import PermissionDenied, NotFound
-from django.contrib.auth.decorators import permission_required
-from rest_framework.response import Response
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from rest_framework.views import APIView
-from rest_framework.pagination import PageNumberPagination
-from django.contrib.auth import authenticate
-from django.db import transaction
-from rest_framework.authtoken.models import Token
-from rest_framework import status
-from folder.models import Folder
-from file.models import File, SharedObject, SharedObjectPermission
-from file.api.serializers import SharedObjectSerializer
-import cloud.messages as response_messages
-from django.contrib.auth import get_user_model
-from django.db.models import Q
-from django.conf import settings
+# Standard library
+import os
+
+# Third-party
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
-from django.http import FileResponse, HttpResponse
-import os
-from folder.exceptions import (
-FolderNewNameAlreadyExits,
-RenameFolderRuntimeError,
-UnknownError,
-InBlockList
-)
-import cloud.messages as response_messages
+
+# Django
+from django.conf import settings
+from django.contrib.auth import authenticate, get_user_model
 from django.contrib.contenttypes.models import ContentType
+from django.db import transaction
+from django.db.models import Q
+from django.http import FileResponse
+
+# Rest Framework
+from rest_framework import status
+from rest_framework.authtoken.models import Token
+from rest_framework.exceptions import NotFound, PermissionDenied
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+# Project base files
+import cloud.messages as response_messages
+from cloud.exceptions import InBlockList, UnknownError
+
+# Files App
+from file.api.serializers import SharedObjectSerializer
+from file.models import File, SharedObject, SharedObjectPermission
+
+# Folders App
+from folder.exceptions import (FolderNewNameAlreadyExits,
+                               RenameFolderRuntimeError)
+from folder.models import Folder
 
 User = get_user_model()
 

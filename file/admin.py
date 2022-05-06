@@ -1,7 +1,14 @@
+# Django
 from django.contrib import admin
-from file.models import File, FileQuality, MediaFileProperties, VideoSubtitle, FilePrivacy, Trash, SharedObject, SharedObjectPermission, FileSharingBlockList
-from nested_inline.admin import NestedStackedInline, NestedModelAdmin
-from django.template.defaultfilters import truncatewords
+
+# Third-party
+from nested_inline.admin import NestedModelAdmin, NestedStackedInline
+
+# Local Django
+from file.models import (File, FilePrivacy, FileQuality, FileSharingBlockList,
+                         MediaFileProperties, SharedObject,
+                         SharedObjectPermission, Trash, VideoSubtitle)
+
 
 class FilePrivacyInline(NestedStackedInline):
     model = FilePrivacy

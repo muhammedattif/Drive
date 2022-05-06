@@ -1,9 +1,11 @@
-from django.shortcuts import HttpResponse, redirect, render
-from file.models import File
-from django.contrib.auth.decorators import login_required
+# Django
 from django.conf import settings
-from django.views.static import serve
 from django.http import FileResponse
+from django.shortcuts import redirect, render
+from django.views.static import serve
+
+# Files App
+from file.models import File
 
 
 # Error view

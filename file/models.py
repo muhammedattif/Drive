@@ -1,19 +1,27 @@
-from django.db import models
-from django.conf import settings
-from folder.models import Folder
-from activity.models import Activity
-from django.contrib.auth import get_user_model
-from django.contrib.sites.models import Site
-from django.contrib.contenttypes.fields import GenericRelation
-from django.core.exceptions import ValidationError
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
-from file.utils import generate_file_link, get_file_path, get_video_cover_path, get_video_subtitle_path, compress_image
+# Standard library
 import uuid
 from datetime import datetime, timezone
-from model_utils import Choices
-from .validators import validation_message
+
+# Django
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.fields import (GenericForeignKey,
+                                                GenericRelation)
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.sites.models import Site
+from django.db import models
 from django.template.defaultfilters import truncatechars
+
+# Activities App
+from activity.models import Activity
+
+# Local Django
+from file.utils import (compress_image, generate_file_link, get_file_path,
+                        get_video_cover_path, get_video_subtitle_path)
+from .validators import validation_message
+
+# Folders App
+from folder.models import Folder
 
 User = get_user_model()
 

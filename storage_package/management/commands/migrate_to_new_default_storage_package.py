@@ -1,6 +1,10 @@
-from django.core.management.base import BaseCommand
+# Django
 from django.conf import settings
+from django.core.management.base import BaseCommand
+
+# local Django
 from storage_package.models import StoragePackage
+
 
 class Command(BaseCommand):
     help = f'Migrate to new default Storage Package.'

@@ -1,16 +1,11 @@
+# Django
 from django.urls import path
-from file.api.views import (
-upload,
-delete,
-FileDownloadView,
-FileCopyView,
-FileMoveView,
-stream_video,
-generate_video_links,
-get_conversion_status,
-SharedWithListView,
-generate_video_links_for_iphone
-)
+
+# Local Django
+from file.api.views import (FileCopyView, FileDownloadView, FileMoveView,
+                            SharedWithListView, delete, generate_video_links,
+                            generate_video_links_for_iphone,
+                            get_conversion_status, stream_video, upload)
 
 app_name = 'file'
 

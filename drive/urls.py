@@ -1,13 +1,10 @@
+# Django
 from django.urls import path
-from drive.views import (
-filter,
-privacy_settings,
-download_compressed_data,
-compress_user_files,
-erase_account_data,
-shared_with_me,
-shared_with_me_detail
-)
+
+# Drive App
+from drive.views import (compress_user_files, download_compressed_data,
+                         erase_account_data, filter, privacy_settings,
+                         shared_with_me, shared_with_me_detail)
 
 app_name = 'drive'
 

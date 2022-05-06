@@ -1,36 +1,46 @@
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.pagination import PageNumberPagination
-from django.contrib.auth.decorators import permission_required
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.views import APIView
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from file.models import File, FilePrivacy, MediaFileProperties
-from file.api.serializers import FileSerializer
-from folder.models import Folder
-from folder.utils import check_sub_folders_limit, create_folder_tree_if_not_exist
-from django.conf import settings
-from folder import utils
-from folder.exceptions import (
-UnknownError,
-InsufficientStorageError,
-FolderNotFoundError,
-CopiedFolderAlreadyExits,
-MoveFolderSameDestinationError
-)
-from cloud import messages as response_messages
-from folder.permissions import CreateFolderPermission, DownloadFolderPermission, CopyFolderPermission, MoveFolderPermission
-from folder.api.serializers import FolderSerializer, BasicFolderInfoSerializer
-from zipfile import ZIP_DEFLATED, ZipFile
-from django.http import FileResponse
-from file.utils import detect_quality, generate_file_link
-from django.db  import transaction
-
-# Third-Party Libs
+# Standard library
 import os
-from pathlib import Path
+
+# Third-party
 import pathlib
 import shutil
+from pathlib import Path
+from zipfile import ZIP_DEFLATED, ZipFile
+
+# Django
+from django.conf import settings
+from django.contrib.auth.decorators import permission_required
+from django.db import transaction
+from django.http import FileResponse
+
+# Rest Framework
+from rest_framework import status
+from rest_framework.decorators import (api_view,
+                                       permission_classes)
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+# Project base
+from cloud import messages as response_messages
+from cloud.exceptions import InsufficientStorageError, UnknownError
+
+# Files App
+from file.api.serializers import FileSerializer
+from file.models import File, FilePrivacy, MediaFileProperties
+from file.utils import detect_quality, generate_file_link
+
+# Local Django
+from folder.api.serializers import BasicFolderInfoSerializer, FolderSerializer
+from folder.exceptions import (CopiedFolderAlreadyExits, FolderNotFoundError,
+                               MoveFolderSameDestinationError)
+from folder.models import Folder
+from folder.permissions import (CopyFolderPermission, CreateFolderPermission,
+                                DownloadFolderPermission, MoveFolderPermission)
+from folder.utils import (check_sub_folders_limit,
+                          create_folder_tree_if_not_exist)
+
 
 class FoldeCreateView(APIView):
 
@@ -285,7 +295,7 @@ class FolderCopyView(APIView, CopyFolderPermission):
 
 
     def copy_folder_on_disk(self, folder_current_path, destination_path):
-        from folder.utils import copytree
+        from folder.utils import copytree # isort:skip
 
         if not Path(destination_path).is_dir():
             os.makedirs(destination_path)

@@ -1,12 +1,21 @@
-from django.db.models.signals import post_save, post_delete, pre_save
-from django.dispatch import receiver
-from accounts.models import Account
-from drive.models import DriveSettings
-from rest_framework.authtoken.models import Token
-from django.db.models.signals import m2m_changed
+# Django
 from django.contrib.auth.models import Group, Permission
 from django.db.models import Q
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+# Rest Framework
+from rest_framework.authtoken.models import Token
+
+# Accounts App
+from accounts.models import Account
+
+# Drive App
+from drive.models import DriveSettings
+
+# Files App
 from file.models import FileSharingBlockList
+
 
 # A workaround to add user to a group
 @receiver(post_save, sender=Account)

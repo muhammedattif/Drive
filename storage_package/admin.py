@@ -1,5 +1,9 @@
+# Django
 from django.contrib import admin
+
+# Local Django
 from .models import StoragePackage
+
 
 class StoragePackageConfig(admin.ModelAdmin):
     model = StoragePackage

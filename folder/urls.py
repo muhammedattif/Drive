@@ -1,12 +1,9 @@
+# django
 from django.urls import path
-from folder.views import (
-folder,
-create_folder,
-delete_folder,
-rename_folder,
-download_folder,
-shared_with
-)
+
+# Local Django
+from folder.views import (create_folder, delete_folder, download_folder,
+                          folder, rename_folder, shared_with)
 
 app_name = 'folder'
 

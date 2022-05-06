@@ -1,6 +1,10 @@
-from rest_framework.exceptions import APIException, NotFound
+# Rest Framework
 from rest_framework import status
+from rest_framework.exceptions import APIException, NotFound
+
+# Project base
 from cloud.messages import error_messages
+
 
 class FolderNewNameAlreadyExits(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
@@ -15,19 +19,6 @@ class CopiedFolderAlreadyExits(APIException):
 
 class RenameFolderRuntimeError(APIException):
     pass
-
-class UnknownError(APIException):
-    pass
-
-class InsufficientStorageError(APIException):
-    status_code = status.HTTP_507_INSUFFICIENT_STORAGE
-    default_detail = ('Storage Limit Exceeded!')
-    default_code = 'error'
-
-class InBlockList(APIException):
-    status_code = status.HTTP_403_FORBIDDEN
-    default_detail = ('You are in the Blocklist or you have blocked this user.')
-    default_code = 'error'
 
 class FolderNotFoundError(NotFound):
     default_detail = (error_messages['not_found'])

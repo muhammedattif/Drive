@@ -1,16 +1,28 @@
-from rest_framework import serializers
+# Third-party
+import hashlib
+
+# Standard library
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-from django.urls import reverse
-import hashlib
-from file.models import FileQuality
+
+# Django
 from django.conf import settings
-from file.models import File, FileQuality, SharedObject, SharedObjectPermission
-from drf_writable_nested.serializers import WritableNestedModelSerializer
-from django.contrib.auth import get_user_model
+from django.urls import reverse
+
+# Rest Framework
+from rest_framework import serializers
+
+# Accounts App
 from accounts.api.serializers import BasicUserInfoSerializer
+
+# Local Django
+from file.models import File, FileQuality, SharedObject, SharedObjectPermission
+
+# Folders App
 from folder.api.serializers import FolderSerializer
 from folder.models import Folder
+
+
 class EncrypredQualitySerializer(serializers.Serializer):
     quality = serializers.CharField()
     url = serializers.SerializerMethodField()

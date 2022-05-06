@@ -1,11 +1,17 @@
+# Django
 from django.contrib import admin
-from nested_inline.admin import NestedStackedInline, NestedModelAdmin
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.forms import (
-    AdminPasswordChangeForm
-)
+from django.contrib.auth.forms import AdminPasswordChangeForm
+
+# Third-party
+from nested_inline.admin import NestedModelAdmin, NestedStackedInline
+
+# Accounts App
 from accounts.models import Account
+
+# Drive App
 from drive.models import DriveSettings
+
 
 class DriveSettingsInline(NestedStackedInline):
     model = DriveSettings

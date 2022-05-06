@@ -1,13 +1,24 @@
-from django.db import models
-from activity.models import Activity
-from accounts.models import Account
+# Standard library
+import os
+
+# Third-party
+import uuid
+
+# Django
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
-import uuid
-from django.conf import settings
+from django.db import models
+
+# Accounts App
+from accounts.models import Account
+
+# Activities App
+from activity.models import Activity
+
+# Local Django
 from .managers import FolderManager
-import os
-from pathlib import Path
+
 
 def truncate_folder_name(folder_name):
     return folder_name[0:20]
@@ -44,7 +55,7 @@ class Folder(models.Model):
             if folder_before_save.parent_folder != self.parent_folder or folder_before_save.name != self.name:
                 changed_files = self.change_sub_files_paths(self, changed_files=[])
                 if changed_files:
-                    from file.models import File
+                    from file.models import File # isort:skip
                     File.objects.bulk_update(changed_files, ['file'])
 
         super().save(*args, **kwargs)
@@ -115,7 +126,7 @@ class Folder(models.Model):
         return folder_tree_dirs
 
     def is_shared_with(self, user):
-        from file.models import SharedObject
+        from file.models import SharedObject # isort:skip
         folder_content_type = ContentType.objects.get(model='folder')
 
         shared_object = SharedObject.objects.filter(

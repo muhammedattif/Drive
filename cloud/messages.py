@@ -1,4 +1,6 @@
+# Django
 from django.conf import settings
+
 
 def error(error_key, **extra_data):
     return {

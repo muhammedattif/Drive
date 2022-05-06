@@ -1,6 +1,8 @@
-from rest_framework.exceptions import APIException, NotFound
+# Rest Framework
 from rest_framework import status
-from cloud.messages import error_messages
+from rest_framework.exceptions import APIException
+
+
 
 class UnknownError(APIException):
     pass

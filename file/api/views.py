@@ -1,45 +1,51 @@
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from django.contrib.auth.decorators import permission_required
-from django.contrib.auth import get_user_model
-from django.db.models import Q, F
-from file.models import File, FilePrivacy, MediaFileProperties, FileQuality, SharedObject, SharedObjectPermission
-from file.utils import get_file_cat, generate_file_link
-from folder.utils import check_sub_folders_limit, create_folder_tree_if_not_exist
-from folder.models import Folder
-from django.http import FileResponse, StreamingHttpResponse, HttpResponse
-from rest_framework.views import APIView
+# Standard library
+import hashlib
 import os
 import re
 import shutil
-from pathlib import Path
-from wsgiref.util import FileWrapper
-from django.http.response import StreamingHttpResponse
-from secrets import compare_digest
-import hashlib
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
-from django.urls import reverse
-from file.utils import detect_quality
-from .serializers import (
-SubtitlesSerializer,
-CoverSerializer,
-QualitySerializer,
-OriginalQualitySerializer,
-EncrypredQualitySerializer,
-EncrypredOriginalQualitySerializer,
-FileQualitySerilizer,
-SharedObjectSerializer
-)
+from pathlib import Path
+from secrets import compare_digest
+
+# Django
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.db.models import Q
+from django.http import FileResponse
+from django.http.response import StreamingHttpResponse
+
+# Rest Framework
+from rest_framework import status
+from rest_framework.decorators import (api_view,
+                                       permission_classes)
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+# Project base
 import cloud.messages as response_messages
-from file.permissions import CopyFilePermission, MoveFilePermission
+from cloud.exceptions import InsufficientStorageError, UnknownError
+
+# Local Django
 from file.exceptions import FileNotFoundError, MoveFileSameDestinationError
+from file.models import (File, FilePrivacy, FileQuality, MediaFileProperties,
+                         SharedObject, SharedObjectPermission)
+from file.permissions import CopyFilePermission, MoveFilePermission
+from file.utils import detect_quality, generate_file_link, get_file_cat
+
+from .serializers import (CoverSerializer, EncrypredOriginalQualitySerializer,
+                          EncrypredQualitySerializer, FileQualitySerilizer,
+                          OriginalQualitySerializer, QualitySerializer,
+                          SharedObjectSerializer, SubtitlesSerializer)
+
+# Folders App
 from folder.exceptions import FolderNotFoundError
-from cloud.exceptions import UnknownError, InsufficientStorageError
+from folder.models import Folder
+from folder.utils import (check_sub_folders_limit,
+                          create_folder_tree_if_not_exist)
+
+
 
 User = get_user_model()
 

@@ -1,16 +1,12 @@
+# Django
 from django.urls import path
-from folder.api.views import (
-create_folder_tree,
-delete_folder,
-FolderCopyView,
-FolderMoveView,
-FolderDestroyView,
-FoldeCreateView,
-FolderDetailView,
-FolderDownloadView,
-FolderFilesView,
-FolderSubFoldersView
-)
+
+# Local Django
+from folder.api.views import (FoldeCreateView, FolderCopyView,
+                              FolderDestroyView, FolderDetailView,
+                              FolderDownloadView, FolderFilesView,
+                              FolderMoveView, FolderSubFoldersView,
+                              create_folder_tree, delete_folder)
 
 app_name = 'folder'
 

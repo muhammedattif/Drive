@@ -1,10 +1,15 @@
-from django.shortcuts import render, redirect
-from django.http import JsonResponse
+# Standard library
 import json
-from accounts.forms import CreateUserForm
+
+# Django
 from django.contrib.auth import authenticate, login, logout
 from django.db import transaction
-from django.db.models import Q
+from django.http import JsonResponse
+from django.shortcuts import redirect, render
+
+# Accounts App
+from accounts.forms import CreateUserForm
+
 # Create your views here.
 
 # Registration View

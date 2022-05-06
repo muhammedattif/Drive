@@ -1,9 +1,11 @@
 from __future__ import absolute_import, unicode_literals
+
 import os
+from os.path import dirname, join
+
+import dotenv
 from celery import Celery
 from django.conf import settings
-from os.path import dirname, join
-import dotenv
 
 project_dir = dirname(dirname(__file__))
 dotenv.read_dotenv(join(project_dir, '.env'))

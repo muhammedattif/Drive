@@ -1,9 +1,17 @@
-from folder.models import Folder
-from django.conf import settings
-from rest_framework.response import Response
-from rest_framework import status
+# Standard library
 import os
+
+# Third-party
 from shutil import *
+
+# Django
+from django.conf import settings
+from rest_framework import status
+from rest_framework.response import Response
+
+# Local Django
+from folder.models import Folder
+
 
 def check_sub_folders_limit(folder_tree):
     if len(folder_tree.split('/')) > settings.SUB_FOLDERS_LIMIT:

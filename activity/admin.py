@@ -1,6 +1,8 @@
+# Django
 from django.contrib import admin
+
+# Activities App
 from activity.models import Activity
-from django.contrib.auth.admin import UserAdmin
 
 
 class ActivityConfig(admin.ModelAdmin):

@@ -1,6 +1,12 @@
-from rest_framework import serializers
-from drive.models import DriveSettings, StoragePackage
+# Django
 from django.template.defaultfilters import filesizeformat
+
+# Rest Framework
+from rest_framework import serializers
+
+# Drive App
+from drive.models import DriveSettings, StoragePackage
+
 
 class StoragePackageSerializer(serializers.ModelSerializer):
     class Meta:

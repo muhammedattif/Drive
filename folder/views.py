@@ -1,16 +1,26 @@
-from django.shortcuts import render, redirect, reverse
-from folder.models import Folder
-from django.contrib.auth.decorators import login_required, permission_required
-from django.conf import settings
-from django.contrib import messages
-import os, shutil
-from django.core.paginator import Paginator
-from folder.models import Folder
+# Standard library
+import os
 import string
+
+# Third-party
+import shutil
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
-from django.http import FileResponse, HttpResponse
+
+# Django
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required, permission_required
+from django.core.paginator import Paginator
+from django.http import FileResponse
+from django.shortcuts import redirect, render
+
+# Files App
 from file.models import SharedObject
+
+# Local Django
+from folder.models import Folder
+
 
 # Folder View
 # This view for a folder to preview its content ( files or child folders )

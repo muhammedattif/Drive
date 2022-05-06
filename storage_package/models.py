@@ -1,5 +1,7 @@
-from django.db import models, IntegrityError
+# Django
 from django.conf import settings
+from django.db import IntegrityError, models
+
 
 # Storage package Model
 class StoragePackage(models.Model):
@@ -24,4 +26,3 @@ class StoragePackage(models.Model):
             old_default_package.name = settings.BASIC_PACKAGE_NAME
             old_default_package.storage = settings.BASIC_PACKAGE_STORAGE_LIMIT
             old_default_package.save()
-

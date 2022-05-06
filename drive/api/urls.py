@@ -1,5 +1,8 @@
+# Django
 from django.urls import path
-from .views import DriveSettingsView, ClassifiedFilesView
+
+# Local Django
+from .views import ClassifiedFilesView, DriveSettingsView
 
 app_name = 'drive'
 

@@ -1,6 +1,10 @@
-from django.core.management.base import BaseCommand
-from file.cron import delete_trashed_files
+# Django
 from django.conf import settings
+from django.core.management.base import BaseCommand
+
+# Local Django
+from file.cron import delete_trashed_files
+
 
 class Command(BaseCommand):
     help = f'Delete trashed files after {settings.TRASH_DAYS} day'

@@ -1,16 +1,10 @@
+# Django
 from django.urls import path
-from file.views import (
-upload,
-download,
-move_to_trash,
-get_trashed_files,
-recover,
-delete_file,
-file_settings,
-convert_file_quality,
-stream,
-shared_with
-)
+
+# Local Django
+from file.views import (convert_file_quality, delete_file, download,
+                        file_settings, get_trashed_files, move_to_trash,
+                        recover, shared_with, stream, upload)
 
 app_name = 'file'
 

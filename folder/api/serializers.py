@@ -1,6 +1,12 @@
+# Rest Framework
 from rest_framework import serializers
-from folder.models import Folder
+
+# Files app
 from file.models import File
+
+# Local Django
+from folder.models import Folder
+
 
 class FileSerializer(serializers.ModelSerializer):
     class Meta:

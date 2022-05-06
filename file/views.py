@@ -1,20 +1,30 @@
-from django.shortcuts import render, redirect, reverse
-from file.models import File, Trash, FilePrivacy, FileQuality
-from folder.models import Folder
-from django.contrib.auth.decorators import login_required, permission_required
-from django.http import JsonResponse, HttpResponseRedirect
-from django.contrib import messages
-from file.forms import FilePrivacyForm
-from accounts.models import Account
-from django.http import FileResponse
-from activity.models import Activity
-from django.core.paginator import Paginator
-from file.utils import get_file_cat
-from django.core import exceptions
-import cv2
-from .utils import get_supported_qualities, detect_quality
+# Standard library
 import time
+
+# Django
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required, permission_required
+from django.core import exceptions
+from django.core.paginator import Paginator
+from django.http import FileResponse, HttpResponseRedirect, JsonResponse
+from django.shortcuts import redirect, render, reverse
+
+# Accounts app
+from accounts.models import Account
+
+# Activities app
+from activity.models import Activity
+
+# Folders App
+from folder.models import Folder
+
+# Local Django
+from file.forms import FilePrivacyForm
+from file.models import File, FilePrivacy, FileQuality, Trash
+from file.utils import get_file_cat
 from .models import SharedObject
+from .utils import get_supported_qualities
+
 
 # upload file view
 @login_required(login_url='login')

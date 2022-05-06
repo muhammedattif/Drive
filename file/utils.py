@@ -1,18 +1,22 @@
-from django.conf import settings
-
-# Imports for image compression
-from PIL import Image
-from io import BytesIO
-import sys
-from django.core.files.uploadedfile import InMemoryUploadedFile
-from django.core.files import File
-
-# imports for generating random link
+# Standard library
 import random
-from string import digits, ascii_uppercase, ascii_lowercase
 import subprocess
+import sys
+from io import BytesIO
 from pathlib import Path
+from string import ascii_lowercase, ascii_uppercase, digits
+
+# Third-party
 import cv2
+
+# Django
+from django.conf import settings
+from django.core.files import File
+from django.core.files.uploadedfile import InMemoryUploadedFile
+
+# Third-party
+from PIL import Image
+
 
 # this function is for image compression
 def compress_image(image, image_type):

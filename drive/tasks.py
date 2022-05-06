@@ -1,13 +1,20 @@
-import time
-import subprocess
-from celery import shared_task
+# Standard Library
+import os
+
+# Third-Party
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
-from django.http import HttpResponse
+from celery import shared_task
+
+# Django
 from django.conf import settings
-import os
+
+# Accounts App
 from accounts.models import Account
+
+# Local Django
 from drive.models import CompressedFile
+
 
 @shared_task
 def async_compress_user_files(user_id, compress_id):

@@ -1,7 +1,10 @@
-from rest_framework.views import APIView
+# Rest Framework
 from rest_framework.response import Response
-from rest_framework import status
-from .serializers import DriveSettingsSerializer, ClassifiedFilesSerializer
+from rest_framework.views import APIView
+
+# Local Django
+from .serializers import ClassifiedFilesSerializer, DriveSettingsSerializer
+
 
 class DriveSettingsView(APIView):
 
@@ -16,7 +19,7 @@ class ClassifiedFilesView(APIView):
         classified_files = request.user.get_classified_files()
         serializer = ClassifiedFilesSerializer(classified_files, many=False, read_only=True)
         return Response(serializer.data)
-        
+
 #
 # # Home Page View
 # @login_required(login_url='login')
