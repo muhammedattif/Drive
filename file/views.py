@@ -1,5 +1,6 @@
 # Standard library
 import time
+import os
 
 # Django
 from django.contrib import messages
@@ -8,6 +9,7 @@ from django.core import exceptions
 from django.core.paginator import Paginator
 from django.http import FileResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect, render, reverse
+from django.conf import settings
 
 # Accounts app
 from accounts.models import Account
@@ -192,6 +194,108 @@ def download(request, file_link):
             return redirect('error')
 
     except File.DoesNotExist:
+        return redirect('error')
+
+
+# Rename file View
+@login_required(login_url='login')
+@permission_required('file.can_rename_file', raise_exception=True)
+def rename_file(request, unique_id):
+
+    if request.method != 'POST':
+        return redirect('error')
+
+    file_new_name = request.POST['file_new_name']
+    user = request.user
+
+    try:
+        current_file = File.objects.get(user=user, unique_id=unique_id)
+        file_old_name = current_file.name
+
+        # This code is to know to which page the user is going to be redirect
+        if current_file.parent_folder is not None:
+            redirect_path = current_file.parent_folder.get_absolute_url()
+        else:
+            redirect_path = '/'
+
+        # delete folder dir from physical storage
+
+        if current_file.parent_folder:
+
+            file_old_path = os.path.join(
+                settings.MEDIA_ROOT,
+                settings.DRIVE_PATH,
+                str(user.unique_id),
+                current_file.parent_folder.get_folder_tree_as_dirs(),
+                current_file.name)
+
+            file_new_path = os.path.join(
+                settings.MEDIA_ROOT,
+                settings.DRIVE_PATH,
+                str(user.unique_id),
+                current_file.parent_folder.get_folder_tree_as_dirs(),
+                file_new_name)
+
+            file_db_new_path = os.path.join(
+                settings.DRIVE_PATH,
+                str(user.unique_id),
+                current_file.parent_folder.get_folder_tree_as_dirs(),
+                file_new_name)
+
+        else:
+            file_old_path = os.path.join(
+                settings.MEDIA_ROOT,
+                settings.DRIVE_PATH,
+                str(user.unique_id),
+                current_file.name)
+
+            file_new_path = os.path.join(
+                settings.MEDIA_ROOT,
+                settings.DRIVE_PATH,
+                str(user.unique_id),
+                file_new_name)
+
+            file_db_new_path = os.path.join(
+                settings.DRIVE_PATH,
+                str(user.unique_id),
+                file_new_name)
+
+        if file_new_name == file_old_name:
+            messages.error(request, 'File new name is the same as the old one :)')
+            return redirect(redirect_path)
+
+        # Query the DB to check if there is a file with the new name
+        is_file_exists_in_db = File.objects.filter(user=user, name=file_new_name, parent_folder=current_file.parent_folder).exists()
+
+        if os.path.exists(file_new_path) or is_file_exists_in_db:
+            messages.error(request, 'File with this name is already exists.')
+            return redirect(redirect_path)
+
+        if os.path.exists(file_old_path):
+
+            # Rename file on the physical disk
+            try:
+                os.rename(file_old_path, file_new_path)
+            except:
+                messages.error(request, 'Cannot rename file on the physical storage!')
+                return redirect(redirect_path)
+
+        try:
+            # Rename file in DB
+            current_file.name = file_new_name
+            current_file.file.name = file_db_new_path
+            current_file.save(update_fields=['name', 'file'])
+        except Exception as e:
+            os.rename(file_new_path, file_old_path)
+            messages.error(request, 'Cannot rename the file!')
+            return redirect(redirect_path)
+
+
+        messages.success(request, f'{file_old_name} renamed successfully to {current_file.name}.')
+        return redirect(redirect_path)
+
+    except Exception as e:
+        print(e)
         return redirect('error')
 
 

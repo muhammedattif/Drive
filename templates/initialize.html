@@ -87,7 +87,8 @@
               text: 'Copy Link',
               href: 'javascript:void(0)',
               action: function(e, selector) {
-                 alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
+                var fileLink = selector.children('a').attr('href')
+                CopyFileLink(fileLink, selector.attr("id"))
              }
           },
           {
@@ -140,7 +141,15 @@
               text: 'Rename',
               href: 'javascript:void(0)',
               action: function(e, selector) {
-                 alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
+                var fileId = selector.attr("id")
+
+                $("#renameFileModal").modal()
+                var fileName = selector.children('.file-name').children('a').children('p').text()
+                $('#targetFileInput').attr("value", fileName)
+
+                var url = '{% url "file:rename_file" 1111 %}'.replace('1111', fileId)
+
+                $('#renameFileForm').attr('action', url)
                }
           },
           {% endif %}
