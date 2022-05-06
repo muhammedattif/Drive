@@ -24,6 +24,8 @@ from folder.api.serializers import FolderSerializer, BasicFolderInfoSerializer
 from zipfile import ZIP_DEFLATED, ZipFile
 from django.http import FileResponse
 from file.utils import detect_quality, generate_file_link
+from django.db  import transaction
+
 # Third-Party Libs
 import os
 from pathlib import Path
@@ -141,6 +143,7 @@ class FolderCopyView(APIView, CopyFolderPermission):
 
     permission_classes = [CopyFolderPermission]
 
+    @transaction.atomic
     def put(self, request, uuid):
 
         folder = Folder.objects.prefetch_related('sub_folders', 'files').select_related('user').filter(unique_id=uuid, user=request.user).first()
@@ -160,9 +163,6 @@ class FolderCopyView(APIView, CopyFolderPermission):
             destination_folder = None
             destination_path = os.path.join(settings.MEDIA_ROOT, settings.DRIVE_PATH, str(request.user.unique_id))
 
-        # if self.is_destination_subfolder_of_source(folder_current_path, destination_path):
-        #     raise UnknownError(detail='The destination folder is a subfolder of the source folder.')
-
         try:
             folder_name = self.copy_folder_on_disk(folder_current_path, destination_path)
         except IOError as e:
@@ -172,7 +172,6 @@ class FolderCopyView(APIView, CopyFolderPermission):
 
 
         objects_lists = {
-        'folders_objs': [],
         'files_objs': [],
         'privacy_objs': [],
         'media_props_objs': []
@@ -227,11 +226,11 @@ class FolderCopyView(APIView, CopyFolderPermission):
 
         sub_folders = old_folder.sub_folders.prefetch_related('sub_folders', 'files').select_related('user').all()
         for folder in sub_folders:
-
             new_child_folder = self.duplicate_folder(old_folder=folder, parent_folder=new_folder)
+            # This Line HITS the Database
             new_child_folder.save()
 
-            return self.copy_folder_db_relations(
+            objects_lists, copied_files_size = self.copy_folder_db_relations(
             old_folder=folder,
             new_folder=new_child_folder,
             default_upload_privacy=default_upload_privacy,
@@ -239,8 +238,7 @@ class FolderCopyView(APIView, CopyFolderPermission):
             copied_files_size=copied_files_size
             )
 
-        if sub_folders.count() == 0:
-            return objects_lists, copied_files_size
+        return objects_lists, copied_files_size
 
     def deuplicate_file(self, old_file, parent_folder, default_upload_privacy):
 
@@ -309,15 +307,11 @@ class FolderCopyView(APIView, CopyFolderPermission):
         )
         return folder_name
 
-    def is_destination_subfolder_of_source(self, folder_current_path, destination_path):
-        folder_current_path = pathlib.Path(folder_current_path)
-        destination_path = pathlib.Path(destination_path)
-        return destination_path.is_relative_to(folder_current_path)
-
 class FolderMoveView(APIView):
 
     permission_classes = [MoveFolderPermission]
 
+    @transaction.atomic
     def put(self, request, uuid):
 
         folder = Folder.objects.filter(unique_id=uuid, user=request.user).first()

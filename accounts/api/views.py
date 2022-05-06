@@ -192,7 +192,7 @@ class SharedWithMeList(APIView, PageNumberPagination):
 class SharedWithMeDestroyView(APIView):
 
 	def delete(self, request, sharing_id):
-		shared_file = request.user.shared_with_me.filter(id=sharing_id)
+		shared_file = SharedObject.objects.filter(Q(shared_with=request.user) | Q(shared_by=request.user), id=sharing_id)
 		if not shared_file:
 			raise NotFound()
 		shared_file.delete()

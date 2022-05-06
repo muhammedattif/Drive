@@ -23,7 +23,7 @@ from drive.views import home
 from file.views import download
 import debug_toolbar
 
-from .utils import error, protect_drive_path, protected_serve
+from .utils import error, protect_drive_path, protected_link
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -56,7 +56,7 @@ urlpatterns = [
     # This Urls is for serving urls in production
 
     # Serving Uploaded files
-    path('link/<str:path>', protected_serve, name='file_base_url'),
+    path('link/<str:path>', protected_link, name='file_base_url'),
 
     # Download file
     path('link/<str:file_link>/download', download, name='download'),

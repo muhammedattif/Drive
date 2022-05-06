@@ -1,0 +1,175 @@
+{% extends "drive/home.html" %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/context.standalone.css' %}">
+
+{% block content %}
+
+{% if not shared_objects%}
+<!-- Google font -->
+<link href="https://fonts.googleapis.com/css?family=Raleway:400,700" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Passion+One:900" rel="stylesheet">
+
+<link type="text/css" rel="stylesheet" href="{% static 'uploader/css/no_files_found.css' %}" />
+<div class="drive-wrapper drive-grid-view collapse_grid" id="collapse_grid">
+    <div class="grid-items-wrapper">
+      <div id="main-content" class="file_manager">
+              <div class="container-fluid">
+                  <div class="row clearfix">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-12">
+                                <div id="notfound">
+                                    <div class="notfound">
+                                        <h2>This File/Folder is not shared with anyone yet!</h2>
+                                        <p>Right click on the File/Folder and start sharing it.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                  </div>
+
+              </div>
+          </div>
+
+    </div>
+</div>
+{% endif %}
+
+<!-- Google font -->
+<link href="https://fonts.googleapis.com/css?family=Raleway:400,700" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Passion+One:900" rel="stylesheet">
+
+<link type="text/css" rel="stylesheet" href="{% static 'uploader/css/no_files_found.css' %}" />
+
+
+{% if shared_objects %}
+<span class="badge text-muted mb-1 mt-4">Users</span>
+<div class="drive-wrapper drive-grid-view collapse_grid" id="collapse_grid">
+    <div class="grid-items-wrapper">
+      <div id="main-content" class="file_manager">
+              <div class="container-fluid">
+                  <div class="row clearfix">
+
+                      {% for object in shared_objects  %}
+                      <div class="col-lg-3 col-md-4 col-sm-12">
+                          <div class="card">
+                              <div id="{{object.content_object.unique_id}}" link="{{object.content_object.privacy.link}}" class="file file-context-menu">
+                                <div class="show_settings">
+                                  <div class="file_settings">
+                                    {% csrf_token %}
+                                    <h4><a onclick="removeSharedWith('{{ object.id }}')" href="javascript:void(0)" data-toggle="tooltip" data-placement="top" title="" data-original-title="Stop Sharing"><i class="lni lni-unlink icons delete"></i></a></h4>
+                                  </div>
+                                  <div class="hover">
+                                      <h4><a href="" download data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit Permissions"><i class="lni lni-control-panel download icons"></i></a></h4>
+                                  </div>
+                                </div>
+                                  <a href="{{object.content_object.get_url}}" target="_blank">
+                                      <div class="icon">
+                                        <div class="col-md-4 px-0 m-auto">
+                                          <img  class="rounded img-fluid" style="width:100px;height:100px"
+                                          src="
+                                          {% if object.shared_with.image %}
+                                              {{ object.shared_with.image.url }}
+                                          {% else %}
+                                              {% static 'imgs/avatar.png' %}
+                                          {% endif %}
+                                          "
+                                          alt=""
+                                          >
+
+                                        </div>
+                                      </div>
+
+                                      <div class="file-name">
+                                          <a title="{{ object.content_object.name }}" href="{{object.content_object.get_url}}" target="_blank"><p class="m-b-5 text-muted text-center">{{object.shared_with}}</p></a>
+
+                                          <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" {% if object.permissions.can_view %}checked{% endif %} disabled>
+                                            <label class="form-check-label" for="flexCheckDefault">
+                                              Can View
+                                            </label>
+                                          </div><div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" {% if object.permissions.can_rename %}checked{% endif %} disabled>
+                                            <label class="form-check-label" for="flexCheckDefault">
+                                              Can Rename
+                                            </label>
+                                          </div>
+                                          <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" {% if object.permissions.can_download %}checked{% endif %} disabled>
+                                            <label class="form-check-label" for="flexCheckDefault">
+                                              Can Download
+                                            </label>
+                                          </div>
+                                          <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" {% if object.permissions.can_delete %}checked{% endif %} disabled>
+                                            <label class="form-check-label" for="flexCheckDefault">
+                                              Can Delete
+                                            </label>
+                                          </div>
+
+                                          <small><span class="date text-muted">Shared on: {{object.created_at}}</span></small>
+                                      </div>
+                                  </a>
+                              </div>
+                          </div>
+                      </div>
+                      {% endfor %}
+                  </div>
+
+              </div>
+          </div>
+
+    </div>
+</div>
+{% endif %}
+
+<script src="{% static 'js/jquery.js' %}" crossorigin="anonymous"></script>
+<script type="text/javascript">
+
+
+    function removeSharedWith(id){
+      const csrf_token = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+      var url = '{% url "account_api:remove-shared-with-me" 1111 %}'.replace('1111' ,id)
+      fetch(url, {
+          method: 'DELETE',
+          headers: {
+          "X-CSRFToken": csrf_token
+        },
+      }).then(response => response.json())
+      location.reload()
+    }
+
+    function deleteSharedWith(id){
+      const csrf_token = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+      var url = '{% url "account_api:delete-original-shared-file" 1111 %}'.replace('1111' ,id)
+
+      $.ajax({
+        type: "DELETE",
+        headers: {'X-CSRFToken': '{{csrf_token}}'},
+        url: url,
+        timeout: 5000,
+        success: function(data){
+          location.reload()
+        },
+        error: function(data){
+          $('.context-error').text(data.responseJSON.error_description)
+          var toast = $('.error')
+          toast.toast('show')
+          toast.find('.toast-header').removeClass("bg-success")
+          toast.find('.toast-header').addClass("bg-danger")
+
+          console.log(data.responseJSON);
+        },
+        complete: function(data){
+        },
+      });
+
+    }
+
+</script>
+
+
+
+
+{% endblock %}

@@ -14,6 +14,7 @@ from django.core import exceptions
 import cv2
 from .utils import get_supported_qualities, detect_quality
 import time
+from .models import SharedObject
 
 # upload file view
 @login_required(login_url='login')
@@ -173,7 +174,7 @@ def download(request, file_link):
         file = File.objects.get(privacy__link=file_link)
 
         # Check privacy settings
-        if file.is_public() or (file.user == request.user) or (request.user in file.privacy.accessed_by.all()):
+        if file.is_public() or (file.user == request.user) or (request.user in file.privacy.accessed_by.all()) or file.is_shared_with(request.user)[1]:
             response = FileResponse(file.file, as_attachment=True)
             response['Content-Disposition'] = f'attachment; filename="{file.name}"'
             return response
@@ -258,3 +259,15 @@ def convert_file_quality(request, unique_id, quality):
 
 def stream(request):
     return render(request, 'file/stream.html')
+
+def shared_with(request, unique_id):
+    file = File.objects.filter(unique_id=unique_id, user=request.user).first()
+
+    if not file:
+        return redirect('error')
+
+    shared_objects = SharedObject.objects.filter(object_id=file.id, content_type__model='file', shared_by=request.user)
+    context = {
+      'shared_objects': shared_objects
+    }
+    return render(request, 'shared_with_users_list.html', context)

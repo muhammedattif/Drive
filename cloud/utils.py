@@ -11,7 +11,7 @@ def error(request):
     return render(request, 'error.html')
 
 
-def protected_serve(request, path, document_root=None):
+def protected_link(request, path, document_root=None):
     """
     this function is for serving uploaded files and checking link privacy
     """
@@ -43,7 +43,7 @@ def protected_serve(request, path, document_root=None):
 
         file = File.objects.get(privacy__link=file_link)
         # Check privacy settings
-        if file.is_public() or (file.user == request.user) or (request.user in file.privacy.accessed_by.all()):
+        if file.is_public() or (file.user == request.user) or (request.user in file.privacy.accessed_by.all()) or file.is_shared_with(request.user)[1]:
             # If allowed to view the file then redirect to the file page
             rendered_file = FileResponse(file.file)
             return rendered_file

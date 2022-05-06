@@ -65,7 +65,8 @@
               text: 'Shared with',
               href: 'javascript:void(0)',
               action: function(e, selector) {
-                 alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
+                var url = '{% url "file:shared_with" 1111 %}'.replace('1111', selector.attr("id"))
+                window.location.href = url
                 }
           },
           {% if perms.sharedobject.can_share_files %}
@@ -197,9 +198,9 @@
               text: 'Shared with',
               href: 'javascript:void(0)',
               action: function(e, selector) {
-                 alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id"));
+                var url = '{% url "folder:shared_with" 1111 %}'.replace('1111', selector.attr("id"))
+                window.location.href = url
                 }
-
           },
           {% if perms.folder.can_share_folder %}
           {

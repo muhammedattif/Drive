@@ -10,7 +10,7 @@ import string
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 from django.http import FileResponse, HttpResponse
-
+from file.models import SharedObject
 
 # Folder View
 # This view for a folder to preview its content ( files or child folders )
@@ -254,3 +254,15 @@ def rename_folder(request, unique_id):
 
     except Exception:
         return redirect('error')
+
+def shared_with(request, unique_id):
+    folder = Folder.objects.filter(unique_id=unique_id, user=request.user).first()
+
+    if not folder:
+        return redirect('error')
+
+    shared_objects = SharedObject.objects.filter(object_id=folder.id, content_type__model='folder', shared_by=request.user)
+    context = {
+      'shared_objects': shared_objects
+    }
+    return render(request, 'shared_with_users_list.html', context)
