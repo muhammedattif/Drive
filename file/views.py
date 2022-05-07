@@ -185,6 +185,7 @@ def download(request, file_link):
     try:
         file = File.objects.get(privacy__link=file_link)
 
+        print(file.is_shared_with_perm(request.user, 'can_download'))
         # Check privacy settings
         if file.is_public() or (file.user == request.user) or (request.user in file.privacy.accessed_by.all()) or file.is_shared_with(request.user)[1]:
             response = FileResponse(file.file, as_attachment=True)

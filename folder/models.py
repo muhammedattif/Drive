@@ -144,3 +144,9 @@ class Folder(models.Model):
                 if object.content_object in folder_tree:
                     return object, True
             return None, False
+
+    def is_shared_with_perm(self, user, perm):
+        shared_object, is_shared = self.is_shared_with(user)
+        if not is_shared:
+            return None, False
+        return shared_object, getattr(shared_object.permissions, perm, False)

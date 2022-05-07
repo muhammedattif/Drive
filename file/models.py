@@ -153,6 +153,13 @@ class File(models.Model):
                     return object, True
             return None, False
 
+    def is_shared_with_perm(self, user, perm):
+        shared_object, is_shared = self.is_shared_with(user)
+        if not is_shared:
+            return None, False
+        return shared_object, getattr(shared_object.permissions, perm, False)
+
+
     # this save method is used to hardcode file field
     # if the uploaded file is an image then it will be compressed
     # def save(self, *args, **kwargs):
