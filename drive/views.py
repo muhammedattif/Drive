@@ -275,7 +275,7 @@ def shared_with_me(request):
         blocked_users = blocked_users.users.values_list('id')
 
     files_shared_with_me = request.user.shared_with_me.prefetch_related('shared_by', 'shared_with', 'permissions', 'content_type', 'content_object').filter(\
-    ~Q(shared_with__file_sharing_block_list__users__in=[request.user]),
+    ~Q(shared_by__file_sharing_block_list__users__in=[request.user]),
     ~Q(shared_by__in=blocked_users),
     ~Q(shared_with__in=blocked_users),
     permissions__can_view=True,
