@@ -306,67 +306,6 @@
                         </div>
                       {% endfor %}
                   </div>
-                  <!-- Shared File Modal -->
-                  <div class="modal fade " id="shareWith" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                      <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                          <div class="modal-header primary_bg">
-                            <h5 class="modal-title" id="CreateFolderModal">Share With</h5>
-                            <button type="button" class="close text-light" data-dismiss="modal" aria-label="Close">
-                              <span aria-hidden="true">&times;</span>
-                            </button>
-                          </div>
-                          <div class="modal-body">
-
-                            <form class="shareForm" >
-                                <div class="input-group mb-2">
-                                  <div class="input-group-prepend">
-                                    <span class="input-group-text" id="basic-addon1"><i class="fa-solid fa-user"></i></span>
-                                  </div>
-                                  <input type="text" name="userEmail" class="form-control" placeholder="User Email" aria-label="User Email" aria-describedby="basic-addon1">
-                                </div>
-                                <small id="shareError" class="text-danger"></small>
-
-                                <div class="custom-control custom-checkbox my-1 mr-sm-2">
-                                  <input type="checkbox" class="custom-control-input" id="canView">
-                                  <label class="custom-control-label" for="canView">Can View</label>
-                                </div>
-                                <div class="custom-control custom-checkbox my-1 mr-sm-2">
-                                  <input type="checkbox" class="custom-control-input" id="canRename"
-                                  {% if not perms.file.change_file %}
-                                  disabled
-                                  {% endif %}
-                                  >
-                                  <label class="custom-control-label" for="canRename">Can Rename</label>
-                                </div>
-
-                                <div class="custom-control custom-checkbox my-1 mr-sm-2">
-                                  <input type="checkbox" class="custom-control-input" id="canDownload"
-                                  {% if not perms.file.can_download_file %}
-                                  disabled
-                                  {% endif %}
-                                  >
-                                  <label class="custom-control-label" for="canDownload">Can Download</label>
-                                </div>
-                                <div class="custom-control custom-checkbox my-1 mr-sm-2">
-                                  <input type="checkbox" class="custom-control-input" id="canDelete"
-                                  {% if not perms.file.delete_file %}
-                                  disabled
-                                  {% endif %}
-                                  >
-                                  <label class="custom-control-label" for="canDelete">Can Delete</label>
-                                </div>
-
-                                <button id="submitShare" type="submit" class="btn primary float-right">Share</button>
-
-                            </form>
-
-                          </div>
-
-                        </div>
-                      </div>
-                    </div>
-
               </div>
           </div>
 
@@ -438,6 +377,65 @@
   {% include 'file/files_paginator.html' with files=files %}
 {% endif %}
 
+<!-- Shared File Modal -->
+<div class="modal fade" id="shareWith" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="false">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header primary_bg">
+          <h5 class="modal-title">Share With</h5>
+          <button type="button" class="close text-light" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+
+          <form class="shareForm" >
+              <div class="input-group mb-2">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="basic-addon1"><i class="fa-solid fa-user"></i></span>
+                </div>
+                <input type="text" name="userEmail" class="form-control" placeholder="User Email" aria-label="User Email" aria-describedby="basic-addon1">
+              </div>
+              <small id="shareError" class="text-danger"></small>
+
+              <div class="custom-control custom-checkbox my-1 mr-sm-2">
+                <input type="checkbox" class="custom-control-input" id="canView">
+                <label class="custom-control-label" for="canView">Can View</label>
+              </div>
+              <div class="custom-control custom-checkbox my-1 mr-sm-2">
+                <input type="checkbox" class="custom-control-input" id="canRename"
+                {% if not perms.file.change_file %}
+                disabled
+                {% endif %}
+                >
+                <label class="custom-control-label" for="canRename">Can Rename</label>
+              </div>
+
+              <div class="custom-control custom-checkbox my-1 mr-sm-2">
+                <input type="checkbox" class="custom-control-input" id="canDownload"
+                {% if not perms.file.can_download_file %}
+                disabled
+                {% endif %}
+                >
+                <label class="custom-control-label" for="canDownload">Can Download</label>
+              </div>
+              <div class="custom-control custom-checkbox my-1 mr-sm-2">
+                <input type="checkbox" class="custom-control-input" id="canDelete"
+                {% if not perms.file.delete_file %}
+                disabled
+                {% endif %}
+                >
+                <label class="custom-control-label" for="canDelete">Can Delete</label>
+              </div>
+              <button id="submitShare" type="submit" class="btn primary float-right">Share</button>
+
+          </form>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
 {% if not files and not folders %}
 <div class="drive-wrapper drive-grid-view collapse_grid" id="collapse_grid">
     <div class="grid-items-wrapper">
