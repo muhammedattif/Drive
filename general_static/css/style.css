@@ -940,6 +940,7 @@ th:not(:first-child){
     }
     .box h2{
       position: relative;
+      font-size: 1.5rem;
       /* color: rgba(0,0,0,0.7); */
       z-index: 10;
     }
