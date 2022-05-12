@@ -39,7 +39,7 @@
       <ol class="breadcrumb ">
 
           {% if folder_tree %}
-               <li class="breadcrumb-item "><a href="{% url 'home' %}"><i class="fas fa-home"></i> Home</a></li>
+               <li class="breadcrumb-item "><a class="primary-text" href="{% url 'home' %}"><i class="fas fa-home"></i> Home</a></li>
               {% for folder in folder_tree %}
                   <li class="breadcrumb-item"><a {% if forloop.last %} class="active-dir" {% endif %} href="{% url 'folder:folder' folder.unique_id %}">{% if forloop.last %} <i class="fas fa-folder-open"></i> {% else %}<i class="fas fa-folder-open"></i> {% endif %} {{ folder.name }}</a></li>
               {% endfor %}

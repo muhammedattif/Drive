@@ -60,7 +60,7 @@ html, body {
   -webkit-transition: all 0.3s ease;
 }
 .form-structor .signup .form-title {
-  color: rgb(238, 133, 29);
+  color: #3f4c6b;
   font-size: 1.7em;
   text-align: center;
 }
@@ -99,7 +99,7 @@ html, body {
 }
 .form-structor .signup .submit-btn {
   background-color: rgb(255, 255, 255);
-  color: rgb(238, 133, 29);
+  color: #3f4c6b;
   border: 0;
   border-radius: 15px;
   display: block;
@@ -150,7 +150,7 @@ html, body {
   -webkit-transition: all 0.3s ease;
 }
 .form-structor .login .center .form-title {
-  color:rgb(238, 133, 29);
+  color:#3f4c6b;
   font-size: 1.7em;
   text-align: center;
 }
@@ -189,7 +189,7 @@ html, body {
   color: rgba(0, 0, 0, 0.4);
 }
 .form-structor .login .center .submit-btn {
-  background-color: rgb(238, 133, 29);
+  background-color: #3f4c6b;
   color: rgba(255, 255, 255, 1);
   border: 0;
   border-radius: 15px;
@@ -206,7 +206,7 @@ html, body {
 }
 .form-structor .login .center .submit-btn:hover {
   transition: all 0.3s ease;
-  background-color: rgb(238, 133, 29, 0.9);
+  background-color: #606c88;
 }
 .form-structor .login.slide-up {
   top: 90%;
@@ -249,5 +249,5 @@ html, body {
 }
 
 .primary{
-  color:rgb(238, 133, 29);
+  color:#3f4c6b;
 }

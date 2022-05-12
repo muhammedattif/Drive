@@ -1,7 +1,7 @@
 
 
 .upload .upload-files header {
-  background-color: rgb(238, 133, 29);
+  background-color: #3f4c6b;
     padding-bottom: 5px;
   border-radius: 5px 5px 0px 0px;
   text-align: center;
@@ -286,7 +286,7 @@
   visibility: visible;
 }
 .upload .upload-files footer .importar:hover {
-  background: rgb(238, 133, 29);
+  color: #3f4c6b;
   color: #fff;
 }
 @-webkit-keyframes fadeup {

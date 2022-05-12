@@ -837,26 +837,32 @@ a:hover {
 .delete:hover{
   color: #dc3545!important
 }
+.primary-text{
+  color: #3f4c6b!important
+}
+.primary-text:hover{
+  color: #606c88!important
+}
 .primary{
   color: white;
-  background-color: rgb(238, 133, 29)
+  background: #3f4c6b;
 }
 .primary-outline{
   color: #6c757d;
-  border-color: rgb(238, 133, 29)
+  border-color: #3f4c6b
 
 }
 .primary-outline:hover{
   color: white;
-  background-color: rgb(238, 133, 29)
+  background-color: #606c88
 }
 
 .primary:hover{
   color: white;
-  background-color: rgba(238, 133, 29, 0.9)
+  background-color: #606c88
 }
 .primary_bg{
-    background-color: rgb(238, 133, 29);
+    background-color: #3f4c6b;
     color: white
 }
 .content-panel{

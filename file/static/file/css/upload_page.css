@@ -29,7 +29,7 @@ body {
   opacity: 0;
 }
 .upload .upload-files header {
-  background-color: rgb(238, 133, 29);
+  background-color: #3f4c6b;
 
   border-radius: 5px;
   text-align: center;
@@ -314,7 +314,7 @@ body {
   visibility: visible;
 }
 .upload .upload-files footer .importar:hover {
-  background: rgb(238, 133, 29);
+  color: #3f4c6b;
   color: #fff;
 }
 @-webkit-keyframes fadeup {
@@ -373,11 +373,11 @@ body {
 }
 
 .primary{
-  color:rgb(238, 133, 29);
+  color:#3f4c6b;
 }
 
 .main-bg{
-  background-color: rgb(238, 133, 29);
+  background-color: #3f4c6b;
   color: white;
   -webkit-transition: all 0.3s ease;
 

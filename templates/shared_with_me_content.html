@@ -69,7 +69,7 @@
                                     </div>
                                       <a href="{% url 'drive:shared-with-me-detail' object.id %}">
                                           <div class="icon">
-                                              <i class="fa fa-folder text-primary folder-icon" ></i>
+                                              <i class="fa fa-folder primary-text folder-icon primary-text" ></i>
                                           </div>
                                           <div class="file-name">
                                               <a title="{{ folder.name }}" href=""><p class="m-b-5 text-muted">{{ object.content_object.name }}</p></a>
@@ -244,9 +244,9 @@
                                            <td class="text-muted h6 m-4">Location</td>
                                            <td> </td>
                                            {% if file.parent_folder %}
-                                            <td class="m-4"><a href="{% url 'folder:folder' file.parent_folder.unique_id %}"><i class="fa fa-folder"></i> {{file.parent_folder.name}}</a></td>
+                                            <td class="m-4"><a class="primary-text" href="{% url 'folder:folder' file.parent_folder.unique_id %}"><i class="fa fa-folder"></i> {{file.parent_folder.name}}</a></td>
                                             {% else %}
-                                            <td class="m-4"><a href="{% url 'home' %}"><i class="fa-solid fa-house"></i> Home</a></td>
+                                            <td class="m-4"><a class="primary-text" href="{% url 'home' %}"><i class="fa-solid fa-house"></i> Home</a></td>
                                            {% endif %}
                                        </tr>
 

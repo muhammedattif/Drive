@@ -2,7 +2,6 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'css/context.standalone.css' %}">
 
-
 <div class="position-fixed top-10% right-0% p-3" style="z-index: 5; right: 0; top: 0;">
   <div class="toast hide error" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
     <div class="toast-header bg-danger" style="color: white;">
@@ -46,7 +45,7 @@
                                     </div>
                                       <a href="{% url 'folder:folder' folder.unique_id %}">
                                           <div class="icon">
-                                              <i class="fa fa-folder text-primary folder-icon" ></i>
+                                              <i class="fa fa-folder folder-icon primary-text"></i>
                                           </div>
                                           <div class="file-name">
                                               <a title="{{ folder.name }}" href="{% url 'folder:folder' folder.unique_id %}"><p class="m-b-5 text-muted">{{ folder.name }}</p></a>
@@ -278,7 +277,7 @@
                                            {% if file.parent_folder %}
                                             <td class="m-4"><a href="{% url 'folder:folder' file.parent_folder.unique_id %}"><i class="fa fa-folder"></i> {{file.parent_folder.name}}</a></td>
                                             {% else %}
-                                            <td class="m-4"><a href="{% url 'home' %}"><i class="fa-solid fa-house"></i> Home</a></td>
+                                            <td class="m-4"><a class="primary-text" href="{% url 'home' %}"><i class="fa-solid fa-house"></i> Home</a></td>
                                            {% endif %}
                                        </tr>
 
